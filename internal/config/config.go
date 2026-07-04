@@ -1,29 +1,34 @@
 package config
 
-// Config holds gateway HTTP server and downstream gRPC client settings.
+import (
+	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
+const configPath = "config/config.yaml"
+
 type Config struct {
-	Server ServerConfig `yaml:"server"`
-	GRPC   GRPCConfig   `yaml:"grpc"`
+	Server          ServerConfig    `yaml:"server"`
+	GRPC            GRPCConfig      `yaml:"grpc"`
+	RPCClientParams RPCClientParams `yaml:"rpc_client"`
 }
 
 type ServerConfig struct {
 	Addr string `yaml:"addr"`
-	Mode string `yaml:"mode"` // debug | release | test
+	Mode string `yaml:"mode"`
 }
 
-type GRPCConfig struct {
-	CoreServerAddr string `yaml:"core_server_addr"`
-}
-
-// Load reads configuration from configs/config.yaml.
 func Load() (*Config, error) {
-	return &Config{
-		Server: ServerConfig{
-			Addr: ":8080",
-			Mode: "debug",
-		},
-		GRPC: GRPCConfig{
-			CoreServerAddr: "localhost:9090",
-		},
-	}, nil
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, fmt.Errorf("read config %s: %w", configPath, err)
+	}
+
+	cfg := &Config{}
+	if err := yaml.Unmarshal(data, cfg); err != nil {
+		return nil, fmt.Errorf("parse config %s: %w", configPath, err)
+	}
+	return cfg, nil
 }

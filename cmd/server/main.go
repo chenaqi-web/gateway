@@ -2,9 +2,11 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"backend/gateway/internal/config"
-	"backend/gateway/internal/router"
 )
 
 func main() {
@@ -13,8 +15,21 @@ func main() {
 		log.Fatalf("load config: %v", err)
 	}
 
-	r := router.New(cfg)
-	if err := r.Run(cfg.Server.Addr); err != nil {
-		log.Fatalf("gateway server: %v", err)
+	srv, err := InitializeServer(cfg)
+	if err != nil {
+		log.Fatalf("initialize server: %v", err)
 	}
+
+	go func() {
+		if err := srv.Start(); err != nil {
+			log.Fatalf("server server: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("shutting down gateway...")
+	srv.Stop()
 }

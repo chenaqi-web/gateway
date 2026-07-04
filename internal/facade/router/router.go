@@ -1,13 +1,14 @@
 package router
 
 import (
+	"backend/gateway/internal/facade/controller"
+
 	"github.com/gin-gonic/gin"
 
 	"backend/gateway/internal/config"
 )
 
-// New builds the Gin engine and registers all HTTP routes.
-func New(cfg *config.Config) *gin.Engine {
+func New(cfg *config.Config, health *controller.HealthController) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
 	r := gin.New()
@@ -15,7 +16,7 @@ func New(cfg *config.Config) *gin.Engine {
 
 	v1 := r.Group("/api/v1")
 	{
-		_ = v1 // register controllers here
+		v1.GET("/health/ping", health.Ping)
 	}
 
 	return r

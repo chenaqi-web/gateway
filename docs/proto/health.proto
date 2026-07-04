@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package api.v1;
+
+option go_package = "backend/gateway/internal/client/rpc/core-rpc/healthpb;healthpb";
+
+service HealthService {
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message PingRequest {}
+
+message PingResponse {
+  string message = 1;
+}

@@ -1,6 +1,0 @@
-server:
-  addr: ":8080"
-  mode: debug
-
-grpc:
-  core_server_addr: "localhost:9090"
