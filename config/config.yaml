@@ -2,8 +2,6 @@ server:
   addr: "127.0.0.1:8080"
   mode: debug
 
-grpc:
+rpc:
   core_server_addr: "127.0.0.1:8081"
-
-rpc_client:
   request_timeout: 5

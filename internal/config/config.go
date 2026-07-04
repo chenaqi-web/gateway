@@ -10,9 +10,8 @@ import (
 const configPath = "config/config.yaml"
 
 type Config struct {
-	Server          ServerConfig    `yaml:"server"`
-	GRPC            GRPCConfig      `yaml:"grpc"`
-	RPCClientParams RPCClientParams `yaml:"rpc_client"`
+	Server ServerConfig `yaml:"server"`
+	RPC    RPCConfig    `yaml:"rpc"`
 }
 
 type ServerConfig struct {

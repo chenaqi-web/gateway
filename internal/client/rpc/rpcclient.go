@@ -29,7 +29,7 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 		return nil, err
 	}
 
-	timeoutSec := cfg.RPCClientParams.RequestTimeout
+	timeoutSec := cfg.RPC.RequestTimeout
 	if timeoutSec <= 0 {
 		timeoutSec = 5
 	}
@@ -43,11 +43,11 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 
 func newCoreConnection(cfg *config.Config) (*grpc.ClientConn, error) {
 	conn, err := grpc.NewClient(
-		cfg.GRPC.CoreServerAddr,
+		cfg.RPC.CoreServerAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("dial core-server %s: %w", cfg.GRPC.CoreServerAddr, err)
+		return nil, fmt.Errorf("dial core-server %s: %w", cfg.RPC.CoreServerAddr, err)
 	}
 	return conn, nil
 }
