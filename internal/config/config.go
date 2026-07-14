@@ -12,6 +12,7 @@ const configPath = "config/config.yaml"
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	RPC    RPCConfig    `yaml:"rpc"`
+	HTTP   HTTPConfig   `yaml:"http"`
 }
 
 type ServerConfig struct {

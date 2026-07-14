@@ -1,6 +1,7 @@
 package controller
 
 import (
+	myhttp "backend/gateway/internal/client/http"
 	"backend/gateway/internal/model/reponse"
 	"context"
 	"log"
@@ -13,7 +14,8 @@ import (
 )
 
 type HealthController struct {
-	rpc *rpc.Client
+	rpc  *rpc.Client
+	http *myhttp.PyClient
 }
 
 func NewHealthController(rpcClient *rpc.Client) *HealthController {
