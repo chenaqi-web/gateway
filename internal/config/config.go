@@ -7,12 +7,15 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const configPath = "config/config.yaml"
+const configPath = "conf/config.yaml"
 
 type Config struct {
 	Server ServerConfig `yaml:"server"`
 	RPC    RPCConfig    `yaml:"rpc"`
 	HTTP   HTTPConfig   `yaml:"http"`
+	Mysql  MySQLConfig  `yaml:"Mysql"`
+	Redis  RedisConfig  `yaml:"Redis"`
+	Log    LogConfig    `yaml:"Log"`
 }
 
 type ServerConfig struct {

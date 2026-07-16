@@ -1,0 +1,34 @@
+server:
+  addr: "127.0.0.1:8079"
+  mode: release
+
+Log:
+  Level: "debug"
+  # console=仅终端彩色 | file=仅文件JSON
+  Mode: "console"
+  Filename: "logs/gateway.log"
+
+rpc:
+  core_server_addr: "127.0.0.1:8081"
+  request_timeout: 5
+
+http:
+  agent_server_addr: "http://127.0.0.1:8080"
+  request_timeout: 30
+
+Mysql:
+  Host: "127.0.0.1"
+  Port: "3306"
+  username: "root"
+  password: "123456"
+  dbname: "renai"
+  config: "charset=utf8mb4&parseTime=True&loc=Local"
+  Max_Idle_Conn: 10
+  Max_Open_Conn: 100
+
+Redis:
+  Host: "127.0.0.1"
+  Port: "6379"
+  username: "root"
+  password: ""
+  db: 0

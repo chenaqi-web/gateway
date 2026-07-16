@@ -10,6 +10,9 @@ import (
 	"backend/gateway/internal/client/rpc"
 	"backend/gateway/internal/config"
 	"backend/gateway/internal/facade/controller"
+	"backend/gateway/internal/facade/router"
+	"backend/gateway/internal/infras/cache"
+	"backend/gateway/internal/infras/repo"
 	"backend/gateway/internal/server"
 )
 
@@ -20,8 +23,14 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	dbClient, err := repo.NewDBClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	cacheClient := cache.NewClient(cfg)
 	healthController := controller.NewHealthController(client)
-	serverServer, err := server.NewServer(cfg, client, healthController)
+	engine := router.New(cfg, healthController)
+	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err
 	}

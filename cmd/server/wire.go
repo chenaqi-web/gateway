@@ -9,6 +9,7 @@ import (
 	"backend/gateway/internal/client"
 	"backend/gateway/internal/config"
 	"backend/gateway/internal/facade"
+	"backend/gateway/internal/infras"
 	"backend/gateway/internal/server"
 )
 
@@ -18,6 +19,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	wire.Build(
 		client.ProviderSet,
 		facade.ProviderSet,
+		infras.ProviderSet,
 		server.ProviderSet,
 	)
 	return nil, nil

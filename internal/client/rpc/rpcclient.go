@@ -64,6 +64,11 @@ func (c *Client) GetRequestTimeout() time.Duration {
 	return c.requestTimeout
 }
 
+// =====================================================================================================================
+// 下面是健康检测
+
 func (c *Client) GetHealthClient() healthpb.HealthServiceClient {
 	return c.healthClient
 }
+
+//===============

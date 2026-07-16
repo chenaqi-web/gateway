@@ -11,24 +11,32 @@ import (
 
 	"backend/gateway/internal/client/rpc"
 	"backend/gateway/internal/config"
-	"backend/gateway/internal/facade/controller"
-	"backend/gateway/internal/facade/router"
+	"backend/gateway/internal/infras/cache"
+	"backend/gateway/internal/infras/repo"
 )
 
 type Server struct {
-	cfg        *config.Config
-	Engine     *gin.Engine
-	httpServer *http.Server
-	rpcClient  *rpc.Client
+	cfg         *config.Config
+	Engine      *gin.Engine
+	httpServer  *http.Server
+	rpcClient   *rpc.Client
+	dbClient    *repo.DBClient
+	cacheClient *cache.CacheClient
 }
 
-func NewServer(cfg *config.Config, rpcClient *rpc.Client, health *controller.HealthController) (*Server, error) {
-	engine := router.New(cfg, health)
-
+func NewServer(
+	cfg *config.Config,
+	rpcClient *rpc.Client,
+	dbClient *repo.DBClient,
+	cacheClient *cache.CacheClient,
+	engine *gin.Engine,
+) (*Server, error) {
 	return &Server{
-		cfg:       cfg,
-		Engine:    engine,
-		rpcClient: rpcClient,
+		cfg:         cfg,
+		Engine:      engine,
+		rpcClient:   rpcClient,
+		dbClient:    dbClient,
+		cacheClient: cacheClient,
 		httpServer: &http.Server{
 			Addr:    cfg.Server.Addr,
 			Handler: engine,
@@ -49,11 +57,21 @@ func (s *Server) Stop() {
 	defer cancel()
 
 	if err := s.httpServer.Shutdown(ctx); err != nil {
-		log.Printf("shutdown server server: %v", err)
+		log.Printf("shutdown server: %v", err)
 	}
 	if s.rpcClient != nil {
 		if err := s.rpcClient.Close(); err != nil {
 			log.Printf("close rpc client: %v", err)
+		}
+	}
+	if s.dbClient != nil {
+		if err := s.dbClient.Close(); err != nil {
+			log.Printf("close mysql: %v", err)
+		}
+	}
+	if s.cacheClient != nil {
+		if err := s.cacheClient.Close(); err != nil {
+			log.Printf("close redis: %v", err)
 		}
 	}
 }
