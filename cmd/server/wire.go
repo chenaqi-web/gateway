@@ -4,6 +4,8 @@
 package main
 
 import (
+	"backend/gateway/internal/application"
+
 	"github.com/google/wire"
 
 	"backend/gateway/internal/client"
@@ -18,6 +20,7 @@ import (
 func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	wire.Build(
 		client.ProviderSet,
+		application.ProviderSet,
 		facade.ProviderSet,
 		infras.ProviderSet,
 		server.ProviderSet,

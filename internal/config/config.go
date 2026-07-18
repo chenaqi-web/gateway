@@ -16,6 +16,8 @@ type Config struct {
 	Mysql  MySQLConfig  `yaml:"Mysql"`
 	Redis  RedisConfig  `yaml:"Redis"`
 	Log    LogConfig    `yaml:"Log"`
+	LLM    LLMConfig    `yaml:"llm"`
+	AiChat AiChatConfig `yaml:"ai_chat"`
 }
 
 type ServerConfig struct {

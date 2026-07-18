@@ -6,7 +6,7 @@ import (
 
 	httpclient "backend/gateway/internal/client/http"
 	"backend/gateway/internal/config"
-	"backend/gateway/internal/model/request"
+	"backend/gateway/internal/model/dto"
 )
 
 func TestSearchVectors(t *testing.T) {
@@ -17,7 +17,7 @@ func TestSearchVectors(t *testing.T) {
 		},
 	})
 
-	resp, err := client.SearchVectors(context.Background(), "test_knowledge", &request.VectorSearchRequest{
+	resp, err := client.SearchVectors(context.Background(), "test_knowledge", &dto.VectorSearchRequest{
 		Content: "如何重置密码",
 		TopK:    new(5),
 	})

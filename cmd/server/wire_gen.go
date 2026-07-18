@@ -7,10 +7,13 @@
 package main
 
 import (
+	"backend/gateway/internal/application"
+	"backend/gateway/internal/client/http"
 	"backend/gateway/internal/client/rpc"
 	"backend/gateway/internal/config"
 	"backend/gateway/internal/facade/controller"
 	"backend/gateway/internal/facade/router"
+	"backend/gateway/internal/infras/api/llm"
 	"backend/gateway/internal/infras/cache"
 	"backend/gateway/internal/infras/repo"
 	"backend/gateway/internal/server"
@@ -28,8 +31,16 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 		return nil, err
 	}
 	cacheClient := cache.NewClient(cfg)
+	aiChatRepo := repo.NewAiChatRepo(dbClient)
+	pyClient := http.NewHTTPClient(cfg)
+	llmClient, err := llm.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	aiChatService := application.NewAiChatService(cfg, aiChatRepo, pyClient, llmClient)
 	healthController := controller.NewHealthController(client)
-	engine := router.New(cfg, healthController)
+	aiChatController := controller.NewAiChatController(aiChatService)
+	engine := router.New(cfg, healthController, aiChatController)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err

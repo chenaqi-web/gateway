@@ -1,8 +1,7 @@
 package controller
 
 import (
-	myhttp "backend/gateway/internal/client/http"
-	"backend/gateway/internal/model/reponse"
+	"backend/gateway/internal/model/dto"
 	"context"
 	"log"
 	"net/http"
@@ -14,8 +13,7 @@ import (
 )
 
 type HealthController struct {
-	rpc  *rpc.Client
-	http *myhttp.PyClient
+	rpc *rpc.Client
 }
 
 func NewHealthController(rpcClient *rpc.Client) *HealthController {
@@ -33,5 +31,5 @@ func (h *HealthController) Ping(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, reponse.PingResponse{Message: resp.GetMessage()})
+	c.JSON(http.StatusOK, dto.PingResponse{Message: resp.GetMessage()})
 }

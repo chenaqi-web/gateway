@@ -16,7 +16,7 @@ func Cors() gin.HandlerFunc {
 		// 允许的请求方法
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		// 允许的请求头
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-User-Id")
 
 		// 如果是预检请求（OPTIONS），直接返回，不继续处理
 		if c.Request.Method == http.MethodOptions {

@@ -9,7 +9,10 @@ import (
 	"backend/gateway/internal/config"
 )
 
-func New(cfg *config.Config, health *controller.HealthController) *gin.Engine {
+func New(cfg *config.Config,
+	health *controller.HealthController,
+	aiChat *controller.AiChatController,
+) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
 	r := gin.New()
@@ -21,6 +24,15 @@ func New(cfg *config.Config, health *controller.HealthController) *gin.Engine {
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health/ping", health.Ping)
+
+		ai := v1.Group("/ai-chat")
+		{
+			ai.POST("/session", aiChat.CreateSession)
+			ai.GET("/sessions", aiChat.ListSessions)
+			ai.GET("/session/:id", aiChat.GetSession)
+			ai.GET("/session/:id/messages", aiChat.ListMessages)
+			ai.POST("/chat", aiChat.Chat)
+		}
 	}
 
 	return r

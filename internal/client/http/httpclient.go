@@ -11,8 +11,7 @@ import (
 	"time"
 
 	"backend/gateway/internal/config"
-	"backend/gateway/internal/model/reponse"
-	"backend/gateway/internal/model/request"
+	"backend/gateway/internal/model/dto"
 )
 
 type PyClient struct {
@@ -50,8 +49,8 @@ func (c *PyClient) GetRequestTimeout() time.Duration {
 func (c *PyClient) SearchVectors(
 	ctx context.Context,
 	collectionName string,
-	req *request.VectorSearchRequest,
-) (*reponse.VectorSearchResponse, error) {
+	req *dto.VectorSearchRequest,
+) (*dto.VectorSearchResponse, error) {
 	if collectionName == "" {
 		return nil, fmt.Errorf("collection_name is required")
 	}
@@ -86,7 +85,7 @@ func (c *PyClient) SearchVectors(
 		return nil, fmt.Errorf("agent-server status %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	var result reponse.VectorSearchResponse
+	var result dto.VectorSearchResponse
 	if err := json.Unmarshal(respBody, &result); err != nil {
 		return nil, fmt.Errorf("unmarshal agent-server response: %w", err)
 	}

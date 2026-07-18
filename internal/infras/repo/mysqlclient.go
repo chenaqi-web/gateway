@@ -1,11 +1,11 @@
 package repo
 
 import (
-	"context"
 	"fmt"
 	"log"
 
 	"backend/gateway/internal/config"
+	"backend/gateway/internal/model/entity"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -34,8 +34,19 @@ func NewDBClient(cfg *config.Config) (*DBClient, error) {
 	sqlDB.SetMaxIdleConns(mysqlCfg.MaxIdleConn)
 	sqlDB.SetMaxOpenConns(mysqlCfg.MaxOpenConn)
 
+	if err := migrate(db); err != nil {
+		return nil, fmt.Errorf("auto migrate: %w", err)
+	}
+
 	log.Println("mysql connected successfully")
 	return &DBClient{DB: db}, nil
+}
+
+func migrate(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&entity.AiChatSession{},
+		&entity.AiChatMessage{},
+	)
 }
 
 func (c *DBClient) Close() error {
@@ -48,16 +59,4 @@ func (c *DBClient) Close() error {
 
 func (c *DBClient) GetDB() *gorm.DB {
 	return c.DB
-}
-
-type txContextKey struct{}
-
-func withTx(ctx context.Context, tx *gorm.DB) context.Context {
-	return context.WithValue(ctx, txContextKey{}, tx)
-}
-
-func (c *DBClient) WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
-	return c.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		return fn(withTx(ctx, tx))
-	})
 }

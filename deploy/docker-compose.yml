@@ -1,0 +1,35 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: gateway-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "ps"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: gateway-ollama-pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        echo "Pulling Ollama model: llama3.2"
+        ollama pull llama3.2
+        echo "Model llama3.2 is ready."
+    restart: "no"
+
+volumes:
+  ollama_data:
