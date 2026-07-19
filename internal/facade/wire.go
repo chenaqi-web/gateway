@@ -9,6 +9,7 @@ import (
 
 var ProviderSet = wire.NewSet(
 	// 注册处理器
+	controller.NewUserController,
 	controller.NewHealthController,
 	controller.NewAiChatController,
 	router.New,

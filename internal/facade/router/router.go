@@ -12,6 +12,7 @@ import (
 func New(cfg *config.Config,
 	health *controller.HealthController,
 	aiChat *controller.AiChatController,
+	userCtrl *controller.UserController,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
@@ -33,6 +34,12 @@ func New(cfg *config.Config,
 			ai.GET("/session/:id/messages", aiChat.ListMessages)
 			ai.POST("/chat", aiChat.Chat)
 		}
+
+		user := v1.Group("/user")
+		{
+			user.GET("/", userCtrl.Get)
+		}
+
 	}
 
 	return r

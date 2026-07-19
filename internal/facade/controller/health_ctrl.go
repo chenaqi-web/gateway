@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/client/rpc/core_rpc/healthpb"
+	"backend/gateway/internal/client/rpc/core-rpc/healthpb"
 )
 
 type HealthController struct {

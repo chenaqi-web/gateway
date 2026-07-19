@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"backend/gateway/internal/client/rpc/core-rpc/userpb"
 	"fmt"
 	"time"
 
@@ -8,7 +9,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"backend/gateway/internal/client/rpc/core_rpc/healthpb"
+	"backend/gateway/internal/client/rpc/core-rpc/healthpb"
+
 	"backend/gateway/internal/config"
 )
 
@@ -18,6 +20,7 @@ type Client struct {
 
 	// 不同的proto客户端
 	healthClient healthpb.HealthServiceClient
+	UserClient   userpb.UserServiceClient
 
 	// 请求超时时间
 	requestTimeout time.Duration
@@ -37,6 +40,7 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 	return &Client{
 		coreConnection: coreConn,
 		healthClient:   healthpb.NewHealthServiceClient(coreConn),
+		UserClient:     userpb.NewUserServiceClient(coreConn),
 		requestTimeout: time.Second * time.Duration(timeoutSec),
 	}, nil
 }
@@ -69,6 +73,10 @@ func (c *Client) GetRequestTimeout() time.Duration {
 
 func (c *Client) GetHealthClient() healthpb.HealthServiceClient {
 	return c.healthClient
+}
+
+func (c *Client) GetUserClient() userpb.UserServiceClient {
+	return c.UserClient
 }
 
 //===============

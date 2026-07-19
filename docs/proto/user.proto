@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+// provide user like service
+// 1. add like
+
+
+package user;
+//import "idl/validate/validate.proto";
+option go_package = "backend/gateway/internal/client/rpc/core-rpc/userpb;userpb";
+
+
+message LoginReq {
+}
+message LoginResp {
+}
+
+
+service UserService {
+  rpc Login(LoginReq) returns (LoginResp){};
+}
