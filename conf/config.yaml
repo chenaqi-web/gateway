@@ -49,3 +49,14 @@ llm:
 ai_chat:
   vector_collection: "test_knowledge"
   default_top_k: 5
+
+storage:
+  # provider: local | cos | oss
+  provider: local
+  base_path: "./static/upload"
+  base_url: "http://127.0.0.1:8079"
+  access_key: ""
+  secret_key: ""
+  bucket: ""
+  region: ""
+  max_size: 10485760 # 10MB

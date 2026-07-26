@@ -1,8 +1,9 @@
-package router
+package facade
 
 import (
 	"backend/gateway/internal/facade/controller"
 	"backend/gateway/internal/facade/middleware"
+	"backend/gateway/internal/facade/router"
 
 	"github.com/gin-gonic/gin"
 
@@ -13,6 +14,7 @@ func New(cfg *config.Config,
 	health *controller.HealthController,
 	aiChat *controller.AiChatController,
 	userCtrl *controller.UserController,
+	storageCtrl *controller.StorageController,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
@@ -22,23 +24,17 @@ func New(cfg *config.Config,
 	r.Use(middleware.Cors())
 	// r.Use(middleware.Recovery(), middleware.CORS())
 
+	// 注册静态路由（含 static/upload 上传目录）
+	r.Static("/static", "./static")
+
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health/ping", health.Ping)
 
-		ai := v1.Group("/ai-chat")
-		{
-			ai.POST("/session", aiChat.CreateSession)
-			ai.GET("/sessions", aiChat.ListSessions)
-			ai.GET("/session/:id", aiChat.GetSession)
-			ai.GET("/session/:id/messages", aiChat.ListMessages)
-			ai.POST("/chat", aiChat.Chat)
-		}
-
-		user := v1.Group("/user")
-		{
-			user.GET("/", userCtrl.Get)
-		}
+		// 注册路由
+		router.NewAIRouter(v1, aiChat)
+		router.NewUserRouter(v1, userCtrl)
+		router.NewStorageRouter(v1, storageCtrl)
 
 	}
 

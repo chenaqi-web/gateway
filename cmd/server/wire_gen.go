@@ -11,11 +11,12 @@ import (
 	"backend/gateway/internal/client/http"
 	"backend/gateway/internal/client/rpc"
 	"backend/gateway/internal/config"
+	"backend/gateway/internal/facade"
 	"backend/gateway/internal/facade/controller"
-	"backend/gateway/internal/facade/router"
 	"backend/gateway/internal/infras/api/llm"
 	"backend/gateway/internal/infras/cache"
 	"backend/gateway/internal/infras/repo"
+	"backend/gateway/internal/infras/storage"
 	"backend/gateway/internal/server"
 )
 
@@ -31,6 +32,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 		return nil, err
 	}
 	cacheClient := cache.NewClient(cfg)
+	healthController := controller.NewHealthController(client)
 	aiChatRepo := repo.NewAiChatRepo(dbClient)
 	pyClient := http.NewHTTPClient(cfg)
 	llmClient, err := llm.NewClient(cfg)
@@ -38,9 +40,15 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 		return nil, err
 	}
 	aiChatService := application.NewAiChatService(cfg, aiChatRepo, pyClient, llmClient)
-	healthController := controller.NewHealthController(client)
 	aiChatController := controller.NewAiChatController(aiChatService)
-	engine := router.New(cfg, healthController, aiChatController)
+	userController := controller.NewUserController(client)
+	storageClient, err := storage.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	storageService := application.NewStorageService(cfg, storageClient)
+	storageController := controller.NewStorageController(storageService)
+	engine := facade.New(cfg, healthController, aiChatController, userController, storageController)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err

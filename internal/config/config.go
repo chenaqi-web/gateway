@@ -10,14 +10,15 @@ import (
 const configPath = "conf/config.yaml"
 
 type Config struct {
-	Server ServerConfig `yaml:"server"`
-	RPC    RPCConfig    `yaml:"rpc"`
-	HTTP   HTTPConfig   `yaml:"http"`
-	Mysql  MySQLConfig  `yaml:"Mysql"`
-	Redis  RedisConfig  `yaml:"Redis"`
-	Log    LogConfig    `yaml:"Log"`
-	LLM    LLMConfig    `yaml:"llm"`
-	AiChat AiChatConfig `yaml:"ai_chat"`
+	Server  ServerConfig  `yaml:"server"`
+	RPC     RPCConfig     `yaml:"rpc"`
+	HTTP    HTTPConfig    `yaml:"http"`
+	Mysql   MySQLConfig   `yaml:"Mysql"`
+	Redis   RedisConfig   `yaml:"Redis"`
+	Log     LogConfig     `yaml:"Log"`
+	LLM     LLMConfig     `yaml:"llm"`
+	AiChat  AiChatConfig  `yaml:"ai_chat"`
+	Storage StorageConfig `yaml:"storage"`
 }
 
 type ServerConfig struct {
