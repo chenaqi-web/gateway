@@ -2,6 +2,10 @@ server:
   addr: "127.0.0.1:8079"
   mode: release
 
+auth:
+  refresh_expire: "168h"
+  cookie_secure: false
+
 Log:
   Level: "debug"
   # console=仅终端彩色 | file=仅文件JSON
