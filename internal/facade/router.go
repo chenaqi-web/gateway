@@ -12,6 +12,7 @@ import (
 
 func New(cfg *config.Config,
 	health *controller.HealthController,
+	authCtrl *controller.AuthController,
 	aiChat *controller.AiChatController,
 	userCtrl *controller.UserController,
 	storageCtrl *controller.StorageController,
@@ -30,6 +31,7 @@ func New(cfg *config.Config,
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health/ping", health.Ping)
+		router.NewAuthRouter(v1, authCtrl)
 
 		// 注册路由
 		router.NewAIRouter(v1, aiChat)
