@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"backend/gateway/internal/client/rpc/core-rpc/authpb"
 	"backend/gateway/internal/client/rpc/core-rpc/userpb"
 	"fmt"
 	"time"
@@ -20,6 +21,7 @@ type Client struct {
 
 	// 不同的proto客户端
 	healthClient healthpb.HealthServiceClient
+	authClient   authpb.AuthServiceClient
 	UserClient   userpb.UserServiceClient
 
 	// 请求超时时间
@@ -40,6 +42,7 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 	return &Client{
 		coreConnection: coreConn,
 		healthClient:   healthpb.NewHealthServiceClient(coreConn),
+		authClient:     authpb.NewAuthServiceClient(coreConn),
 		UserClient:     userpb.NewUserServiceClient(coreConn),
 		requestTimeout: time.Second * time.Duration(timeoutSec),
 	}, nil
@@ -73,6 +76,10 @@ func (c *Client) GetRequestTimeout() time.Duration {
 
 func (c *Client) GetHealthClient() healthpb.HealthServiceClient {
 	return c.healthClient
+}
+
+func (c *Client) GetAuthClient() authpb.AuthServiceClient {
+	return c.authClient
 }
 
 func (c *Client) GetUserClient() userpb.UserServiceClient {

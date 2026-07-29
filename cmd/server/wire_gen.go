@@ -33,6 +33,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	}
 	cacheClient := cache.NewClient(cfg)
 	healthController := controller.NewHealthController(client)
+	authController := controller.NewAuthController(client, cfg)
 	aiChatRepo := repo.NewAiChatRepo(dbClient)
 	pyClient := http.NewHTTPClient(cfg)
 	llmClient, err := llm.NewClient(cfg)
@@ -48,7 +49,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	}
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService)
-	engine := facade.New(cfg, healthController, aiChatController, userController, storageController)
+	engine := facade.New(cfg, healthController, authController, aiChatController, userController, storageController)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err
