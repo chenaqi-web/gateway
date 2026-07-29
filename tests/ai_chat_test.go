@@ -20,6 +20,7 @@ func TestMain(m *testing.M) {
 			panic(err)
 		}
 	}
+	// 咔叽
 	os.Exit(m.Run())
 }
 
