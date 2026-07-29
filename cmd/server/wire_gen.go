@@ -33,10 +33,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	}
 	cacheClient := cache.NewClient(cfg)
 	healthController := controller.NewHealthController(client)
-	authController, err := controller.NewAuthController(client, cfg)
-	if err != nil {
-		return nil, err
-	}
+	authController := controller.NewAuthController(client, cfg)
 	aiChatRepo := repo.NewAiChatRepo(dbClient)
 	pyClient := http.NewHTTPClient(cfg)
 	llmClient, err := llm.NewClient(cfg)

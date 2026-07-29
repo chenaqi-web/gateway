@@ -4,7 +4,6 @@ import (
 	"backend/gateway/internal/facade/controller"
 	"backend/gateway/internal/facade/middleware"
 	"backend/gateway/internal/facade/router"
-	infraProm "backend/gateway/internal/infras/prometheus"
 
 	"github.com/gin-gonic/gin"
 
@@ -26,14 +25,14 @@ func New(cfg *config.Config,
 	r.Use(middleware.Cors())
 
 	// Prometheus metrics middleware
-	r.Use(infraProm.GinMiddleware())
+	//r.Use(infraProm.GinMiddleware())
 	// r.Use(middleware.Recovery(), middleware.CORS())
 
 	// 注册静态路由（含 static/upload 上传目录）
 	r.Static("/static", "./static")
 
 	// metrics endpoint (Prometheus)
-	r.GET("/metrics", gin.WrapH(infraProm.Handler()))
+	//r.GET("/metrics", gin.WrapH(infraProm.Handler()))
 
 	v1 := r.Group("/api/v1")
 	{
