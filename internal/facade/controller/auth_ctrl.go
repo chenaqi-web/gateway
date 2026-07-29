@@ -78,40 +78,6 @@ func (a *AuthController) SendEmailCode(c *gin.Context) {
 //	})
 //}
 //
-//func (a *AuthController) Refresh(c *gin.Context) {
-//	refreshToken, err := a.cookies.Get(c.Request)
-//	if err != nil {
-//		a.cookies.Clear(c.Writer)
-//		writeAuthUnauthenticated(c, authOperationRefresh)
-//		return
-//	}
-//
-//	ctx, cancel := a.rpcContext(c)
-//	defer cancel()
-//	response, err := a.client.RefreshToken(ctx, &authpb.RefreshTokenRequest{RefreshToken: refreshToken})
-//	if err != nil {
-//		a.cookies.Clear(c.Writer)
-//		switch status.Code(err) {
-//		case codes.Unavailable, codes.DeadlineExceeded:
-//			writeAuthRPCError(c, authOperationRefresh, err)
-//		case codes.Unauthenticated, codes.PermissionDenied:
-//			writeAuthUnauthenticated(c, authOperationRefresh)
-//		default:
-//			writeAuthRPCError(c, authOperationRefresh, err)
-//		}
-//		return
-//	}
-//	tokens := response.GetTokens()
-//	if tokens == nil || tokens.GetAccessToken() == "" || tokens.GetRefreshToken() == "" || tokens.GetAccessExpiresIn() <= 0 {
-//		a.cookies.Clear(c.Writer)
-//		writeAuthRPCError(c, authOperationGeneric, status.Error(codes.Internal, "invalid core response"))
-//		return
-//	}
-//	a.cookies.Set(c.Writer, tokens.GetRefreshToken())
-//	c.JSON(http.StatusOK, reponse.Success(dto.RefreshResponse{
-//		AccessToken: tokens.GetAccessToken(), AccessExpiresIn: tokens.GetAccessExpiresIn(),
-//	}))
-//}
 //
 //func (a *AuthController) Logout(c *gin.Context) {
 //	refreshToken, cookieErr := a.cookies.Get(c.Request)

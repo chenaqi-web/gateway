@@ -1,14 +1,9 @@
 package middleware
 
 import (
-	"context"
-	"strings"
 	"time"
 
-	"backend/gateway/internal/client/rpc/core-rpc/authpb"
-
 	"github.com/gin-gonic/gin"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -17,43 +12,22 @@ const (
 	AuthRoleContextKey      = "role"
 )
 
-type accessRPC interface {
-	ValidateAccess(context.Context, *authpb.ValidateAccessRequest, ...grpc.CallOption) (*authpb.ValidateAccessResponse, error)
-}
-
-type AuthMiddleware struct {
-	client         accessRPC
+type Auth struct {
 	requestTimeout time.Duration
+	// redis client
 }
 
-func (m *AuthMiddleware) RequireAccess() gin.HandlerFunc {
+func NewAuth(requestTimeout time.Duration) *Auth {
+	return &Auth{}
+}
+
+func (m *Auth) AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
-		if !ok {
-			return
-		}
+		// 1.请求来（先提取toekn）
+		// 2.先判断accesstoken是不是过期
+		// a.过期 ： 用refreshtoken来刷新accesstoken
+		// b.没过期就没问题
+		// 3. refreshtoken 那就踢出去
 
-		ctx, cancel := context.WithTimeout(c.Request.Context(), m.requestTimeout)
-		defer cancel()
-		identity, err := m.client.ValidateAccess(ctx, &authpb.ValidateAccessRequest{AccessToken: accessToken})
-		if err != nil {
-			return
-		}
-		if identity.GetUserId() == 0 || identity.GetSessionId() == "" || identity.GetRole() == "" {
-			return
-		}
-
-		c.Set(AuthUserIDContextKey, identity.GetUserId())
-		c.Set(AuthSessionIDContextKey, identity.GetSessionId())
-		c.Set(AuthRoleContextKey, identity.GetRole())
-		c.Next()
 	}
-}
-
-func bearerToken(value string) (string, bool) {
-	parts := strings.Fields(value)
-	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || parts[1] == "" {
-		return "", false
-	}
-	return parts[1], true
 }
