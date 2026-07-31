@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"backend/gateway/internal/config"
-	"backend/gateway/internal/model/entity"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -34,19 +33,8 @@ func NewDBClient(cfg *config.Config) (*DBClient, error) {
 	sqlDB.SetMaxIdleConns(mysqlCfg.MaxIdleConn)
 	sqlDB.SetMaxOpenConns(mysqlCfg.MaxOpenConn)
 
-	if err := migrate(db); err != nil {
-		return nil, fmt.Errorf("auto migrate: %w", err)
-	}
-
 	log.Println("mysql connected successfully")
 	return &DBClient{DB: db}, nil
-}
-
-func migrate(db *gorm.DB) error {
-	return db.AutoMigrate(
-		&entity.AiChatSession{},
-		&entity.AiChatMessage{},
-	)
 }
 
 func (c *DBClient) Close() error {
