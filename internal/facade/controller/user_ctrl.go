@@ -3,6 +3,7 @@ package controller
 import (
 	"backend/gateway/internal/client/rpc"
 	"backend/gateway/internal/client/rpc/core-rpc/userpb"
+	"backend/gateway/internal/model/reponse"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,8 @@ func (u *UserController) Get(c *gin.Context) {
 	c.Get("x-uesr-id")
 	resp, err := u.rpc.UserClient.Login(c, &userpb.LoginReq{})
 	if err != nil {
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+	reponse.Success(c, resp)
 }

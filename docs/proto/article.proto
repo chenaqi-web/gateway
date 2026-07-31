@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+// article service
+// 与数据库表 `blog_posts` 字段对应的文章 proto 定义
+
+package article;
+option go_package = "backend/gateway/internal/client/rpc/core-rpc/articlepb;articlepb";
+
+message Article {
+  uint64 id = 1;
+  string title = 2;
+  string summary = 3;
+  string content = 4;
+  string coverImage = 5;
+  uint64 authorID = 6;
+  uint64 categoryID = 7;
+  bool isTop = 8;
+  uint64 viewCount = 9;
+  uint64 likeCount = 10;
+  uint64 commentCount = 11;
+  uint64 createdAt = 12; // unix timestamp (seconds)
+  uint64 updatedAt = 13; // unix timestamp (seconds)
+  string authorName = 14; // 作者昵称，来自 user.name
+  string authorAvatar = 15; // 作者头像，来自 user.avatar
+}
+
+message CreateArticleRequest {
+  uint64 authorID = 1;
+  string title = 2;
+  string summary = 3;
+  string content = 4;
+  string coverImage = 5;
+  uint64 categoryID = 6;
+  bool isTop = 7;
+}
+message CreateArticleResponse {
+  bool success = 1;
+}
+
+message GetArticleRequest {
+  uint64 id = 1;
+}
+message GetArticleResponse {
+  Article article = 1;
+}
+
+message ListArticlesRequest {
+  uint32 page = 1; // 从 1 开始
+  uint32 pageSize = 2;
+}
+message ListArticlesResponse {
+  repeated Article articles = 1;
+}
+
+message DeleteArticleRequest {
+  uint64 id = 1;
+  uint64 authorID = 2; // 请求者用户ID，用于校验是否有权限删除
+}
+message DeleteArticleResponse {
+  bool success = 1;
+}
+
+message ListMyArticlesRequest {
+  uint64 authorID = 1;
+  uint32 page = 2;
+  uint32 pageSize = 3;
+}
+message ListMyArticlesResponse {
+  repeated Article articles = 1;
+}
+
+message ListByCategoryRequest {
+  uint64 categoryID = 1;
+  uint32 page = 2;
+  uint32 pageSize = 3;
+}
+message ListByCategoryResponse {
+  repeated Article articles = 1;
+}
+
+message SearchArticlesRequest {
+  string q = 1; // keyword
+  uint32 page = 2;
+  uint32 pageSize = 3;
+}
+message SearchArticlesResponse {
+  repeated Article articles = 1;
+}
+
+
+service ArticleService {
+  rpc CreateArticle(CreateArticleRequest) returns (CreateArticleResponse) {};
+  rpc GetArticle(GetArticleRequest) returns (GetArticleResponse) {};
+  rpc ListArticles(ListArticlesRequest) returns (ListArticlesResponse) {};
+  rpc ListMyArticles(ListMyArticlesRequest) returns (ListMyArticlesResponse) {};
+  // 查询某个分类下的文章列表
+  rpc ListByCategory(ListByCategoryRequest) returns (ListByCategoryResponse) {};
+  // 搜索文章（标题/摘要/正文）
+  rpc SearchArticles(SearchArticlesRequest) returns (SearchArticlesResponse) {};
+  rpc DeleteArticle(DeleteArticleRequest) returns (DeleteArticleResponse) {};
+}
+
+
+
+
+

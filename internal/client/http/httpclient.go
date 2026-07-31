@@ -81,16 +81,16 @@ func (c *PyClient) SearchVectors(
 		return nil, fmt.Errorf("read agent-server response: %w", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("agent-server status %d: %s", resp.StatusCode, string(respBody))
-	}
-
 	var result dto.VectorSearchResponse
 	if err := json.Unmarshal(respBody, &result); err != nil {
 		return nil, fmt.Errorf("unmarshal agent-server response: %w", err)
 	}
-	if result.Code != 200 {
-		return nil, fmt.Errorf("agent-server business error: code=%d message=%s", result.Code, result.Message)
+	if resp.StatusCode != http.StatusOK || result.Code != http.StatusOK {
+		msg := result.Msg
+		if msg == "" {
+			msg = string(respBody)
+		}
+		return nil, fmt.Errorf("agent-server error: status=%d code=%d msg=%s", resp.StatusCode, result.Code, msg)
 	}
 
 	return &result, nil

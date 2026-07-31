@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"backend/gateway/internal/client/rpc/core-rpc/articlepb"
+	"backend/gateway/internal/client/rpc/core-rpc/categorypb"
 	"backend/gateway/internal/client/rpc/core-rpc/userpb"
 	"fmt"
 	"time"
@@ -19,8 +21,10 @@ type Client struct {
 	coreConnection *grpc.ClientConn
 
 	// 不同的proto客户端
-	healthClient healthpb.HealthServiceClient
-	UserClient   userpb.UserServiceClient
+	healthClient   healthpb.HealthServiceClient
+	UserClient     userpb.UserServiceClient
+	CategoryClient categorypb.CategoryServiceClient
+	ArticleClient  articlepb.ArticleServiceClient
 
 	// 请求超时时间
 	requestTimeout time.Duration
@@ -41,6 +45,8 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 		coreConnection: coreConn,
 		healthClient:   healthpb.NewHealthServiceClient(coreConn),
 		UserClient:     userpb.NewUserServiceClient(coreConn),
+		CategoryClient: categorypb.NewCategoryServiceClient(coreConn),
+		ArticleClient:  articlepb.NewArticleServiceClient(coreConn),
 		requestTimeout: time.Second * time.Duration(timeoutSec),
 	}, nil
 }

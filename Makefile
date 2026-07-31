@@ -12,4 +12,4 @@ generate-health-rpc:
 		--go_opt=module=$(MODULE) \
 		--go-grpc_out=. \
 		--go-grpc_opt=module=$(MODULE) \
-		$(PROTO_DIR)/user.proto
+		$(PROTO_DIR)/category.proto
