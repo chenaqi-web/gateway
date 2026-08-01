@@ -7,7 +7,6 @@ import (
 	"backend/gateway/internal/model/dto"
 	"backend/gateway/internal/model/reponse"
 	"context"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -35,7 +34,7 @@ func (a *AuthController) SendEmailCode(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, reponse.Success(nil))
+	reponse.Success(c, nil)
 }
 
 //func (a *AuthController) Register(c *gin.Context) {

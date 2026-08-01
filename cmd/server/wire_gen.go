@@ -43,13 +43,15 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	aiChatService := application.NewAiChatService(cfg, aiChatRepo, pyClient, llmClient)
 	aiChatController := controller.NewAiChatController(aiChatService)
 	userController := controller.NewUserController(client)
+	categoryController := controller.NewCategoryController(client)
+	articleController := controller.NewArticleController(client)
 	storageClient, err := storage.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService)
-	engine := facade.New(cfg, healthController, authController, aiChatController, userController, storageController)
+	engine := facade.New(cfg, healthController, authController, aiChatController, userController, categoryController, articleController, storageController)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err
