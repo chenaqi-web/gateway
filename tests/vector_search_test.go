@@ -25,7 +25,7 @@ func TestSearchVectors(t *testing.T) {
 		t.Fatalf("SearchVectors failed: %v", err)
 	}
 
-	t.Logf("code=%d message=%s count=%d", resp.Code, resp.Message, resp.Count)
+	t.Logf("code=%d msg=%s count=%d", resp.Code, resp.Msg, len(resp.Data))
 	for i, item := range resp.Data {
 		t.Logf("[%d] chunk_id=%s score=%v title=%s", i, item.ChunkID, item.Score, item.Title)
 	}

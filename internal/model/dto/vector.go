@@ -37,10 +37,9 @@ type VectorSearchItem struct {
 	Ext             string   `json:"ext,omitempty"`
 }
 
-// VectorSearchResponse 向量检索响应。
+// VectorSearchResponse 向量检索响应（对齐 agent-server：code / msg / data）。
 type VectorSearchResponse struct {
-	Code    int                `json:"code"`
-	Message string             `json:"message"`
-	Data    []VectorSearchItem `json:"data"`
-	Count   int                `json:"count"`
+	Code int                `json:"code"`
+	Msg  string             `json:"msg"`
+	Data []VectorSearchItem `json:"data"`
 }

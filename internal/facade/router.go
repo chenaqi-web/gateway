@@ -15,6 +15,8 @@ func New(cfg *config.Config,
 	authCtrl *controller.AuthController,
 	aiChat *controller.AiChatController,
 	userCtrl *controller.UserController,
+	categoryCtrl *controller.CategoryController,
+	articleCtrl *controller.ArticleController,
 	storageCtrl *controller.StorageController,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
@@ -43,6 +45,8 @@ func New(cfg *config.Config,
 		// 注册路由
 		router.NewAIRouter(v1, aiChat)
 		router.NewUserRouter(v1, userCtrl)
+		router.NewCategoryRouter(v1, categoryCtrl)
+		router.NewArticleRouter(v1, articleCtrl)
 		router.NewStorageRouter(v1, storageCtrl)
 
 	}
