@@ -4,6 +4,7 @@ go 1.26
 
 require (
 	github.com/gin-gonic/gin v1.12.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/wire v0.7.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/prometheus/client_golang v1.20.5

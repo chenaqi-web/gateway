@@ -38,7 +38,6 @@ func New(cfg *config.Config,
 
 	v1 := r.Group("/api/v1")
 	{
-		//r.Use(middleware.NewAuth().AuthMiddleware())
 		v1.GET("/health/ping", health.Ping)
 		router.NewAuthRouter(v1, authCtrl)
 

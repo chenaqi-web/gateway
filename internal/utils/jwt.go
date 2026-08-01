@@ -1,71 +1,103 @@
 package utils
 
 import (
-	"backend/gateway/internal/config"
-	"net/http"
+	"fmt"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
-
-// 新建token
-
-// 解析token
 
 const (
-	refreshCookieName = "refresh_token"
-	refreshCookiePath = "/api/v1/auth"
+	TokenTypeAccess       = "access"
+	TokenTypeRefresh      = "refresh"
+	minJWTSigningKeyBytes = 32
 )
 
-type RefreshCookieManager struct {
-	secure bool
-	ttl    time.Duration
-	now    func() time.Time
+type JWTClaims struct {
+	UserID      uint64 `json:"user_id"`
+	SessionID   string `json:"session_id"`
+	Role        string `json:"role,omitempty"`
+	AuthVersion uint64 `json:"auth_version,omitempty"`
+	TokenType   string `json:"token_type"`
+	jwt.RegisteredClaims
 }
 
-func NewRefreshCookieManager(cfg config.AuthConfig) (*RefreshCookieManager, error) {
-	ttl, err := cfg.RefreshDuration()
+func CreateAccessToken(signingKey []byte, claims JWTClaims, expiresIn time.Duration) (string, error) {
+	return createToken(signingKey, claims, TokenTypeAccess, expiresIn)
+}
+
+func CreateRefreshToken(signingKey []byte, claims JWTClaims, expiresIn time.Duration) (string, error) {
+	return createToken(signingKey, claims, TokenTypeRefresh, expiresIn)
+}
+
+func ParseToken(tokenString string, signingKey []byte) (*jwt.Token, error) {
+	if tokenString == "" {
+		return nil, fmt.Errorf("token is empty")
+	}
+	if len(signingKey) < minJWTSigningKeyBytes {
+		return nil, fmt.Errorf("jwt signing key must be at least %d bytes", minJWTSigningKeyBytes)
+	}
+
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		&JWTClaims{},
+		func(token *jwt.Token) (any, error) {
+			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+				return nil, fmt.Errorf("unexpected jwt signing method: %s", token.Method.Alg())
+			}
+			return signingKey, nil
+		},
+		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}),
+		jwt.WithExpirationRequired(),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("parse token: %w", err)
+	}
+	return token, nil
+}
+
+func ValidateToken(tokenString string, signingKey []byte) error {
+	token, err := ParseToken(tokenString, signingKey)
+	if err != nil {
+		return err
+	}
+	if !token.Valid {
+		return fmt.Errorf("token is invalid")
+	}
+	return nil
+}
+
+func GetClaims(tokenString string, signingKey []byte) (*JWTClaims, error) {
+	token, err := ParseToken(tokenString, signingKey)
 	if err != nil {
 		return nil, err
 	}
-	return &RefreshCookieManager{
-		secure: cfg.CookieSecure,
-		ttl:    ttl,
-		now:    time.Now,
-	}, nil
+
+	claims, ok := token.Claims.(*JWTClaims)
+	if !ok || !token.Valid {
+		return nil, fmt.Errorf("token claims are invalid")
+	}
+	return claims, nil
 }
 
-func (m *RefreshCookieManager) Set(writer http.ResponseWriter, refreshToken string) {
-	http.SetCookie(writer, &http.Cookie{
-		Name:     refreshCookieName,
-		Value:    refreshToken,
-		Path:     refreshCookiePath,
-		Expires:  m.now().UTC().Add(m.ttl),
-		MaxAge:   int(m.ttl / time.Second),
-		HttpOnly: true,
-		Secure:   m.secure,
-		SameSite: http.SameSiteLaxMode,
-	})
-}
+func createToken(signingKey []byte, claims JWTClaims, tokenType string, expiresIn time.Duration) (string, error) {
+	if len(signingKey) < minJWTSigningKeyBytes {
+		return "", fmt.Errorf("jwt signing key must be at least %d bytes", minJWTSigningKeyBytes)
+	}
+	if expiresIn <= 0 {
+		return "", fmt.Errorf("token expiration must be positive")
+	}
 
-func (m *RefreshCookieManager) Get(request *http.Request) (string, error) {
-	cookie, err := request.Cookie(refreshCookieName)
+	now := time.Now().UTC()
+	claims.TokenType = tokenType
+	claims.IssuedAt = jwt.NewNumericDate(now)
+	claims.NotBefore = jwt.NewNumericDate(now)
+	claims.ExpiresAt = jwt.NewNumericDate(now.Add(expiresIn))
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedToken, err := token.SignedString(signingKey)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("sign token: %w", err)
 	}
-	if cookie.Value == "" {
-		return "", http.ErrNoCookie
-	}
-	return cookie.Value, nil
-}
-
-func (m *RefreshCookieManager) Clear(writer http.ResponseWriter) {
-	http.SetCookie(writer, &http.Cookie{
-		Name:     refreshCookieName,
-		Value:    "",
-		Path:     refreshCookiePath,
-		Expires:  time.Unix(1, 0).UTC(),
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   m.secure,
-		SameSite: http.SameSiteLaxMode,
-	})
+	return signedToken, nil
 }
