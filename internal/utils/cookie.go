@@ -9,7 +9,7 @@ import (
 
 const (
 	refreshCookieName = "refresh_token"
-	refreshCookiePath = "/api/v1/auth"
+	refreshCookiePath = "/api/v1"
 )
 
 func SetRefreshCookie(writer http.ResponseWriter, refreshToken string, cfg config.AuthConfig) error {

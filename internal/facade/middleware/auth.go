@@ -1,28 +1,42 @@
 package middleware
 
 import (
-	"context"
+	"errors"
 	"log"
 	"net/http"
 	"strings"
 
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/client/rpc/core-rpc/authpb"
+	"backend/gateway/internal/config"
 	"backend/gateway/internal/model/reponse"
+	"backend/gateway/internal/utils"
 
 	"github.com/gin-gonic/gin"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
-	AuthUserIDContextKey    = "user_id"
-	AuthSessionIDContextKey = "session_id"
-	AuthRoleContextKey      = "role"
+	AuthUserIDContextKey       = "user_id"
+	AuthRoleContextKey         = "role"
+	refreshedAccessTokenHeader = "Authorization"
 )
 
-func RequireAuth(rpcClient *rpc.Client) gin.HandlerFunc {
+func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
+	signingKey, configErr := cfg.JWTSigningKey()
+	accessExpiresIn, durationErr := cfg.AccessDuration()
+	if configErr == nil {
+		configErr = durationErr
+	}
+	if configErr != nil {
+		log.Printf("auth middleware config: %v", configErr)
+	}
+
 	return func(c *gin.Context) {
+		if configErr != nil {
+			c.Abort()
+			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+			return
+		}
+
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
 			c.Abort()
@@ -30,34 +44,51 @@ func RequireAuth(rpcClient *rpc.Client) gin.HandlerFunc {
 			return
 		}
 
-		ctx, cancel := context.WithTimeout(c.Request.Context(), rpcClient.GetRequestTimeout())
-		defer cancel()
-
-		identity, err := rpcClient.GetAuthClient().ValidateAccess(ctx, &authpb.ValidateAccessRequest{
-			AccessToken: accessToken,
-		})
-		if err != nil {
-			log.Printf("auth middleware: %v", err)
-			c.Abort()
-			switch status.Code(err) {
-			case codes.Unauthenticated:
+		claims, err := utils.GetClaims(accessToken, signingKey)
+		if err == nil {
+			if !validClaims(claims, utils.TokenTypeAccess) {
+				c.Abort()
 				reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
-			case codes.PermissionDenied:
-				reponse.Fail(c, http.StatusForbidden, "permission denied")
-			default:
-				reponse.Fail(c, http.StatusBadGateway, "core-server unavailable")
+				return
 			}
+
+			setAuthContext(c, claims)
+			c.Next()
 			return
 		}
-		if identity == nil || identity.GetUserId() == 0 || identity.GetSessionId() == "" || identity.GetRole() == "" {
+		if !isExpiredToken(err) {
 			c.Abort()
 			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
 			return
 		}
 
-		c.Set(AuthUserIDContextKey, identity.GetUserId())
-		c.Set(AuthSessionIDContextKey, identity.GetSessionId())
-		c.Set(AuthRoleContextKey, identity.GetRole())
+		refreshToken, err := utils.RefreshTokenFromCookie(c.Request)
+		if err != nil {
+			utils.ClearRefreshCookie(c.Writer, cfg)
+			c.Abort()
+			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			return
+		}
+
+		refreshClaims, err := utils.GetClaims(refreshToken, signingKey)
+		if err != nil || !validClaims(refreshClaims, utils.TokenTypeRefresh) {
+			utils.ClearRefreshCookie(c.Writer, cfg)
+			c.Abort()
+			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			return
+		}
+
+		newAccessToken, err := utils.CreateAccessToken(signingKey, *refreshClaims, accessExpiresIn)
+		if err != nil {
+			log.Printf("auth middleware create access token: %v", err)
+			c.Abort()
+			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+			return
+		}
+
+		c.Header(refreshedAccessTokenHeader, "Bearer "+newAccessToken)
+		c.Header("Access-Control-Expose-Headers", refreshedAccessTokenHeader)
+		setAuthContext(c, refreshClaims)
 		c.Next()
 	}
 }
@@ -68,4 +99,20 @@ func bearerToken(value string) (string, bool) {
 		return "", false
 	}
 	return parts[1], true
+}
+
+func isExpiredToken(err error) bool {
+	return errors.Is(err, jwt.ErrTokenExpired) &&
+		!errors.Is(err, jwt.ErrTokenMalformed) &&
+		!errors.Is(err, jwt.ErrTokenUnverifiable) &&
+		!errors.Is(err, jwt.ErrTokenSignatureInvalid)
+}
+
+func validClaims(claims *utils.JWTClaims, tokenType string) bool {
+	return claims != nil && claims.TokenType == tokenType && claims.UserID > 0 && claims.Role != ""
+}
+
+func setAuthContext(c *gin.Context, claims *utils.JWTClaims) {
+	c.Set(AuthUserIDContextKey, claims.UserID)
+	c.Set(AuthRoleContextKey, claims.Role)
 }

@@ -1,13 +1,12 @@
 package facade
 
 import (
+	"backend/gateway/internal/config"
 	"backend/gateway/internal/facade/controller"
 	"backend/gateway/internal/facade/middleware"
 	"backend/gateway/internal/facade/router"
 
 	"github.com/gin-gonic/gin"
-
-	"backend/gateway/internal/config"
 )
 
 func New(cfg *config.Config,
@@ -41,6 +40,7 @@ func New(cfg *config.Config,
 		v1.GET("/health/ping", health.Ping)
 		router.NewAuthRouter(v1, authCtrl)
 
+		v1.Use(middleware.RequireAuth(cfg.Auth))
 		// 注册路由
 		router.NewAIRouter(v1, aiChat)
 		router.NewUserRouter(v1, userCtrl)

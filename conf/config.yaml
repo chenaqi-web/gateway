@@ -3,6 +3,8 @@ server:
   mode: release
 
 auth:
+  jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
+  access_expire: "15m"
   refresh_expire: "168h"
   cookie_secure: false
 

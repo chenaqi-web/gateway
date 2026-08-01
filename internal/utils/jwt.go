@@ -14,9 +14,9 @@ const (
 )
 
 type JWTClaims struct {
-	UserID      uint64 `json:"user_id"`
-	SessionID   string `json:"session_id"`
-	Role        string `json:"role,omitempty"`
+	UserID uint64 `json:"user_id"`
+	Role   string `json:"role,omitempty"`
+	// Reserved for future token revocation checks against Core user auth versions.
 	AuthVersion uint64 `json:"auth_version,omitempty"`
 	TokenType   string `json:"token_type"`
 	jwt.RegisteredClaims
@@ -54,17 +54,6 @@ func ParseToken(tokenString string, signingKey []byte) (*jwt.Token, error) {
 		return nil, fmt.Errorf("parse token: %w", err)
 	}
 	return token, nil
-}
-
-func ValidateToken(tokenString string, signingKey []byte) error {
-	token, err := ParseToken(tokenString, signingKey)
-	if err != nil {
-		return err
-	}
-	if !token.Valid {
-		return fmt.Errorf("token is invalid")
-	}
-	return nil
 }
 
 func GetClaims(tokenString string, signingKey []byte) (*JWTClaims, error) {
