@@ -13,7 +13,7 @@ func NewArticleRouter(v *gin.RouterGroup, ct *controller.ArticleController) {
 		article.DELETE("/del", ct.Delete)
 		article.POST("/message", ct.GetDetail)
 		article.POST("/search", ct.Search)
-		article.GET("/list", ct.List)
+		article.POST("/list", ct.List)
 		article.POST("/list/by_user_id", ct.ListByUserID)
 		article.POST("/list/by_cate", ct.ByCategory)
 	}
