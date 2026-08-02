@@ -15,6 +15,7 @@ import (
 	"backend/gateway/internal/facade/controller"
 	"backend/gateway/internal/infras/api/llm"
 	"backend/gateway/internal/infras/cache"
+	"backend/gateway/internal/infras/clog"
 	"backend/gateway/internal/infras/repo"
 	"backend/gateway/internal/infras/storage"
 	"backend/gateway/internal/server"
@@ -33,7 +34,11 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	}
 	cacheClient := cache.NewClient(cfg)
 	healthController := controller.NewHealthController(client)
-	authController := controller.NewAuthController(client, cfg)
+	log, err := clog.NewLog(cfg)
+	if err != nil {
+		return nil, err
+	}
+	authController := controller.NewAuthController(client, cfg, log)
 	aiChatRepo := repo.NewAiChatRepo(dbClient)
 	pyClient := http.NewHTTPClient(cfg)
 	llmClient, err := llm.NewClient(cfg)

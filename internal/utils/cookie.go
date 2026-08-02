@@ -13,17 +13,12 @@ const (
 )
 
 func SetRefreshCookie(writer http.ResponseWriter, refreshToken string, cfg config.AuthConfig) error {
-	ttl, err := cfg.RefreshDuration()
-	if err != nil {
-		return err
-	}
-
 	http.SetCookie(writer, &http.Cookie{
-		Name:     refreshCookieName,
-		Value:    refreshToken,
-		Path:     refreshCookiePath,
-		Expires:  time.Now().UTC().Add(ttl),
-		MaxAge:   int(ttl / time.Second),
+		Name:  refreshCookieName,
+		Value: refreshToken,
+		Path:  refreshCookiePath,
+		//Expires:  time.Now().UTC().Add(ttl), 直接用max就行
+		MaxAge:   int(cfg.RefreshDuration()),
 		HttpOnly: true,
 		Secure:   cfg.CookieSecure,
 		SameSite: http.SameSiteLaxMode,

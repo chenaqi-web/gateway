@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"backend/gateway/internal/infras/clog"
 	"context"
 	"log"
 	"net/http"
@@ -14,19 +15,20 @@ import (
 	"backend/gateway/internal/utils"
 
 	"github.com/gin-gonic/gin"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"go.uber.org/zap"
 )
 
 type AuthController struct {
 	rpc *rpc.Client
 	cfg config.AuthConfig
+	log *clog.Log
 }
 
-func NewAuthController(rpcClient *rpc.Client, cfg *config.Config) *AuthController {
+func NewAuthController(rpcClient *rpc.Client, cfg *config.Config, logger *clog.Log) *AuthController {
 	return &AuthController{
 		rpc: rpcClient,
 		cfg: cfg.Auth,
+		log: logger,
 	}
 }
 
@@ -83,35 +85,7 @@ func (a *AuthController) Login(c *gin.Context) {
 		Password: request.Password,
 	})
 	if err != nil {
-		log.Printf("auth login: %v", err)
-		if status.Code(err) == codes.Unauthenticated {
-			reponse.Fail(c, http.StatusUnauthorized, "authentication failed")
-			return
-		}
-		reponse.Fail(c, http.StatusBadGateway, "core-server unavailable")
-		return
-	}
-	if response == nil || response.GetUser() == nil || response.GetUser().GetId() == 0 || response.GetUser().GetRole() == "" {
-		reponse.Fail(c, http.StatusBadGateway, "invalid core response")
-		return
-	}
-
-	signingKey, err := a.cfg.JWTSigningKey()
-	if err != nil {
-		log.Printf("auth login config: %v", err)
-		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
-		return
-	}
-	accessExpiresIn, err := a.cfg.AccessDuration()
-	if err != nil {
-		log.Printf("auth access duration: %v", err)
-		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
-		return
-	}
-	refreshExpiresIn, err := a.cfg.RefreshDuration()
-	if err != nil {
-		log.Printf("auth refresh duration: %v", err)
-		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+		reponse.Fail(c, http.StatusBadGateway, err.Error())
 		return
 	}
 
@@ -121,27 +95,28 @@ func (a *AuthController) Login(c *gin.Context) {
 		Role:        user.GetRole(),
 		AuthVersion: user.GetAuthVersion(),
 	}
-	accessToken, err := utils.CreateAccessToken(signingKey, claims, accessExpiresIn)
+
+	accessToken, err := utils.CreateAccessToken(a.cfg.JWTSigningKey(), claims, a.cfg.AccessDuration())
 	if err != nil {
-		log.Printf("auth create access token: %v", err)
+		a.log.Error("auth create access token: %v", zap.Error(err))
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	refreshToken, err := utils.CreateRefreshToken(signingKey, claims, refreshExpiresIn)
+	refreshToken, err := utils.CreateRefreshToken(a.cfg.JWTSigningKey(), claims, a.cfg.RefreshDuration())
 	if err != nil {
-		log.Printf("auth create refresh token: %v", err)
+		a.log.Error("auth create refresh token: %v", zap.Error(err))
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
 	if err := utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg); err != nil {
-		log.Printf("auth login cookie: %v", err)
+		a.log.Error("auth login cookie: %v", zap.Error(err))
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
 	reponse.Success(c, dto.LoginResponse{
 		AccessToken:     accessToken,
-		AccessExpiresIn: int64(accessExpiresIn.Seconds()),
+		AccessExpiresIn: int64(a.cfg.AccessDuration()),
 		User: &dto.AuthUserSummary{
 			ID:       user.GetId(),
 			Username: user.GetUsername(),

@@ -4,8 +4,8 @@ server:
 
 auth:
   jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
-  access_expire: "15m"
-  refresh_expire: "168h"
+  access_expire: 3000
+  refresh_expire: 720000
   cookie_secure: false
 
 Log:

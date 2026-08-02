@@ -1,14 +1,13 @@
 package middleware
 
 import (
+	"backend/gateway/internal/config"
+	"backend/gateway/internal/model/reponse"
+	"backend/gateway/internal/utils"
 	"errors"
 	"log"
 	"net/http"
 	"strings"
-
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/model/reponse"
-	"backend/gateway/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -21,22 +20,7 @@ const (
 )
 
 func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
-	signingKey, configErr := cfg.JWTSigningKey()
-	accessExpiresIn, durationErr := cfg.AccessDuration()
-	if configErr == nil {
-		configErr = durationErr
-	}
-	if configErr != nil {
-		log.Printf("auth middleware config: %v", configErr)
-	}
-
 	return func(c *gin.Context) {
-		if configErr != nil {
-			c.Abort()
-			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
-			return
-		}
-
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
 			c.Abort()
@@ -44,7 +28,7 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 			return
 		}
 
-		claims, err := utils.GetClaims(accessToken, signingKey)
+		claims, err := utils.GetClaims(accessToken, cfg.JWTSigningKey())
 		if err == nil {
 			if !validClaims(claims, utils.TokenTypeAccess) {
 				c.Abort()
@@ -52,7 +36,8 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 				return
 			}
 
-			setAuthContext(c, claims)
+			c.Set(AuthUserIDContextKey, claims.UserID)
+			c.Set(AuthRoleContextKey, claims.Role)
 			c.Next()
 			return
 		}
@@ -70,7 +55,7 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 			return
 		}
 
-		refreshClaims, err := utils.GetClaims(refreshToken, signingKey)
+		refreshClaims, err := utils.GetClaims(refreshToken, cfg.JWTSigningKey())
 		if err != nil || !validClaims(refreshClaims, utils.TokenTypeRefresh) {
 			utils.ClearRefreshCookie(c.Writer, cfg)
 			c.Abort()
@@ -78,7 +63,7 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 			return
 		}
 
-		newAccessToken, err := utils.CreateAccessToken(signingKey, *refreshClaims, accessExpiresIn)
+		newAccessToken, err := utils.CreateAccessToken(cfg.JWTSigningKey(), *refreshClaims, cfg.AccessDuration())
 		if err != nil {
 			log.Printf("auth middleware create access token: %v", err)
 			c.Abort()
@@ -88,7 +73,8 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 
 		c.Header(refreshedAccessTokenHeader, "Bearer "+newAccessToken)
 		c.Header("Access-Control-Expose-Headers", refreshedAccessTokenHeader)
-		setAuthContext(c, refreshClaims)
+		c.Set(AuthUserIDContextKey, claims.UserID)
+		c.Set(AuthRoleContextKey, claims.Role)
 		c.Next()
 	}
 }
@@ -110,9 +96,4 @@ func isExpiredToken(err error) bool {
 
 func validClaims(claims *utils.JWTClaims, tokenType string) bool {
 	return claims != nil && claims.TokenType == tokenType && claims.UserID > 0 && claims.Role != ""
-}
-
-func setAuthContext(c *gin.Context, claims *utils.JWTClaims) {
-	c.Set(AuthUserIDContextKey, claims.UserID)
-	c.Set(AuthRoleContextKey, claims.Role)
 }
