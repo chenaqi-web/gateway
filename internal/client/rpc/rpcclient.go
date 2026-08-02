@@ -1,19 +1,20 @@
 package rpc
 
 import (
-	"backend/gateway/internal/client/rpc/core-rpc/articlepb"
-	"backend/gateway/internal/client/rpc/core-rpc/categorypb"
-	"backend/gateway/internal/client/rpc/core-rpc/userpb"
 	"fmt"
+	"gateway/internal/client/rpc/core-rpc/articlepb"
+	"gateway/internal/client/rpc/core-rpc/categorypb"
+	"gateway/internal/client/rpc/core-rpc/commentpb"
+	"gateway/internal/client/rpc/core-rpc/userpb"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"backend/gateway/internal/client/rpc/core-rpc/healthpb"
+	"gateway/internal/client/rpc/core-rpc/healthpb"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 )
 
 type Client struct {
@@ -25,6 +26,7 @@ type Client struct {
 	UserClient     userpb.UserServiceClient
 	CategoryClient categorypb.CategoryServiceClient
 	ArticleClient  articlepb.ArticleServiceClient
+	CommentClient  commentpb.CommentServiceClient
 
 	// 请求超时时间
 	requestTimeout time.Duration
@@ -47,6 +49,7 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 		UserClient:     userpb.NewUserServiceClient(coreConn),
 		CategoryClient: categorypb.NewCategoryServiceClient(coreConn),
 		ArticleClient:  articlepb.NewArticleServiceClient(coreConn),
+		CommentClient:  commentpb.NewCommentServiceClient(coreConn),
 		requestTimeout: time.Second * time.Duration(timeoutSec),
 	}, nil
 }

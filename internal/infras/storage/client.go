@@ -6,7 +6,7 @@ import (
 	"mime/multipart"
 	"strings"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 )
 
 // Client 对外暴露的存储客户端，内部按 provider 选择具体实现。

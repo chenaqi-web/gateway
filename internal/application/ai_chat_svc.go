@@ -1,17 +1,17 @@
 package application
 
 import (
-	"backend/gateway/internal/client/http"
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/infras/api/llm"
-	"backend/gateway/internal/infras/repo"
-	"backend/gateway/internal/model/dto"
-	"backend/gateway/internal/model/entity"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"gateway/internal/client/http"
+	"gateway/internal/config"
+	"gateway/internal/infras/api/llm"
+	"gateway/internal/infras/repo"
+	"gateway/internal/model/dto"
+	"gateway/internal/model/entity"
 	"strconv"
 	"strings"
 	"time"

@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"backend/gateway/internal/model/entity"
+	"gateway/internal/model/entity"
 	"time"
 )
 

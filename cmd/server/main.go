@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 )
 
 func main() {

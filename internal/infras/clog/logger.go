@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

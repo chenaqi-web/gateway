@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 )
 
 func newTestOllamaClient(t *testing.T) *Client {

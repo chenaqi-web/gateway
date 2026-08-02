@@ -4,15 +4,15 @@
 package main
 
 import (
-	"backend/gateway/internal/application"
+	"gateway/internal/application"
 
 	"github.com/google/wire"
 
-	"backend/gateway/internal/client"
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/facade"
-	"backend/gateway/internal/infras"
-	"backend/gateway/internal/server"
+	"gateway/internal/client"
+	"gateway/internal/config"
+	"gateway/internal/facade"
+	"gateway/internal/infras"
+	"gateway/internal/server"
 )
 
 //go:generate go run github.com/google/wire/cmd/wire

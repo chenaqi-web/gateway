@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"backend/gateway/internal/model/entity"
+	"gateway/internal/model/entity"
 
 	"gorm.io/gorm"
 )

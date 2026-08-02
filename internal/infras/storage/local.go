@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 )
 
 type localProvider struct {

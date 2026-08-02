@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/client/rpc/core-rpc/userpb"
-	"backend/gateway/internal/model/reponse"
+	"gateway/internal/client/rpc"
+	"gateway/internal/client/rpc/core-rpc/userpb"
+	"gateway/internal/model/reponse"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

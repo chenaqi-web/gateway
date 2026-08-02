@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"backend/gateway/internal/application"
-	"backend/gateway/internal/model/dto"
-	"backend/gateway/internal/model/reponse"
+	"gateway/internal/application"
+	"gateway/internal/model/dto"
+	"gateway/internal/model/reponse"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

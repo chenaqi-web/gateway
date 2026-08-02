@@ -7,17 +7,17 @@
 package main
 
 import (
-	"backend/gateway/internal/application"
-	"backend/gateway/internal/client/http"
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/facade"
-	"backend/gateway/internal/facade/controller"
-	"backend/gateway/internal/infras/api/llm"
-	"backend/gateway/internal/infras/cache"
-	"backend/gateway/internal/infras/repo"
-	"backend/gateway/internal/infras/storage"
-	"backend/gateway/internal/server"
+	"gateway/internal/application"
+	"gateway/internal/client/http"
+	"gateway/internal/client/rpc"
+	"gateway/internal/config"
+	"gateway/internal/facade"
+	"gateway/internal/facade/controller"
+	"gateway/internal/infras/api/llm"
+	"gateway/internal/infras/cache"
+	"gateway/internal/infras/repo"
+	"gateway/internal/infras/storage"
+	"gateway/internal/server"
 )
 
 // Injectors from wire.go:
@@ -50,7 +50,8 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	}
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService)
-	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController)
+	commentController := controller.NewCommentController(client)
+	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err
