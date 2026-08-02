@@ -3,6 +3,7 @@ package rpc
 import (
 	"fmt"
 	"gateway/internal/client/rpc/core-rpc/articlepb"
+	"gateway/internal/client/rpc/core-rpc/authpb"
 	"gateway/internal/client/rpc/core-rpc/categorypb"
 	"gateway/internal/client/rpc/core-rpc/commentpb"
 	"gateway/internal/client/rpc/core-rpc/userpb"
@@ -27,6 +28,7 @@ type Client struct {
 	CategoryClient categorypb.CategoryServiceClient
 	ArticleClient  articlepb.ArticleServiceClient
 	CommentClient  commentpb.CommentServiceClient
+	authClient     authpb.AuthServiceClient
 
 	// 请求超时时间
 	requestTimeout time.Duration
@@ -50,6 +52,7 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 		CategoryClient: categorypb.NewCategoryServiceClient(coreConn),
 		ArticleClient:  articlepb.NewArticleServiceClient(coreConn),
 		CommentClient:  commentpb.NewCommentServiceClient(coreConn),
+		authClient:     authpb.NewAuthServiceClient(coreConn),
 		requestTimeout: time.Second * time.Duration(timeoutSec),
 	}, nil
 }
@@ -86,6 +89,10 @@ func (c *Client) GetHealthClient() healthpb.HealthServiceClient {
 
 func (c *Client) GetUserClient() userpb.UserServiceClient {
 	return c.UserClient
+}
+
+func (c *Client) GetAuthClient() authpb.AuthServiceClient {
+	return c.authClient
 }
 
 //===============

@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/model/reponse"
-	"backend/gateway/internal/utils"
 	"errors"
+	"gateway/internal/config"
+	"gateway/internal/model/reponse"
+	"gateway/internal/utils"
 	"log"
 	"net/http"
 	"strings"

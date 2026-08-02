@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 )
 
 const (

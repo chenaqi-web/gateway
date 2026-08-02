@@ -1,18 +1,18 @@
 package controller
 
 import (
-	"backend/gateway/internal/infras/clog"
 	"context"
+	"gateway/internal/infras/clog"
 	"log"
 	"net/http"
 	"strings"
 
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/client/rpc/core-rpc/authpb"
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/model/dto"
-	"backend/gateway/internal/model/reponse"
-	"backend/gateway/internal/utils"
+	"gateway/internal/client/rpc"
+	"gateway/internal/client/rpc/core-rpc/authpb"
+	"gateway/internal/config"
+	"gateway/internal/model/dto"
+	"gateway/internal/model/reponse"
+	"gateway/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
