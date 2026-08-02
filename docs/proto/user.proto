@@ -6,7 +6,7 @@ syntax = "proto3";
 
 package user;
 //import "idl/validate/validate.proto";
-option go_package = "backend/gateway/internal/client/rpc/core-rpc/userpb;userpb";
+option go_package = "gateway/internal/client/rpc/core-rpc/userpb;userpb";
 
 
 message LoginReq {
