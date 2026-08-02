@@ -7,8 +7,8 @@ import (
 	"mime/multipart"
 	"strings"
 
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/infras/storage"
+	"gateway/internal/config"
+	"gateway/internal/infras/storage"
 )
 
 const defaultMaxUploadSize = 10 << 20 // 10MB

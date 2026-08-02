@@ -1,11 +1,11 @@
 package infras
 
 import (
-	"backend/gateway/internal/infras/api/llm"
-	"backend/gateway/internal/infras/cache"
-	"backend/gateway/internal/infras/clog"
-	"backend/gateway/internal/infras/repo"
-	"backend/gateway/internal/infras/storage"
+	"gateway/internal/infras/api/llm"
+	"gateway/internal/infras/cache"
+	"gateway/internal/infras/clog"
+	"gateway/internal/infras/repo"
+	"gateway/internal/infras/storage"
 
 	"github.com/google/wire"
 )

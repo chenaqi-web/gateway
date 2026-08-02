@@ -1,7 +1,7 @@
 package facade
 
 import (
-	"backend/gateway/internal/facade/controller"
+	"gateway/internal/facade/controller"
 
 	"github.com/google/wire"
 )
@@ -15,5 +15,6 @@ var ProviderSet = wire.NewSet(
 	controller.NewAuthController,
 	controller.NewAiChatController,
 	controller.NewStorageController,
+	controller.NewCommentController,
 	New,
 )

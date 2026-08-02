@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/client/rpc/core-rpc/categorypb"
-	"backend/gateway/internal/model/dto"
-	"backend/gateway/internal/model/reponse"
+	"gateway/internal/client/rpc"
+	"gateway/internal/client/rpc/core-rpc/categorypb"
+	"gateway/internal/model/dto"
+	"gateway/internal/model/reponse"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

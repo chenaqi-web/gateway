@@ -6,7 +6,7 @@ syntax = "proto3";
 
 package category;
 //import "idl/validate/validate.proto";
-option go_package = "backend/gateway/internal/client/rpc/core-rpc/categorypb;categorypb";
+option go_package = "gateway/internal/client/rpc/core-rpc/categorypb;categorypb";
 
 message CategoryType {
   uint64 id = 1;

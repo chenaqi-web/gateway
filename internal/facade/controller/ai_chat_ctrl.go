@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"backend/gateway/internal/application"
-	"backend/gateway/internal/model/dto"
-	"backend/gateway/internal/model/reponse"
 	"errors"
+	"gateway/internal/application"
+	"gateway/internal/model/dto"
+	"gateway/internal/model/reponse"
 	"log"
 	"net/http"
 

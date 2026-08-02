@@ -1,20 +1,20 @@
 package rpc
 
 import (
-	"backend/gateway/internal/client/rpc/core-rpc/authpb"
-	"backend/gateway/internal/client/rpc/core-rpc/articlepb"
-	"backend/gateway/internal/client/rpc/core-rpc/categorypb"
-	"backend/gateway/internal/client/rpc/core-rpc/userpb"
 	"fmt"
+	"gateway/internal/client/rpc/core-rpc/articlepb"
+	"gateway/internal/client/rpc/core-rpc/categorypb"
+	"gateway/internal/client/rpc/core-rpc/commentpb"
+	"gateway/internal/client/rpc/core-rpc/userpb"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"backend/gateway/internal/client/rpc/core-rpc/healthpb"
+	"gateway/internal/client/rpc/core-rpc/healthpb"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 )
 
 type Client struct {
@@ -22,11 +22,11 @@ type Client struct {
 	coreConnection *grpc.ClientConn
 
 	// 不同的proto客户端
-	healthClient healthpb.HealthServiceClient
-	authClient   authpb.AuthServiceClient
-	UserClient   userpb.UserServiceClient
+	healthClient   healthpb.HealthServiceClient
+	UserClient     userpb.UserServiceClient
 	CategoryClient categorypb.CategoryServiceClient
 	ArticleClient  articlepb.ArticleServiceClient
+	CommentClient  commentpb.CommentServiceClient
 
 	// 请求超时时间
 	requestTimeout time.Duration
@@ -46,10 +46,10 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 	return &Client{
 		coreConnection: coreConn,
 		healthClient:   healthpb.NewHealthServiceClient(coreConn),
-		authClient:     authpb.NewAuthServiceClient(coreConn),
 		UserClient:     userpb.NewUserServiceClient(coreConn),
 		CategoryClient: categorypb.NewCategoryServiceClient(coreConn),
 		ArticleClient:  articlepb.NewArticleServiceClient(coreConn),
+		CommentClient:  commentpb.NewCommentServiceClient(coreConn),
 		requestTimeout: time.Second * time.Duration(timeoutSec),
 	}, nil
 }
@@ -82,10 +82,6 @@ func (c *Client) GetRequestTimeout() time.Duration {
 
 func (c *Client) GetHealthClient() healthpb.HealthServiceClient {
 	return c.healthClient
-}
-
-func (c *Client) GetAuthClient() authpb.AuthServiceClient {
-	return c.authClient
 }
 
 func (c *Client) GetUserClient() userpb.UserServiceClient {

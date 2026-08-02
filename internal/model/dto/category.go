@@ -1,6 +1,6 @@
 package dto
 
-import "backend/gateway/internal/client/rpc/core-rpc/categorypb"
+import "gateway/internal/client/rpc/core-rpc/categorypb"
 
 // ---------- 实体 ----------
 

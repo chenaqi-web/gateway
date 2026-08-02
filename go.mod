@@ -1,4 +1,4 @@
-module backend/gateway
+module gateway
 
 go 1.26
 

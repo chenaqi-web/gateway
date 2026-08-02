@@ -1,8 +1,8 @@
 package client
 
 import (
-	"backend/gateway/internal/client/http"
-	"backend/gateway/internal/client/rpc"
+	"gateway/internal/client/http"
+	"gateway/internal/client/rpc"
 
 	"github.com/google/wire"
 )

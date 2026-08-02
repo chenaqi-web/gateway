@@ -9,10 +9,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/infras/cache"
-	"backend/gateway/internal/infras/repo"
+	"gateway/internal/client/rpc"
+	"gateway/internal/config"
+	"gateway/internal/infras/cache"
+	"gateway/internal/infras/repo"
 )
 
 type Server struct {

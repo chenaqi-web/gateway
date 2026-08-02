@@ -1,7 +1,7 @@
 package router
 
 import (
-	"backend/gateway/internal/facade/controller"
+	"gateway/internal/facade/controller"
 
 	"github.com/gin-gonic/gin"
 )

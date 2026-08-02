@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/client/rpc/core-rpc/articlepb"
-	"backend/gateway/internal/model/dto"
-	"backend/gateway/internal/model/reponse"
+	"gateway/internal/client/rpc"
+	"gateway/internal/client/rpc/core-rpc/articlepb"
+	"gateway/internal/model/dto"
+	"gateway/internal/model/reponse"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +33,45 @@ func (ct *ArticleController) Create(c *gin.Context) {
 		CoverImage: req.CoverImage,
 		CategoryID: req.CategoryID,
 		IsTop:      req.IsTop,
+	})
+	if err != nil {
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	reponse.Success(c, dto.ToArticleBoolResponse(resp.GetSuccess()))
+}
+
+func (ct *ArticleController) Search(c *gin.Context) {
+	var req dto.SearchArticlesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		return
+	}
+
+	resp, err := ct.rpc.ArticleClient.SearchArticles(c, &articlepb.SearchArticlesRequest{
+		Q:        req.Q,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	})
+	if err != nil {
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	reponse.Success(c, dto.ToListArticlesResponse(resp.GetArticles()))
+}
+
+func (ct *ArticleController) Delete(c *gin.Context) {
+	var req dto.DeleteArticleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		return
+	}
+
+	resp, err := ct.rpc.ArticleClient.DeleteArticle(c, &articlepb.DeleteArticleRequest{
+		Id:       req.ID,
+		AuthorID: req.AuthorID,
 	})
 	if err != nil {
 		reponse.Fail(c, http.StatusInternalServerError, err.Error())
@@ -115,43 +154,4 @@ func (ct *ArticleController) ByCategory(c *gin.Context) {
 	}
 
 	reponse.Success(c, dto.ToListArticlesResponse(resp.GetArticles()))
-}
-
-func (ct *ArticleController) Search(c *gin.Context) {
-	var req dto.SearchArticlesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
-		return
-	}
-
-	resp, err := ct.rpc.ArticleClient.SearchArticles(c, &articlepb.SearchArticlesRequest{
-		Q:        req.Q,
-		Page:     req.Page,
-		PageSize: req.PageSize,
-	})
-	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	reponse.Success(c, dto.ToListArticlesResponse(resp.GetArticles()))
-}
-
-func (ct *ArticleController) Delete(c *gin.Context) {
-	var req dto.DeleteArticleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
-		return
-	}
-
-	resp, err := ct.rpc.ArticleClient.DeleteArticle(c, &articlepb.DeleteArticleRequest{
-		Id:       req.ID,
-		AuthorID: req.AuthorID,
-	})
-	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	reponse.Success(c, dto.ToArticleBoolResponse(resp.GetSuccess()))
 }

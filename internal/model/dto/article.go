@@ -1,6 +1,6 @@
 package dto
 
-import "backend/gateway/internal/client/rpc/core-rpc/articlepb"
+import "gateway/internal/client/rpc/core-rpc/articlepb"
 
 // ---------- 实体 ----------
 

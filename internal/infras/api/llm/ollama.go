@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"

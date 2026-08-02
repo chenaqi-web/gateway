@@ -1,11 +1,11 @@
 package controller
 
 import (
-	"backend/gateway/internal/client/rpc"
-	"backend/gateway/internal/client/rpc/core-rpc/healthpb"
-	"backend/gateway/internal/model/dto"
-	"backend/gateway/internal/model/reponse"
 	"context"
+	"gateway/internal/client/rpc"
+	"gateway/internal/client/rpc/core-rpc/healthpb"
+	"gateway/internal/model/dto"
+	"gateway/internal/model/reponse"
 	"log"
 	"net/http"
 

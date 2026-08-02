@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"backend/gateway/internal/config"
-	"backend/gateway/internal/model/dto"
+	"gateway/internal/config"
+	"gateway/internal/model/dto"
 )
 
 type PyClient struct {

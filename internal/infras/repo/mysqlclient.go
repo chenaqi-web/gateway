@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"backend/gateway/internal/config"
+	"gateway/internal/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
