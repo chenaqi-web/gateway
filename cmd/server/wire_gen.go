@@ -15,6 +15,7 @@ import (
 	"gateway/internal/facade/controller"
 	"gateway/internal/infras/api/llm"
 	"gateway/internal/infras/cache"
+	"gateway/internal/infras/clog"
 	"gateway/internal/infras/repo"
 	"gateway/internal/infras/storage"
 	"gateway/internal/server"
@@ -51,7 +52,12 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService)
 	commentController := controller.NewCommentController(client)
-	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController)
+	logger, err := clog.NewLog(cfg)
+	if err != nil {
+		return nil, err
+	}
+	authController := controller.NewAuthController(client, cacheClient, cfg, logger)
+	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController, authController, cacheClient)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err

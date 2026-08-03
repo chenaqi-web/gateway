@@ -1,13 +1,13 @@
 package facade
 
 import (
+	"gateway/internal/config"
 	"gateway/internal/facade/controller"
 	"gateway/internal/facade/middleware"
 	"gateway/internal/facade/router"
+	"gateway/internal/infras/cache"
 
 	"github.com/gin-gonic/gin"
-
-	"gateway/internal/config"
 )
 
 func New(cfg *config.Config,
@@ -18,6 +18,8 @@ func New(cfg *config.Config,
 	articleCtrl *controller.ArticleController,
 	storageCtrl *controller.StorageController,
 	commentCtrl *controller.CommentController,
+	authCtrl *controller.AuthController,
+	cacheClient *cache.CacheClient,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
@@ -26,19 +28,15 @@ func New(cfg *config.Config,
 	// 跨域中间件
 	r.Use(middleware.Cors())
 
-	// Prometheus metrics middleware
-	//r.Use(infraProm.GinMiddleware())
-	// r.Use(middleware.Recovery(), middleware.CORS())
-
-	// 注册静态路由（含 static/upload 上传目录）
+	// 注册静态路由
 	r.Static("/static", "./static")
-
-	// metrics endpoint (Prometheus)
-	//r.GET("/metrics", gin.WrapH(infraProm.Handler()))
 
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health/ping", health.Ping)
+		router.NewAuthRouter(v1, authCtrl)
+
+		v1.Use(middleware.RequireAuth(cfg.Auth, cacheClient))
 
 		// 注册路由
 		router.NewAIRouter(v1, aiChat)

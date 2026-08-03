@@ -12,18 +12,16 @@ const (
 	refreshCookiePath = "/api/v1"
 )
 
-func SetRefreshCookie(writer http.ResponseWriter, refreshToken string, cfg config.AuthConfig) error {
+func SetRefreshCookie(writer http.ResponseWriter, refreshToken string, cfg config.AuthConfig) {
 	http.SetCookie(writer, &http.Cookie{
-		Name:  refreshCookieName,
-		Value: refreshToken,
-		Path:  refreshCookiePath,
-		//Expires:  time.Now().UTC().Add(ttl), 直接用max就行
-		MaxAge:   int(cfg.RefreshDuration()),
+		Name:     refreshCookieName,
+		Value:    refreshToken,
+		Path:     refreshCookiePath,
+		MaxAge:   cfg.RefreshExpire,
 		HttpOnly: true,
 		Secure:   cfg.CookieSecure,
 		SameSite: http.SameSiteLaxMode,
 	})
-	return nil
 }
 
 func RefreshTokenFromCookie(request *http.Request) (string, error) {
