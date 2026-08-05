@@ -33,6 +33,7 @@ var StorageProviderSet = wire.NewSet(
 
 // ProviderSet 当前注入 cache / mysql / storage；clog 已就绪，后续需要时再并入
 var ProviderSet = wire.NewSet(
+	LogProviderSet,
 	CacheProviderSet,
 	RepoProviderSet,
 	ApiProviderSet,

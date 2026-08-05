@@ -12,6 +12,7 @@ var ProviderSet = wire.NewSet(
 	controller.NewCategoryController,
 	controller.NewArticleController,
 	controller.NewHealthController,
+	controller.NewAuthController,
 	controller.NewAiChatController,
 	controller.NewStorageController,
 	controller.NewCommentController,

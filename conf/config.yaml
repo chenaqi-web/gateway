@@ -2,6 +2,12 @@ server:
   addr: "127.0.0.1:8079"
   mode: release
 
+auth:
+  jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
+  access_expire: 3000
+  refresh_expire: 720000
+  cookie_secure: false
+
 Log:
   Level: "debug"
   # console=仅终端彩色 | file=仅文件JSON

@@ -11,6 +11,7 @@ const configPath = "conf/config.yaml"
 
 type Config struct {
 	Server  ServerConfig  `yaml:"server"`
+	Auth    AuthConfig    `yaml:"auth"`
 	RPC     RPCConfig     `yaml:"rpc"`
 	HTTP    HTTPConfig    `yaml:"http"`
 	Mysql   MySQLConfig   `yaml:"Mysql"`
