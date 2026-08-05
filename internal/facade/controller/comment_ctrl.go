@@ -1,11 +1,9 @@
 package controller
 
 import (
-	"errors"
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/commentpb"
 	"gateway/internal/client/rpc/core-rpc/likepb"
-	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 	"net/http"
@@ -106,10 +104,10 @@ func (ct *CommentController) attachLikeStatuses(c *gin.Context, comments []*comm
 		return nil
 	}
 
-	UserID, ok := middleware.GetUserID(c)
-	if !ok {
-		return errors.New("not authorized")
-	}
+	//UserID, ok := middleware.GetUserID(c)
+	//if !ok {
+	//	return errors.New("not authorized")
+	//}
 
 	objectIDs := make([]uint64, 0, len(comments))
 	for _, comment := range comments {
@@ -122,7 +120,7 @@ func (ct *CommentController) attachLikeStatuses(c *gin.Context, comments []*comm
 	}
 
 	statusResp, err := ct.rpc.LikeClient.BatchLikeStatus(c, &likepb.BatchCommentLikeStatusRequest{
-		UserID:     UserID,
+		UserID:     1,
 		ObjectType: "comment",
 		ObjectIDs:  objectIDs,
 	})

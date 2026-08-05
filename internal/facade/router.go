@@ -19,6 +19,7 @@ func New(cfg *config.Config,
 	storageCtrl *controller.StorageController,
 	commentCtrl *controller.CommentController,
 	likeCtrl *controller.LikeController,
+	authCtrl *controller.AuthController,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
@@ -49,6 +50,7 @@ func New(cfg *config.Config,
 		router.NewStorageRouter(v1, storageCtrl)
 		router.NewCommentRouter(v1, commentCtrl)
 		router.NewLikeRouter(v1, likeCtrl)
+		router.NewAuthRouter(v1, authCtrl)
 
 	}
 
