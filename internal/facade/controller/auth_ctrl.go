@@ -20,23 +20,23 @@ import (
 )
 
 type AuthController struct {
-	rpc   *rpc.Client
-	cache *cache.CacheClient
-	cfg   config.AuthConfig
-	log   *clog.Log
+	rpc          *rpc.Client
+	jwtBlackList *cache.JwtBlacklist
+	cfg          config.AuthConfig
+	log          *clog.Log
 }
 
 func NewAuthController(
 	rpcClient *rpc.Client,
-	cacheClient *cache.CacheClient,
+	jwtBlackList *cache.JwtBlacklist,
 	cfg *config.Config,
 	logger *clog.Log,
 ) *AuthController {
 	return &AuthController{
-		rpc:   rpcClient,
-		cache: cacheClient,
-		cfg:   cfg.Auth,
-		log:   logger,
+		rpc:          rpcClient,
+		jwtBlackList: jwtBlackList,
+		cfg:          cfg.Auth,
+		log:          logger,
 	}
 }
 
@@ -146,7 +146,7 @@ func (a *AuthController) Logout(c *gin.Context) {
 	// token加入黑名单
 	authorization := strings.Fields(c.GetHeader("Authorization"))
 	if len(authorization) == 2 && strings.EqualFold(authorization[0], "Bearer") {
-		if err := a.cache.BlacklistToken(c.Request.Context(), authorization[1], a.cfg.AccessExpire); err != nil {
+		if err := a.jwtBlackList.BlacklistToken(c.Request.Context(), authorization[1], a.cfg.AccessExpire); err != nil {
 			a.log.Error("auth blacklist access token", zap.Error(err))
 			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 			return
@@ -154,7 +154,7 @@ func (a *AuthController) Logout(c *gin.Context) {
 	}
 
 	if refreshToken != "" {
-		if err := a.cache.BlacklistToken(c.Request.Context(), refreshToken, a.cfg.RefreshExpire); err != nil {
+		if err := a.jwtBlackList.BlacklistToken(c.Request.Context(), refreshToken, a.cfg.RefreshExpire); err != nil {
 			a.log.Error("auth blacklist refresh token", zap.Error(err))
 			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 			return

@@ -12,6 +12,7 @@ import (
 
 var CacheProviderSet = wire.NewSet(
 	cache.NewClient,
+	cache.NewJwtBlacklist,
 )
 
 var RepoProviderSet = wire.NewSet(

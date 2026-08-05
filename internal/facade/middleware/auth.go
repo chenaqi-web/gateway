@@ -21,7 +21,7 @@ const (
 	refreshedAccessTokenHeader = "Authorization"
 )
 
-func RequireAuth(cfg config.AuthConfig, cacheClient *cache.CacheClient) gin.HandlerFunc {
+func RequireAuth(cfg config.AuthConfig, jwtBlackList *cache.JwtBlacklist) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
@@ -30,7 +30,7 @@ func RequireAuth(cfg config.AuthConfig, cacheClient *cache.CacheClient) gin.Hand
 			return
 		}
 
-		blacklisted, err := cacheClient.IsTokenBlacklisted(c.Request.Context(), accessToken)
+		blacklisted, err := jwtBlackList.IsTokenBlacklisted(c.Request.Context(), accessToken)
 		if err != nil {
 			log.Printf("auth middleware check access blacklist: %v", err)
 			c.Abort()
@@ -72,7 +72,7 @@ func RequireAuth(cfg config.AuthConfig, cacheClient *cache.CacheClient) gin.Hand
 			return
 		}
 
-		blacklisted, err = cacheClient.IsTokenBlacklisted(c.Request.Context(), refreshToken)
+		blacklisted, err = jwtBlackList.IsTokenBlacklisted(c.Request.Context(), refreshToken)
 		if err != nil {
 			log.Printf("auth middleware check refresh blacklist: %v", err)
 			c.Abort()

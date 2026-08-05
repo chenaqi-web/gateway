@@ -1,11 +1,11 @@
 package facade
 
 import (
+	"gateway/internal/config"
 	"gateway/internal/facade/controller"
 	"gateway/internal/facade/middleware"
 	"gateway/internal/facade/router"
 	"gateway/internal/infras/cache"
-	"gateway/internal/config"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +20,7 @@ func New(cfg *config.Config,
 	commentCtrl *controller.CommentController,
 	likeCtrl *controller.LikeController,
 	authCtrl *controller.AuthController,
-	cacheClient *cache.CacheClient,
+	jwtBlackList *cache.JwtBlacklist,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
@@ -43,7 +43,7 @@ func New(cfg *config.Config,
 	{
 		v1.GET("/health/ping", health.Ping)
 
-		v1.Use(middleware.RequireAuth(cfg.Auth, cacheClient))
+		v1.Use(middleware.RequireAuth(cfg.Auth, jwtBlackList))
 
 		// 注册路由
 		router.NewAIRouter(v1, aiChat)
