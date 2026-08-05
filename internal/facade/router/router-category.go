@@ -6,14 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewCategoryRouter(v *gin.RouterGroup, ct *controller.CategoryController) {
+func NewCategoryRouter(v *gin.RouterGroup, ct *controller.CategoryController, authMiddleware gin.HandlerFunc) {
 	category := v.Group("/types")
 	{
-		category.POST("/create", ct.CreateType)
-		category.DELETE("/del", ct.DeleteType)
 		category.GET("/list", ct.ListTypes)
-		category.POST("/category/create", ct.CreateCategory)
-		category.DELETE("/category/del", ct.DeleteCategory)
 		category.POST("/category/list", ct.ListCategories)
+
+		authorized := category.Group("")
+		authorized.Use(authMiddleware)
+		{
+			authorized.POST("/create", ct.CreateType)
+			authorized.DELETE("/del", ct.DeleteType)
+			authorized.POST("/category/create", ct.CreateCategory)
+			authorized.DELETE("/category/del", ct.DeleteCategory)
+		}
 	}
 }

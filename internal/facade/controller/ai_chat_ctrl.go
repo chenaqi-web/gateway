@@ -3,10 +3,12 @@ package controller
 import (
 	"errors"
 	"gateway/internal/application"
+	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +22,13 @@ func NewAiChatController(svc *application.AiChatService) *AiChatController {
 }
 
 func (ct *AiChatController) CreateSession(c *gin.Context) {
-	session, err := ct.svc.CreateSession(c.Request.Context(), "")
+	userID, ok := currentAuthUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	session, err := ct.svc.CreateSession(c.Request.Context(), userID)
 	if err != nil {
 		aiChatError(c, err)
 		return
@@ -35,7 +43,13 @@ func (ct *AiChatController) ListSessions(c *gin.Context) {
 		return
 	}
 
-	list, err := ct.svc.ListSessions(c.Request.Context(), "", query.Page, query.PageSize)
+	userID, ok := currentAuthUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	list, err := ct.svc.ListSessions(c.Request.Context(), userID, query.Page, query.PageSize)
 	if err != nil {
 		aiChatError(c, err)
 		return
@@ -44,7 +58,13 @@ func (ct *AiChatController) ListSessions(c *gin.Context) {
 }
 
 func (ct *AiChatController) GetSession(c *gin.Context) {
-	session, err := ct.svc.GetSession(c.Request.Context(), "", c.Param("id"))
+	userID, ok := currentAuthUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	session, err := ct.svc.GetSession(c.Request.Context(), userID, c.Param("id"))
 	if err != nil {
 		aiChatError(c, err)
 		return
@@ -68,12 +88,18 @@ func (ct *AiChatController) Chat(c *gin.Context) {
 		return
 	}
 
+	userID, ok := currentAuthUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("X-Accel-Buffering", "no")
 
-	if err := ct.svc.Chat(c.Request.Context(), "", input.SessionID, input.Content, func(chunk application.AiChatStreamChunk) error {
+	if err := ct.svc.Chat(c.Request.Context(), userID, input.SessionID, input.Content, func(chunk application.AiChatStreamChunk) error {
 		c.SSEvent("message", dto.AiChatStreamChunkResponse{
 			SessionID: chunk.SessionID,
 			Content:   chunk.Content,
@@ -91,6 +117,14 @@ func (ct *AiChatController) Chat(c *gin.Context) {
 
 	c.SSEvent("message", "[DONE]")
 	c.Writer.Flush()
+}
+
+func currentAuthUserID(c *gin.Context) (string, bool) {
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		return "", false
+	}
+	return strconv.FormatUint(userID, 10), true
 }
 
 func aiChatError(c *gin.Context, err error) {

@@ -53,12 +53,13 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	storageController := controller.NewStorageController(storageService)
 	commentController := controller.NewCommentController(client)
 	likeController := controller.NewLikeController(client)
+	jwtBlacklist := cache.NewJwtBlacklist(cacheClient)
 	log, err := clog.NewLog(cfg)
 	if err != nil {
 		return nil, err
 	}
-	authController := controller.NewAuthController(client, cacheClient, cfg, log)
-	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController, likeController, authController, cacheClient)
+	authController := controller.NewAuthController(client, jwtBlacklist, cfg, log)
+	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController, likeController, authController, jwtBlacklist)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err

@@ -6,13 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewCommentRouter(v *gin.RouterGroup, ct *controller.CommentController) {
+func NewCommentRouter(v *gin.RouterGroup, ct *controller.CommentController, authMiddleware gin.HandlerFunc) {
 	comments := v.Group("/comment")
 	{
-		comments.POST("/create", ct.Create)
-		comments.POST("/reply", ct.CreateReply)
-		comments.DELETE("/delete", ct.Delete)
 		comments.POST("/list", ct.List)
 		comments.POST("/replies", ct.Replies)
+
+		authorized := comments.Group("")
+		authorized.Use(authMiddleware)
+		{
+			authorized.POST("/create", ct.Create)
+			authorized.POST("/reply", ct.CreateReply)
+			authorized.DELETE("/delete", ct.Delete)
+		}
 	}
 }

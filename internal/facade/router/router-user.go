@@ -6,8 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController) {
+func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, authMiddleware gin.HandlerFunc) {
 	user := v.Group("/user")
+	user.Use(authMiddleware)
 	{
 		user.GET("/", userCtrl.Get)
 	}

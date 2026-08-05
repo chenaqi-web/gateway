@@ -39,21 +39,22 @@ func New(cfg *config.Config,
 	// metrics endpoint (Prometheus)
 	//r.GET("/metrics", gin.WrapH(infraProm.Handler()))
 
+	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth, jwtBlackList)
+	auth := authMiddleware.RequireAuth()
+
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health/ping", health.Ping)
 
-		v1.Use(middleware.RequireAuth(cfg.Auth, jwtBlackList))
-
 		// 注册路由
-		router.NewAIRouter(v1, aiChat)
-		router.NewUserRouter(v1, userCtrl)
-		router.NewCategoryRouter(v1, categoryCtrl)
-		router.NewArticleRouter(v1, articleCtrl)
-		router.NewStorageRouter(v1, storageCtrl)
-		router.NewCommentRouter(v1, commentCtrl)
-		router.NewLikeRouter(v1, likeCtrl)
-		router.NewAuthRouter(v1, authCtrl)
+		router.NewAIRouter(v1, aiChat, auth)
+		router.NewUserRouter(v1, userCtrl, auth)
+		router.NewCategoryRouter(v1, categoryCtrl, auth)
+		router.NewArticleRouter(v1, articleCtrl, auth)
+		router.NewStorageRouter(v1, storageCtrl, auth)
+		router.NewCommentRouter(v1, commentCtrl, auth)
+		router.NewLikeRouter(v1, likeCtrl, auth)
+		router.NewAuthRouter(v1, authCtrl, auth)
 
 	}
 

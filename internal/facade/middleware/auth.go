@@ -21,7 +21,22 @@ const (
 	refreshedAccessTokenHeader = "Authorization"
 )
 
-func RequireAuth(cfg config.AuthConfig, jwtBlackList *cache.JwtBlacklist) gin.HandlerFunc {
+type AuthMiddleware struct {
+	cfg          config.AuthConfig
+	jwtBlackList *cache.JwtBlacklist
+}
+
+func NewAuthMiddleware(cfg config.AuthConfig, jwtBlackList *cache.JwtBlacklist) *AuthMiddleware {
+	return &AuthMiddleware{
+		cfg:          cfg,
+		jwtBlackList: jwtBlackList,
+	}
+}
+
+func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
+	cfg := m.cfg
+	jwtBlackList := m.jwtBlackList
+
 	return func(c *gin.Context) {
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
