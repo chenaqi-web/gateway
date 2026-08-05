@@ -18,6 +18,7 @@ func New(cfg *config.Config,
 	articleCtrl *controller.ArticleController,
 	storageCtrl *controller.StorageController,
 	commentCtrl *controller.CommentController,
+	likeCtrl *controller.LikeController,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
@@ -47,6 +48,7 @@ func New(cfg *config.Config,
 		router.NewArticleRouter(v1, articleCtrl)
 		router.NewStorageRouter(v1, storageCtrl)
 		router.NewCommentRouter(v1, commentCtrl)
+		router.NewLikeRouter(v1, likeCtrl)
 
 	}
 

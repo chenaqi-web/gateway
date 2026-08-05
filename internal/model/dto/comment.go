@@ -46,6 +46,7 @@ type CommentInfo struct {
 	CreatedAt  string `json:"createdAt"`
 	UserName   string `json:"userName"`
 	UserAvatar string `json:"userAvatar"`
+	IsLiked    bool   `json:"isLiked"`
 }
 
 type CommentListResponse struct {
@@ -68,7 +69,7 @@ func ToCommentInfo(item *commentpb.CommentInfo) *CommentInfo {
 	if item == nil {
 		return nil
 	}
-	return &CommentInfo{ID: item.GetId(), ArticleID: item.GetArticleId(), UserID: item.GetUserId(), ParentID: item.GetParentId(), RootID: item.GetRootId(), ReplyToID: item.GetReplyToId(), Content: item.GetContent(), LikeCount: item.GetLikeCount(), ChildCount: item.GetChildCount(), CreatedAt: item.GetCreatedAt(), UserName: item.GetUserName(), UserAvatar: item.GetUserAvatar()}
+	return &CommentInfo{ID: item.GetId(), ArticleID: item.GetArticleId(), UserID: item.GetUserId(), ParentID: item.GetParentId(), RootID: item.GetRootId(), ReplyToID: item.GetReplyToId(), Content: item.GetContent(), LikeCount: item.GetLikeCount(), ChildCount: item.GetChildCount(), CreatedAt: item.GetCreatedAt(), UserName: item.GetUserName(), UserAvatar: item.GetUserAvatar(), IsLiked: item.GetIsLiked()}
 }
 
 func ToCommentList(items []*commentpb.CommentInfo) []*CommentInfo {

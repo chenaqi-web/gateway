@@ -5,6 +5,7 @@ import (
 	"gateway/internal/client/rpc/core-rpc/articlepb"
 	"gateway/internal/client/rpc/core-rpc/categorypb"
 	"gateway/internal/client/rpc/core-rpc/commentpb"
+	"gateway/internal/client/rpc/core-rpc/likepb"
 	"gateway/internal/client/rpc/core-rpc/userpb"
 	"time"
 
@@ -27,6 +28,7 @@ type Client struct {
 	CategoryClient categorypb.CategoryServiceClient
 	ArticleClient  articlepb.ArticleServiceClient
 	CommentClient  commentpb.CommentServiceClient
+	LikeClient     likepb.LikeServiceClient
 
 	// 请求超时时间
 	requestTimeout time.Duration
@@ -50,6 +52,7 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 		CategoryClient: categorypb.NewCategoryServiceClient(coreConn),
 		ArticleClient:  articlepb.NewArticleServiceClient(coreConn),
 		CommentClient:  commentpb.NewCommentServiceClient(coreConn),
+		LikeClient:     likepb.NewLikeServiceClient(coreConn),
 		requestTimeout: time.Second * time.Duration(timeoutSec),
 	}, nil
 }

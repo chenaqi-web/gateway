@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"errors"
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/commentpb"
+	"gateway/internal/client/rpc/core-rpc/likepb"
+	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 	"net/http"
@@ -64,11 +67,17 @@ func (ct *CommentController) List(c *gin.Context) {
 		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
+
 	resp, err := ct.rpc.CommentClient.GetArticleComments(c, &commentpb.GetArticleCommentsReq{ArticleId: req.ArticleID, Page: req.Page, Size: req.Size})
 	if err != nil {
 		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if err := ct.attachLikeStatuses(c, resp.GetComments()); err != nil {
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	reponse.Success(c, dto.CommentListResponse{Comments: dto.ToCommentList(resp.GetComments()), Page: resp.GetPage(), Size: resp.GetSize()})
 }
 
@@ -78,10 +87,59 @@ func (ct *CommentController) Replies(c *gin.Context) {
 		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
+
 	resp, err := ct.rpc.CommentClient.GetCommentReplies(c, &commentpb.GetCommentRepliesReq{ParentId: req.ParentID, Page: req.Page, Size: req.Size})
 	if err != nil {
 		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+	if err := ct.attachLikeStatuses(c, resp.GetReplies()); err != nil {
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	reponse.Success(c, dto.CommentRepliesResponse{Replies: dto.ToCommentList(resp.GetReplies()), Page: resp.GetPage(), Size: resp.GetSize()})
+}
+
+func (ct *CommentController) attachLikeStatuses(c *gin.Context, comments []*commentpb.CommentInfo) error {
+	if len(comments) == 0 {
+		return nil
+	}
+
+	UserID, ok := middleware.GetUserID(c)
+	if !ok {
+		return errors.New("not authorized")
+	}
+
+	objectIDs := make([]uint64, 0, len(comments))
+	for _, comment := range comments {
+		if comment != nil {
+			objectIDs = append(objectIDs, comment.GetId())
+		}
+	}
+	if len(objectIDs) == 0 {
+		return nil
+	}
+
+	statusResp, err := ct.rpc.LikeClient.BatchLikeStatus(c, &likepb.BatchCommentLikeStatusRequest{
+		UserID:     UserID,
+		ObjectType: "comment",
+		ObjectIDs:  objectIDs,
+	})
+	if err != nil {
+		return err
+	}
+
+	statuses := make(map[uint64]bool, len(statusResp.GetItems()))
+	for _, item := range statusResp.GetItems() {
+		if item != nil {
+			statuses[item.GetObjectID()] = item.GetIsLiked()
+		}
+	}
+	for _, comment := range comments {
+		if comment != nil {
+			comment.IsLiked = statuses[comment.GetId()]
+		}
+	}
+	return nil
 }
