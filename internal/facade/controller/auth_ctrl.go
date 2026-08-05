@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"gateway/internal/infras/clog"
 	"log"
 	"net/http"
 	"strings"
@@ -10,6 +9,8 @@ import (
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/authpb"
 	"gateway/internal/config"
+	"gateway/internal/infras/cache"
+	"gateway/internal/infras/clog"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 	"gateway/internal/utils"
@@ -19,16 +20,23 @@ import (
 )
 
 type AuthController struct {
-	rpc *rpc.Client
-	cfg config.AuthConfig
-	log *clog.Log
+	rpc   *rpc.Client
+	cache *cache.CacheClient
+	cfg   config.AuthConfig
+	log   *clog.Log
 }
 
-func NewAuthController(rpcClient *rpc.Client, cfg *config.Config, logger *clog.Log) *AuthController {
+func NewAuthController(
+	rpcClient *rpc.Client,
+	cacheClient *cache.CacheClient,
+	cfg *config.Config,
+	logger *clog.Log,
+) *AuthController {
 	return &AuthController{
-		rpc: rpcClient,
-		cfg: cfg.Auth,
-		log: logger,
+		rpc:   rpcClient,
+		cache: cacheClient,
+		cfg:   cfg.Auth,
+		log:   logger,
 	}
 }
 
@@ -80,6 +88,7 @@ func (a *AuthController) Login(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), a.rpc.GetRequestTimeout())
 	defer cancel()
 
+	// 调用Core登录
 	response, err := a.rpc.GetAuthClient().Login(ctx, &authpb.LoginRequest{
 		Username: request.Username,
 		Password: request.Password,
@@ -90,44 +99,67 @@ func (a *AuthController) Login(c *gin.Context) {
 	}
 
 	user := response.GetUser()
+	// Gateway生成token
 	claims := utils.JWTClaims{
 		UserID:      user.GetId(),
 		Role:        user.GetRole(),
 		AuthVersion: user.GetAuthVersion(),
 	}
 
-	accessToken, err := utils.CreateAccessToken(a.cfg.JWTSigningKey(), claims, a.cfg.AccessDuration())
+	accessToken, err := utils.CreateAccessToken([]byte(a.cfg.JWTSecret), claims, a.cfg.AccessExpire)
 	if err != nil {
-		a.log.Error("auth create access token: %v", zap.Error(err))
+		a.log.Error("auth create access token", zap.Error(err))
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	refreshToken, err := utils.CreateRefreshToken(a.cfg.JWTSigningKey(), claims, a.cfg.RefreshDuration())
+	refreshToken, err := utils.CreateRefreshToken([]byte(a.cfg.JWTSecret), claims, a.cfg.RefreshExpire)
 	if err != nil {
-		a.log.Error("auth create refresh token: %v", zap.Error(err))
+		a.log.Error("auth create refresh token", zap.Error(err))
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
-	if err := utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg); err != nil {
-		a.log.Error("auth login cookie: %v", zap.Error(err))
-		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
-		return
-	}
+	// refresh token写入cookie
+	utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg)
 
 	reponse.Success(c, dto.LoginResponse{
 		AccessToken:     accessToken,
-		AccessExpiresIn: int64(a.cfg.AccessDuration()),
-		User: &dto.AuthUserSummary{
-			ID:       user.GetId(),
-			Username: user.GetUsername(),
-			Email:    user.GetEmail(),
-			Avatar:   user.GetAvatar(),
-			Role:     user.GetRole(),
+		AccessExpiresIn: a.cfg.AccessExpire,
+		User: &dto.AuthUser{
+			ID:          user.GetId(),
+			Username:    user.GetUsername(),
+			Email:       user.GetEmail(),
+			Phone:       user.GetPhone(),
+			Avatar:      user.GetAvatar(),
+			Sex:         user.GetSex(),
+			Age:         user.GetAge(),
+			Role:        user.GetRole(),
+			Status:      user.GetStatus(),
+			AuthVersion: user.GetAuthVersion(),
 		},
 	})
 }
 
 func (a *AuthController) Logout(c *gin.Context) {
+	refreshToken, _ := utils.RefreshTokenFromCookie(c.Request)
 	utils.ClearRefreshCookie(c.Writer, a.cfg)
+
+	// token加入黑名单
+	authorization := strings.Fields(c.GetHeader("Authorization"))
+	if len(authorization) == 2 && strings.EqualFold(authorization[0], "Bearer") {
+		if err := a.cache.BlacklistToken(c.Request.Context(), authorization[1], a.cfg.AccessExpire); err != nil {
+			a.log.Error("auth blacklist access token", zap.Error(err))
+			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+			return
+		}
+	}
+
+	if refreshToken != "" {
+		if err := a.cache.BlacklistToken(c.Request.Context(), refreshToken, a.cfg.RefreshExpire); err != nil {
+			a.log.Error("auth blacklist refresh token", zap.Error(err))
+			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+			return
+		}
+	}
+
 	reponse.Success(c, nil)
 }

@@ -52,6 +52,12 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService)
 	commentController := controller.NewCommentController(client)
+	logger, err := clog.NewLog(cfg)
+	if err != nil {
+		return nil, err
+	}
+	authController := controller.NewAuthController(client, cacheClient, cfg, logger)
+	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController, authController, cacheClient)
 	likeController := controller.NewLikeController(client)
 	log, err := clog.NewLog(cfg)
 	if err != nil {

@@ -8,41 +8,35 @@ import (
 )
 
 const (
-	TokenTypeAccess       = "access"
-	TokenTypeRefresh      = "refresh"
-	minJWTSigningKeyBytes = 32
+	TokenTypeAccess  = "access"
+	TokenTypeRefresh = "refresh"
 )
 
 type JWTClaims struct {
 	UserID uint64 `json:"user_id"`
 	Role   string `json:"role,omitempty"`
-	// Reserved for future token revocation checks against Core user auth versions.
+	// 预留给Core校验token版本
 	AuthVersion uint64 `json:"auth_version,omitempty"`
 	TokenType   string `json:"token_type"`
 	jwt.RegisteredClaims
 }
 
-func CreateAccessToken(signingKey []byte, claims JWTClaims, expiresIn time.Duration) (string, error) {
+// 创建access token
+func CreateAccessToken(signingKey []byte, claims JWTClaims, expiresIn int) (string, error) {
 	return createToken(signingKey, claims, TokenTypeAccess, expiresIn)
 }
 
-func CreateRefreshToken(signingKey []byte, claims JWTClaims, expiresIn time.Duration) (string, error) {
+// 创建refresh token
+func CreateRefreshToken(signingKey []byte, claims JWTClaims, expiresIn int) (string, error) {
 	return createToken(signingKey, claims, TokenTypeRefresh, expiresIn)
 }
 
-func createToken(signingKey []byte, claims JWTClaims, tokenType string, expiresIn time.Duration) (string, error) {
-	if len(signingKey) < minJWTSigningKeyBytes {
-		return "", fmt.Errorf("jwt signing key must be at least %d bytes", minJWTSigningKeyBytes)
-	}
-	if expiresIn <= 0 {
-		return "", fmt.Errorf("token expiration must be positive")
-	}
-
+func createToken(signingKey []byte, claims JWTClaims, tokenType string, expiresIn int) (string, error) {
 	now := time.Now().UTC()
 	claims.TokenType = tokenType
 	claims.IssuedAt = jwt.NewNumericDate(now)
 	claims.NotBefore = jwt.NewNumericDate(now)
-	claims.ExpiresAt = jwt.NewNumericDate(now.Add(expiresIn))
+	claims.ExpiresAt = jwt.NewNumericDate(now.Add(time.Duration(expiresIn) * time.Second))
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString(signingKey)
@@ -52,8 +46,7 @@ func createToken(signingKey []byte, claims JWTClaims, tokenType string, expiresI
 	return signedToken, nil
 }
 
-// =====================================================================================================================
-
+// 获取token信息
 func GetClaims(tokenString string, signingKey []byte) (*JWTClaims, error) {
 	token, err := ParseToken(tokenString, signingKey)
 	if err != nil {
@@ -67,12 +60,10 @@ func GetClaims(tokenString string, signingKey []byte) (*JWTClaims, error) {
 	return claims, nil
 }
 
+// 解析token
 func ParseToken(tokenString string, signingKey []byte) (*jwt.Token, error) {
 	if tokenString == "" {
 		return nil, fmt.Errorf("token is empty")
-	}
-	if len(signingKey) < minJWTSigningKeyBytes {
-		return nil, fmt.Errorf("jwt signing key must be at least %d bytes", minJWTSigningKeyBytes)
 	}
 
 	token, err := jwt.ParseWithClaims(

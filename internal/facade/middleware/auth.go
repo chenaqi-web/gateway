@@ -2,12 +2,14 @@ package middleware
 
 import (
 	"errors"
-	"gateway/internal/config"
-	"gateway/internal/model/reponse"
-	"gateway/internal/utils"
 	"log"
 	"net/http"
 	"strings"
+
+	"gateway/internal/config"
+	"gateway/internal/infras/cache"
+	"gateway/internal/model/reponse"
+	"gateway/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -19,7 +21,7 @@ const (
 	refreshedAccessTokenHeader = "Authorization"
 )
 
-func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
+func RequireAuth(cfg config.AuthConfig, cacheClient *cache.CacheClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
@@ -28,7 +30,22 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 			return
 		}
 
-		claims, err := utils.GetClaims(accessToken, cfg.JWTSigningKey())
+		blacklisted, err := cacheClient.IsTokenBlacklisted(c.Request.Context(), accessToken)
+		if err != nil {
+			log.Printf("auth middleware check access blacklist: %v", err)
+			c.Abort()
+			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+			return
+		}
+		if blacklisted {
+			utils.ClearRefreshCookie(c.Writer, cfg)
+			c.Abort()
+			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			return
+		}
+
+		// 校验access token
+		claims, err := utils.GetClaims(accessToken, []byte(cfg.JWTSecret))
 		if err == nil {
 			if !validClaims(claims, utils.TokenTypeAccess) {
 				c.Abort()
@@ -55,7 +72,22 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 			return
 		}
 
-		refreshClaims, err := utils.GetClaims(refreshToken, cfg.JWTSigningKey())
+		blacklisted, err = cacheClient.IsTokenBlacklisted(c.Request.Context(), refreshToken)
+		if err != nil {
+			log.Printf("auth middleware check refresh blacklist: %v", err)
+			c.Abort()
+			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+			return
+		}
+		if blacklisted {
+			utils.ClearRefreshCookie(c.Writer, cfg)
+			c.Abort()
+			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			return
+		}
+
+		// 使用refresh刷新access
+		refreshClaims, err := utils.GetClaims(refreshToken, []byte(cfg.JWTSecret))
 		if err != nil || !validClaims(refreshClaims, utils.TokenTypeRefresh) {
 			utils.ClearRefreshCookie(c.Writer, cfg)
 			c.Abort()
@@ -63,7 +95,7 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 			return
 		}
 
-		newAccessToken, err := utils.CreateAccessToken(cfg.JWTSigningKey(), *refreshClaims, cfg.AccessDuration())
+		newAccessToken, err := utils.CreateAccessToken([]byte(cfg.JWTSecret), *refreshClaims, cfg.AccessExpire)
 		if err != nil {
 			log.Printf("auth middleware create access token: %v", err)
 			c.Abort()
@@ -73,8 +105,8 @@ func RequireAuth(cfg config.AuthConfig) gin.HandlerFunc {
 
 		c.Header(refreshedAccessTokenHeader, "Bearer "+newAccessToken)
 		c.Header("Access-Control-Expose-Headers", refreshedAccessTokenHeader)
-		c.Set(AuthUserIDContextKey, claims.UserID)
-		c.Set(AuthRoleContextKey, claims.Role)
+		c.Set(AuthUserIDContextKey, refreshClaims.UserID)
+		c.Set(AuthRoleContextKey, refreshClaims.Role)
 		c.Next()
 	}
 }
