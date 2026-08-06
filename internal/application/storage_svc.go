@@ -31,7 +31,13 @@ func NewStorageService(cfg *config.Config, client *storage.Client) *StorageServi
 	}
 }
 
-func (s *StorageService) Upload(ctx context.Context, file *multipart.FileHeader) (*storage.UploadResult, error) {
+type UploadResponse struct {
+	URL      string
+	Key      string
+	Provider string
+}
+
+func (s *StorageService) Upload(ctx context.Context, file *multipart.FileHeader) (*UploadResponse, error) {
 	if file == nil {
 		return nil, ErrStorageMissingFile
 	}
@@ -39,7 +45,11 @@ func (s *StorageService) Upload(ctx context.Context, file *multipart.FileHeader)
 		return nil, fmt.Errorf("%w: max %d bytes", ErrStorageFileTooLarge, s.maxUploadSize())
 	}
 
-	return s.client.Upload(ctx, file)
+	result, err := s.client.Upload(ctx, file)
+	if err != nil {
+		return nil, err
+	}
+	return &UploadResponse{URL: result.URL, Key: result.Key, Provider: s.client.Provider()}, nil
 }
 
 func (s *StorageService) Delete(ctx context.Context, key string) error {
@@ -48,14 +58,6 @@ func (s *StorageService) Delete(ctx context.Context, key string) error {
 		return ErrStorageInvalidKey
 	}
 	return s.client.Delete(ctx, key)
-}
-
-func (s *StorageService) GetURL(key string) string {
-	return s.client.GetURL(key)
-}
-
-func (s *StorageService) Provider() string {
-	return s.client.Provider()
 }
 
 func (s *StorageService) maxUploadSize() int64 {

@@ -8,7 +8,6 @@ import (
 	"gateway/internal/model/reponse"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +29,7 @@ func (ct *AiChatController) CreateSession(c *gin.Context) {
 		aiChatError(c, err)
 		return
 	}
-	reponse.Success(c, dto.ToAiChatSessionResponse(session))
+	reponse.Success(c, session)
 }
 
 func (ct *AiChatController) ListSessions(c *gin.Context) {
@@ -49,7 +48,7 @@ func (ct *AiChatController) ListSessions(c *gin.Context) {
 		aiChatError(c, err)
 		return
 	}
-	reponse.Success(c, dto.ToAiChatSessionResponses(list))
+	reponse.Success(c, list)
 }
 
 func (ct *AiChatController) GetSession(c *gin.Context) {
@@ -63,7 +62,7 @@ func (ct *AiChatController) GetSession(c *gin.Context) {
 		aiChatError(c, err)
 		return
 	}
-	reponse.Success(c, dto.ToAiChatSessionResponse(session))
+	reponse.Success(c, session)
 }
 
 func (ct *AiChatController) ListMessages(c *gin.Context) {
@@ -72,7 +71,7 @@ func (ct *AiChatController) ListMessages(c *gin.Context) {
 		aiChatError(c, err)
 		return
 	}
-	reponse.Success(c, dto.ToAiChatMessageResponses(list))
+	reponse.Success(c, list)
 }
 
 func (ct *AiChatController) Chat(c *gin.Context) {
@@ -89,8 +88,8 @@ func (ct *AiChatController) Chat(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Header("X-Accel-Buffering", "no")
-	if err := ct.svc.Chat(c.Request.Context(), userID, input.SessionID, input.Content, func(chunk application.AiChatStreamChunk) error {
-		c.SSEvent("message", dto.AiChatStreamChunkResponse{SessionID: chunk.SessionID, Content: chunk.Content, Done: chunk.Done, Knowledge: chunk.Knowledge})
+	if err := ct.svc.Chat(c.Request.Context(), userID, input.SessionID, input.Content, func(chunk dto.AiChatStreamChunkResponse) error {
+		c.SSEvent("message", chunk)
 		c.Writer.Flush()
 		return nil
 	}); err != nil {
@@ -103,12 +102,8 @@ func (ct *AiChatController) Chat(c *gin.Context) {
 	c.Writer.Flush()
 }
 
-func currentAuthUserID(c *gin.Context) (string, bool) {
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		return "", false
-	}
-	return strconv.FormatUint(userID, 10), true
+func currentAuthUserID(c *gin.Context) (uint64, bool) {
+	return middleware.GetUserID(c)
 }
 
 func aiChatError(c *gin.Context, err error) {

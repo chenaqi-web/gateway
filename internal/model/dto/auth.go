@@ -16,6 +16,13 @@ type EmailLoginRequest struct {
 	Code  string `json:"code" binding:"required,len=6,numeric"`
 }
 
+type RegisterRequest struct {
+	Username string `json:"username" binding:"required,min=2,max=50"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6,max=72"`
+	Code     string `json:"code" binding:"required,len=6,numeric"`
+}
+
 type AuthUser struct {
 	ID          uint64 `json:"id"`
 	Username    string `json:"username"`

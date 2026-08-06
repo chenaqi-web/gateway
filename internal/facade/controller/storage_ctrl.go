@@ -26,7 +26,7 @@ func (ct *StorageController) Upload(c *gin.Context) {
 		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	reponse.Success(c, dto.UploadResponse{URL: result.URL, Key: result.Key, Provider: ct.svc.Provider()})
+	reponse.Success(c, result)
 }
 
 func (ct *StorageController) Delete(c *gin.Context) {

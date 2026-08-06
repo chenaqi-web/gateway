@@ -50,50 +50,51 @@ func NewAiChatService(
 	}
 }
 
-type AiChatStreamCallback func(chunk AiChatStreamChunk) error
+type AiChatStreamCallback func(chunk dto.AiChatStreamChunkResponse) error
 
-type AiChatStreamChunk struct {
-	SessionID string
-	Content   string
-	Done      bool
-	Knowledge []string
-}
-
-func (s *AiChatService) CreateSession(ctx context.Context, userID string) (*entity.AiChatSession, error) {
+func (s *AiChatService) CreateSession(ctx context.Context, userID uint64) (*dto.AiChatSessionResponse, error) {
 	session := &entity.AiChatSession{
-		UserID:    userID,
+		UserID:    strconv.FormatUint(userID, 10),
 		SessionID: newSessionID(),
 		Title:     defaultAiChatSessionTitle,
 	}
 	if err := s.aiChatRepo.CreateSession(ctx, session); err != nil {
 		return nil, err
 	}
-	return session, nil
+	return dto.ToAiChatSessionResponse(session), nil
 }
 
-func (s *AiChatService) GetSession(ctx context.Context, userID, sessionID string) (*entity.AiChatSession, error) {
+func (s *AiChatService) GetSession(ctx context.Context, userID uint64, sessionID string) (*dto.AiChatSessionResponse, error) {
 	if strings.TrimSpace(sessionID) == "" {
 		return nil, ErrAiChatMissingSessionID
 	}
-	session, err := s.aiChatRepo.GetSessionByUser(ctx, userID, sessionID)
+	session, err := s.aiChatRepo.GetSessionByUser(ctx, strconv.FormatUint(userID, 10), sessionID)
 	if err != nil {
 		if errors.Is(err, repo.ErrAiChatSessionNotFound) {
 			return nil, ErrAiChatSessionNotFound
 		}
 		return nil, err
 	}
-	return session, nil
+	return dto.ToAiChatSessionResponse(session), nil
 }
 
-func (s *AiChatService) ListSessions(ctx context.Context, userID string, page, pageSize int) ([]*entity.AiChatSession, error) {
-	return s.aiChatRepo.ListSessionsByUser(ctx, userID, page, pageSize)
+func (s *AiChatService) ListSessions(ctx context.Context, userID uint64, page, pageSize int) ([]*dto.AiChatSessionResponse, error) {
+	list, err := s.aiChatRepo.ListSessionsByUser(ctx, strconv.FormatUint(userID, 10), page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+	return dto.ToAiChatSessionResponses(list), nil
 }
 
-func (s *AiChatService) ListMessages(ctx context.Context, sessionID string) ([]*entity.AiChatMessage, error) {
-	return s.aiChatRepo.ListMessagesBySession(ctx, sessionID)
+func (s *AiChatService) ListMessages(ctx context.Context, sessionID string) ([]*dto.AiChatMessageResponse, error) {
+	list, err := s.aiChatRepo.ListMessagesBySession(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	return dto.ToAiChatMessageResponses(list), nil
 }
 
-func (s *AiChatService) Chat(ctx context.Context, userID, sessionID, content string, callback AiChatStreamCallback) error {
+func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, content string, callback AiChatStreamCallback) error {
 	// 1. 检索知识库
 	knowledgeContents, err := s.searchKnowledge(ctx, content)
 	if err != nil {
@@ -115,7 +116,7 @@ func (s *AiChatService) Chat(ctx context.Context, userID, sessionID, content str
 		if callback == nil {
 			return nil
 		}
-		chunk := AiChatStreamChunk{
+		chunk := dto.AiChatStreamChunkResponse{
 			SessionID: sessionID,
 			Content:   content,
 			Done:      done,
@@ -150,7 +151,7 @@ func (s *AiChatService) Chat(ctx context.Context, userID, sessionID, content str
 	}
 
 	// 5.保存记录
-	return s.saveChatRecords(ctx, userID, sessionID, content, reply.String())
+	return s.saveChatRecords(ctx, strconv.FormatUint(userID, 10), sessionID, content, reply.String())
 }
 
 // =====================================================================================================================

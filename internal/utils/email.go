@@ -34,9 +34,15 @@ func NewEmail(cfg *config.Config, cache *redis.Client) *Email {
 }
 
 func (s *Email) SendCode(ctx context.Context, email, purpose string) error {
-	email = strings.TrimSpace(email)
+	email = strings.ToLower(strings.TrimSpace(email))
 	if email == "" {
 		return fmt.Errorf("email is required")
+	}
+	if purpose != "register" && purpose != "login" {
+		return fmt.Errorf("unsupported verification purpose")
+	}
+	if strings.TrimSpace(s.cfg.Host) == "" || strings.TrimSpace(s.cfg.From) == "" || strings.TrimSpace(s.cfg.Secret) == "" {
+		return fmt.Errorf("email service is not configured")
 	}
 
 	codeKey := emailCodeKeyPrefix + purpose + ":" + email
@@ -82,21 +88,12 @@ func (s *Email) send(to, code string) error {
 
 	// 设置收件人、主题和邮件内容
 	e.To = []string{to}
-	e.Subject = "您的邮箱验证码"
-	e.HTML = []byte(`亲爱的用户[` + to + `]，<br/>
-<br/>
-感谢您注册` + "chena7" + `的个人官网！为了确保您的邮箱安全，请使用以下验证码进行验证：<br/>
-<br/>
-验证码：[<font color="blue"><u>` + code + `</u></font>]<br/>
-该验证码在 5 分钟内有效，请尽快使用。<br/>
-<br/>
-如果您没有请求此验证码，请忽略此邮件。
-<br/>
-如有任何疑问，请联系我们的支持团队：<br/>
-邮箱：` + "492730753@qq.com" + `<br/>
-<br/>
-祝好，<br/>` + "仁爱社团" + `<br/>
-<br/>`)
+	e.Subject = "Renai 邮箱验证码"
+	e.HTML = []byte(`您好，<br/><br/>
+您正在进行 Renai 的邮箱验证。验证码为：<br/><br/>
+<strong style="font-size:24px;letter-spacing:6px;color:#2563eb">` + code + `</strong><br/><br/>
+验证码 5 分钟内有效，请勿向任何人泄露。若非本人操作，请忽略此邮件。<br/><br/>
+Renai 团队`)
 
 	// 定义错误变量
 	var err error
@@ -121,7 +118,7 @@ func GenerateCode() (string, error) {
 }
 
 func (s *Email) VerifyCode(ctx context.Context, email, code, purpose string) error {
-	email = strings.TrimSpace(email)
+	email = strings.ToLower(strings.TrimSpace(email))
 	code = strings.TrimSpace(code)
 	if email == "" || code == "" {
 		return fmt.Errorf("email and code are required")

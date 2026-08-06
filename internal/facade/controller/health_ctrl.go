@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"gateway/internal/application"
 	"gateway/internal/model/reponse"
 	"log"
@@ -17,9 +16,7 @@ func NewHealthController(svc *application.HealthService) *HealthController {
 }
 
 func (h *HealthController) Ping(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5e9)
-	defer cancel()
-	resp, err := h.svc.Ping(ctx)
+	resp, err := h.svc.Ping(c.Request.Context())
 	if err != nil {
 		log.Printf("health ping: %v", err)
 		reponse.Fail(c, http.StatusBadGateway, "core-server unavailable")

@@ -75,3 +75,9 @@ Email:
   secret: "feanzgpiiyoccadc"
   from: "492730753@qq.com"
   is_ssl: true
+
+Auth:
+  jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
+  access_expire: 300000
+  refresh_expire: 720000
+  cookie_secure: false

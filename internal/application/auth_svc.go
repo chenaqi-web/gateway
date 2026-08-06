@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"gateway/internal/client/rpc"
@@ -12,6 +13,8 @@ import (
 	"gateway/internal/model/dto"
 	"gateway/internal/utils"
 )
+
+var ErrInvalidOrExpiredVerificationCode = errors.New("invalid or expired verification code")
 
 type AuthService struct {
 	rpc          *rpc.Client
@@ -30,12 +33,35 @@ func NewAuthService(rpcClient *rpc.Client, jwtBlackList *cache.JwtBlacklist, cfg
 }
 
 func (s *AuthService) SendEmailCode(ctx context.Context, req dto.SendEmailCodeRequest) error {
+	ctx, cancel := context.WithTimeout(ctx, 5e9)
+	defer cancel()
 	return s.email.SendCode(ctx, req.Email, req.Purpose)
+}
+
+// todo 注册还有问题，ai生成的
+
+func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) error {
+	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "register"); err != nil {
+		if strings.Contains(err.Error(), "invalid or expired") {
+			return fmt.Errorf("%w: %v", ErrInvalidOrExpiredVerificationCode, err)
+		}
+		return err
+	}
+	_, err := s.rpc.GetAuthClient().Register(ctx, &authpb.RegisterRequest{
+		Username:        req.Username,
+		Email:           req.Email,
+		Password:        req.Password,
+		ConfirmPassword: req.Password,
+	})
+	return err
 }
 
 func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest) (*dto.LoginResponse, string, error) {
 	// 1. 校验验证码是否正确
 	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "login"); err != nil {
+		if strings.Contains(err.Error(), "invalid or expired") {
+			return nil, "", fmt.Errorf("%w: %v", ErrInvalidOrExpiredVerificationCode, err)
+		}
 		return nil, "", err
 	}
 
@@ -82,7 +108,10 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 	}, refreshToken, nil
 }
 
-func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken string) error {
+// todo 登出也可能有问题
+
+func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken string) error {
+	accessToken := accessTokenFromAuthorization(authorization)
 	if strings.TrimSpace(accessToken) != "" {
 		if err := s.jwtBlackList.BlacklistToken(ctx, accessToken, s.cfg.AccessExpire); err != nil {
 			return err
@@ -94,4 +123,12 @@ func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken stri
 	return nil
 }
 
-func (s *AuthService) Config() config.AuthConfig { return s.cfg }
+func (s *AuthService) RefreshCookieConfig() config.AuthConfig { return s.cfg }
+
+func accessTokenFromAuthorization(authorization string) string {
+	fields := strings.Fields(authorization)
+	if len(fields) == 2 && strings.EqualFold(fields[0], "Bearer") {
+		return fields[1]
+	}
+	return ""
+}

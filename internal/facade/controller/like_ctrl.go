@@ -26,8 +26,7 @@ func (ct *LikeController) ThumbUp(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	req.UserID = userID
-	result, err := ct.svc.ThumbUp(c.Request.Context(), req)
+	result, err := ct.svc.ThumbUp(c.Request.Context(), userID, req)
 	if err != nil {
 		rpcError(c, err)
 		return
@@ -45,8 +44,7 @@ func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	req.UserID = userID
-	result, err := ct.svc.CancelThumbUp(c.Request.Context(), req)
+	result, err := ct.svc.CancelThumbUp(c.Request.Context(), userID, req)
 	if err != nil {
 		rpcError(c, err)
 		return
@@ -64,8 +62,7 @@ func (ct *LikeController) HasLike(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	req.UserID = userID
-	result, err := ct.svc.HasLike(c.Request.Context(), req)
+	result, err := ct.svc.HasLike(c.Request.Context(), userID, req)
 	if err != nil {
 		rpcError(c, err)
 		return
@@ -83,8 +80,7 @@ func (ct *LikeController) BatchLikeStatus(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	req.UserID = userID
-	result, err := ct.svc.BatchLikeStatus(c.Request.Context(), req)
+	result, err := ct.svc.BatchLikeStatus(c.Request.Context(), userID, req)
 	if err != nil {
 		rpcError(c, err)
 		return
@@ -102,8 +98,7 @@ func (ct *LikeController) UserLikeList(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	req.UserID = userID
-	result, err := ct.svc.UserLikeList(c.Request.Context(), req)
+	result, err := ct.svc.UserLikeList(c.Request.Context(), userID, req)
 	if err != nil {
 		rpcError(c, err)
 		return

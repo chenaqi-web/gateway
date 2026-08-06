@@ -1,14 +1,12 @@
 package controller
 
 import (
-	"context"
+	"errors"
 	"gateway/internal/application"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 	"gateway/internal/utils"
-	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,11 +24,24 @@ func (a *AuthController) SendEmailCode(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5e9)
-	defer cancel()
-	if err := a.svc.SendEmailCode(ctx, req); err != nil {
-		log.Printf("send email code: %v", err)
+	if err := a.svc.SendEmailCode(c.Request.Context(), req); err != nil {
 		reponse.Fail(c, http.StatusBadGateway, "core-server unavailable")
+		return
+	}
+	reponse.Success(c, nil)
+}
+
+func (a *AuthController) Register(c *gin.Context) {
+	var req dto.RegisterRequest
+	if !bindJSON(c, &req) {
+		return
+	}
+	if err := a.svc.Register(c.Request.Context(), req); err != nil {
+		if errors.Is(err, application.ErrInvalidOrExpiredVerificationCode) {
+			reponse.Fail(c, http.StatusUnauthorized, err.Error())
+		} else {
+			reponse.Fail(c, http.StatusBadRequest, err.Error())
+		}
 		return
 	}
 	reponse.Success(c, nil)
@@ -41,30 +52,23 @@ func (a *AuthController) EmailLogin(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 5e9)
-	defer cancel()
-	result, refreshToken, err := a.svc.EmailLogin(ctx, req)
+	result, refreshToken, err := a.svc.EmailLogin(c.Request.Context(), req)
 	if err != nil {
-		if strings.Contains(err.Error(), "invalid or expired") {
+		if errors.Is(err, application.ErrInvalidOrExpiredVerificationCode) {
 			reponse.Fail(c, http.StatusUnauthorized, err.Error())
 		} else {
 			reponse.Fail(c, http.StatusBadGateway, err.Error())
 		}
 		return
 	}
-	utils.SetRefreshCookie(c.Writer, refreshToken, a.svc.Config())
+	utils.SetRefreshCookie(c.Writer, refreshToken, a.svc.RefreshCookieConfig())
 	reponse.Success(c, result)
 }
 
 func (a *AuthController) Logout(c *gin.Context) {
 	refreshToken, _ := utils.RefreshTokenFromCookie(c.Request)
-	utils.ClearRefreshCookie(c.Writer, a.svc.Config())
-	accessToken := ""
-	authorization := strings.Fields(c.GetHeader("Authorization"))
-	if len(authorization) == 2 && strings.EqualFold(authorization[0], "Bearer") {
-		accessToken = authorization[1]
-	}
-	if err := a.svc.Logout(c.Request.Context(), accessToken, refreshToken); err != nil {
+	utils.ClearRefreshCookie(c.Writer, a.svc.RefreshCookieConfig())
+	if err := a.svc.Logout(c.Request.Context(), c.GetHeader("Authorization"), refreshToken); err != nil {
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
