@@ -130,6 +130,7 @@ func (UnimplementedLikeServiceServer) BatchLikeStatus(context.Context, *BatchCom
 	return nil, status.Error(codes.Unimplemented, "method BatchLikeStatus not implemented")
 }
 func (UnimplementedLikeServiceServer) mustEmbedUnimplementedLikeServiceServer() {}
+func (UnimplementedLikeServiceServer) testEmbeddedByValue()                     {}
 
 // UnsafeLikeServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to LikeServiceServer will
@@ -139,6 +140,13 @@ type UnsafeLikeServiceServer interface {
 }
 
 func RegisterLikeServiceServer(s grpc.ServiceRegistrar, srv LikeServiceServer) {
+	// If the following call panics, it indicates UnimplementedLikeServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
 	s.RegisterService(&LikeService_ServiceDesc, srv)
 }
 
@@ -239,11 +247,26 @@ var LikeService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "like.LikeService",
 	HandlerType: (*LikeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{MethodName: "ThumbUp", Handler: _LikeService_ThumbUp_Handler},
-		{MethodName: "CancelThumbUp", Handler: _LikeService_CancelThumbUp_Handler},
-		{MethodName: "PageQueryUserLikeList", Handler: _LikeService_PageQueryUserLikeList_Handler},
-		{MethodName: "HasLike", Handler: _LikeService_HasLike_Handler},
-		{MethodName: "BatchLikeStatus", Handler: _LikeService_BatchLikeStatus_Handler},
+		{
+			MethodName: "ThumbUp",
+			Handler:    _LikeService_ThumbUp_Handler,
+		},
+		{
+			MethodName: "CancelThumbUp",
+			Handler:    _LikeService_CancelThumbUp_Handler,
+		},
+		{
+			MethodName: "PageQueryUserLikeList",
+			Handler:    _LikeService_PageQueryUserLikeList_Handler,
+		},
+		{
+			MethodName: "HasLike",
+			Handler:    _LikeService_HasLike_Handler,
+		},
+		{
+			MethodName: "BatchLikeStatus",
+			Handler:    _LikeService_BatchLikeStatus_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "like.proto",

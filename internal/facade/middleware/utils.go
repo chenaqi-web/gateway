@@ -9,3 +9,11 @@ func GetUserID(c *gin.Context) (uint64, bool) {
 	}
 	return userID.(uint64), true
 }
+
+func GetRole(c *gin.Context) string {
+	role, ok := c.Get(AuthRoleContextKey)
+	if !ok {
+		return ""
+	}
+	return role.(string)
+}

@@ -36,7 +36,6 @@ func NewAuthMiddleware(cfg config.AuthConfig, jwtBlackList *cache.JwtBlacklist) 
 func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	cfg := m.cfg
 	jwtBlackList := m.jwtBlackList
-
 	return func(c *gin.Context) {
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {

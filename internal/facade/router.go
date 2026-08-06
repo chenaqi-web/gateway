@@ -29,6 +29,10 @@ func New(cfg *config.Config,
 	// 跨域中间件
 	r.Use(middleware.Cors())
 
+	// 认证中间件
+	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth, jwtBlackList)
+	auth := authMiddleware.RequireAuth()
+
 	// Prometheus metrics middleware
 	//r.Use(infraProm.GinMiddleware())
 	// r.Use(middleware.Recovery(), middleware.CORS())
@@ -38,9 +42,6 @@ func New(cfg *config.Config,
 
 	// metrics endpoint (Prometheus)
 	//r.GET("/metrics", gin.WrapH(infraProm.Handler()))
-
-	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth, jwtBlackList)
-	auth := authMiddleware.RequireAuth()
 
 	v1 := r.Group("/api/v1")
 	{

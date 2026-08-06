@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strings"
 
@@ -22,6 +21,7 @@ import (
 type AuthController struct {
 	rpc          *rpc.Client
 	jwtBlackList *cache.JwtBlacklist
+	email        *utils.Email
 	cfg          config.AuthConfig
 	log          *clog.Log
 }
@@ -35,6 +35,7 @@ func NewAuthController(
 	return &AuthController{
 		rpc:          rpcClient,
 		jwtBlackList: jwtBlackList,
+		email:        utils.NewEmail(cfg, jwtBlackList.Cache),
 		cfg:          cfg.Auth,
 		log:          logger,
 	}
@@ -47,38 +48,20 @@ func (a *AuthController) SendEmailCode(c *gin.Context) {
 		return
 	}
 
-	var purpose authpb.EmailCodePurpose
-	switch strings.TrimSpace(request.Purpose) {
-	case "register":
-		purpose = authpb.EmailCodePurpose_EMAIL_CODE_PURPOSE_REGISTER
-	case "reset_password":
-		purpose = authpb.EmailCodePurpose_EMAIL_CODE_PURPOSE_RESET_PASSWORD
-	default:
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
-		return
-	}
-
 	ctx, cancel := context.WithTimeout(c.Request.Context(), a.rpc.GetRequestTimeout())
 	defer cancel()
 
-	response, err := a.rpc.GetAuthClient().SendEmailCode(ctx, &authpb.SendEmailCodeRequest{
-		Email:   request.Email,
-		Purpose: purpose,
-	})
+	err := a.email.SendCode(ctx, request.Email, request.Purpose)
 	if err != nil {
-		log.Printf("auth send email code: %v", err)
+		a.log.Error("send email code", zap.Error(err))
 		reponse.Fail(c, http.StatusBadGateway, "core-server unavailable")
-		return
-	}
-	if response == nil || !response.GetSuccess() {
-		reponse.Fail(c, http.StatusBadGateway, "invalid core response")
 		return
 	}
 
 	reponse.Success(c, nil)
 }
 
-func (a *AuthController) Login(c *gin.Context) {
+func (a *AuthController) EmailLogin(c *gin.Context) {
 	var request dto.LoginRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
@@ -87,14 +70,16 @@ func (a *AuthController) Login(c *gin.Context) {
 
 	ctx, cancel := context.WithTimeout(c.Request.Context(), a.rpc.GetRequestTimeout())
 	defer cancel()
+	if err := a.email.VerifyCode(ctx, request.Email, request.Code); err != nil {
+		reponse.Fail(c, http.StatusUnauthorized, err.Error())
+		return
+	}
 
-	// 调用Core登录
-	response, err := a.rpc.GetAuthClient().Login(ctx, &authpb.LoginRequest{
-		Username: request.Username,
-		Password: request.Password,
+	response, err := a.rpc.GetAuthClient().EmailLogin(ctx, &authpb.EmailLoginRequest{
+		Email: request.Email,
 	})
-	if err != nil {
-		reponse.Fail(c, http.StatusBadGateway, err.Error())
+	if err != nil || response == nil || response.GetUser() == nil {
+		reponse.Fail(c, http.StatusBadGateway, "invalid core response or error")
 		return
 	}
 
@@ -118,6 +103,7 @@ func (a *AuthController) Login(c *gin.Context) {
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return
 	}
+
 	// refresh token写入cookie
 	utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg)
 

@@ -6,8 +6,9 @@ type SendEmailCodeRequest struct {
 }
 
 type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Code     string `json:"code" binding:"required,len=6,numeric"`
+	Password string `json:"password" binding:"required,min=6"`
 }
 
 type AuthUser struct {

@@ -66,3 +66,12 @@ storage:
   bucket: ""
   region: ""
   max_size: 10485760 # 10MB
+
+
+Email:
+  host: "smtp.qq.com"
+  port: 465
+  nickname: "chenaqi"
+  secret: "feanzgpiiyoccadc"
+  from: "492730753@qq.com"
+  is_ssl: true
