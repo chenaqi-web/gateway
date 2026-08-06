@@ -11,6 +11,11 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 }
 
+type EmailLoginRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	Code  string `json:"code" binding:"required,len=6,numeric"`
+}
+
 type AuthUser struct {
 	ID          uint64 `json:"id"`
 	Username    string `json:"username"`

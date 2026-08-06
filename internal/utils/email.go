@@ -120,14 +120,14 @@ func GenerateCode() (string, error) {
 	return fmt.Sprintf("%06d", number.Int64()), nil
 }
 
-func (s *Email) VerifyCode(ctx context.Context, email, code string) error {
+func (s *Email) VerifyCode(ctx context.Context, email, code, purpose string) error {
 	email = strings.TrimSpace(email)
 	code = strings.TrimSpace(code)
 	if email == "" || code == "" {
 		return fmt.Errorf("email and code are required")
 	}
 
-	key := emailCodeKeyPrefix + email
+	key := emailCodeKeyPrefix + purpose + ":" + email
 	storedCode, err := s.cache.Get(ctx, key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {

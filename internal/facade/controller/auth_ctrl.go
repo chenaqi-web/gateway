@@ -37,7 +37,7 @@ func (a *AuthController) SendEmailCode(c *gin.Context) {
 }
 
 func (a *AuthController) EmailLogin(c *gin.Context) {
-	var req dto.LoginRequest
+	var req dto.EmailLoginRequest
 	if !bindJSON(c, &req) {
 		return
 	}
