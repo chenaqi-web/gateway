@@ -1,27 +1,22 @@
 package controller
 
 import (
-	"gateway/internal/client/rpc"
-	"gateway/internal/client/rpc/core-rpc/userpb"
+	"gateway/internal/application"
 	"gateway/internal/model/reponse"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type UserController struct {
-	rpc *rpc.Client
-}
+type UserController struct{ svc *application.UserService }
 
-func NewUserController(rpcClient *rpc.Client) *UserController {
-	return &UserController{rpc: rpcClient}
+func NewUserController(svc *application.UserService) *UserController {
+	return &UserController{svc: svc}
 }
 
 func (u *UserController) Get(c *gin.Context) {
-	c.Get("x-uesr-id")
-	resp, err := u.rpc.UserClient.Login(c, &userpb.LoginReq{})
+	resp, err := u.svc.Get(c.Request.Context())
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
 	reponse.Success(c, resp)

@@ -1,143 +1,80 @@
 package controller
 
 import (
-	"gateway/internal/client/rpc"
-	"gateway/internal/client/rpc/core-rpc/commentpb"
-	"gateway/internal/client/rpc/core-rpc/likepb"
+	"gateway/internal/application"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type CommentController struct{ rpc *rpc.Client }
+type CommentController struct{ svc *application.CommentService }
 
-func NewCommentController(rpcClient *rpc.Client) *CommentController {
-	return &CommentController{rpc: rpcClient}
+func NewCommentController(svc *application.CommentService) *CommentController {
+	return &CommentController{svc: svc}
 }
 
 func (ct *CommentController) Create(c *gin.Context) {
 	var req dto.CreateCommentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-	resp, err := ct.rpc.CommentClient.CreateComment(c, &commentpb.CreateCommentReq{ArticleId: req.ArticleID, UserId: req.UserID, Content: req.Content})
+	result, err := ct.svc.Create(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-	reponse.Success(c, dto.CommentBoolResponse{Success: resp.GetSuccess()})
+	reponse.Success(c, result)
 }
 
 func (ct *CommentController) CreateReply(c *gin.Context) {
 	var req dto.CreateReplyRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-	resp, err := ct.rpc.CommentClient.CreateReply(c, &commentpb.CreateReplyReq{ArticleId: req.ArticleID, RootId: req.ParentID, UserId: req.UserID, ReplyToId: req.ReplyToID, Content: req.Content})
+	result, err := ct.svc.CreateReply(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-	reponse.Success(c, dto.CommentBoolResponse{Success: resp.GetSuccess()})
+	reponse.Success(c, result)
 }
 
 func (ct *CommentController) Delete(c *gin.Context) {
 	var req dto.DeleteCommentRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-	resp, err := ct.rpc.CommentClient.DeleteComment(c, &commentpb.DeleteCommentReq{Id: req.ID, UserId: req.UserID})
+	result, err := ct.svc.Delete(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-	reponse.Success(c, dto.CommentBoolResponse{Success: resp.GetSuccess()})
+	reponse.Success(c, result)
 }
 
 func (ct *CommentController) List(c *gin.Context) {
 	var req dto.GetArticleCommentsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.CommentClient.GetArticleComments(c, &commentpb.GetArticleCommentsReq{ArticleId: req.ArticleID, Page: req.Page, Size: req.Size})
+	result, err := ct.svc.List(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-	if err := ct.attachLikeStatuses(c, resp.GetComments()); err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	reponse.Success(c, dto.CommentListResponse{Comments: dto.ToCommentList(resp.GetComments()), Page: resp.GetPage(), Size: resp.GetSize()})
+	reponse.Success(c, result)
 }
 
 func (ct *CommentController) Replies(c *gin.Context) {
 	var req dto.GetCommentRepliesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.CommentClient.GetCommentReplies(c, &commentpb.GetCommentRepliesReq{ParentId: req.ParentID, Page: req.Page, Size: req.Size})
+	result, err := ct.svc.Replies(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-	if err := ct.attachLikeStatuses(c, resp.GetReplies()); err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	reponse.Success(c, dto.CommentRepliesResponse{Replies: dto.ToCommentList(resp.GetReplies()), Page: resp.GetPage(), Size: resp.GetSize()})
-}
-
-func (ct *CommentController) attachLikeStatuses(c *gin.Context, comments []*commentpb.CommentInfo) error {
-	if len(comments) == 0 {
-		return nil
-	}
-
-	//UserID, ok := middleware.GetUserID(c)
-	//if !ok {
-	//	return errors.New("not authorized")
-	//}
-
-	objectIDs := make([]uint64, 0, len(comments))
-	for _, comment := range comments {
-		if comment != nil {
-			objectIDs = append(objectIDs, comment.GetId())
-		}
-	}
-	if len(objectIDs) == 0 {
-		return nil
-	}
-
-	statusResp, err := ct.rpc.LikeClient.BatchLikeStatus(c, &likepb.BatchCommentLikeStatusRequest{
-		UserID:     1,
-		ObjectType: "comment",
-		ObjectIDs:  objectIDs,
-	})
-	if err != nil {
-		return err
-	}
-
-	statuses := make(map[uint64]bool, len(statusResp.GetItems()))
-	for _, item := range statusResp.GetItems() {
-		if item != nil {
-			statuses[item.GetObjectID()] = item.GetIsLiked()
-		}
-	}
-	for _, comment := range comments {
-		if comment != nil {
-			comment.IsLiked = statuses[comment.GetId()]
-		}
-	}
-	return nil
+	reponse.Success(c, result)
 }

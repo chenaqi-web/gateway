@@ -9,9 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type StorageController struct {
-	svc *application.StorageService
-}
+type StorageController struct{ svc *application.StorageService }
 
 func NewStorageController(svc *application.StorageService) *StorageController {
 	return &StorageController{svc: svc}
@@ -23,31 +21,22 @@ func (ct *StorageController) Upload(c *gin.Context) {
 		reponse.Fail(c, http.StatusBadRequest, "file is required")
 		return
 	}
-
 	result, err := ct.svc.Upload(c.Request.Context(), file)
 	if err != nil {
 		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	reponse.Success(c, dto.UploadResponse{
-		URL:      result.URL,
-		Key:      result.Key,
-		Provider: ct.svc.Provider(),
-	})
+	reponse.Success(c, dto.UploadResponse{URL: result.URL, Key: result.Key, Provider: ct.svc.Provider()})
 }
 
 func (ct *StorageController) Delete(c *gin.Context) {
-	var input dto.DeleteUploadRequest
-	if err := c.ShouldBindJSON(&input); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	var req dto.DeleteUploadRequest
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	if err := ct.svc.Delete(c.Request.Context(), input.Key); err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+	if err := ct.svc.Delete(c.Request.Context(), req.Key); err != nil {
+		rpcError(c, err)
 		return
 	}
-
 	reponse.Success(c, nil)
 }

@@ -1,157 +1,108 @@
 package controller
 
 import (
-	"gateway/internal/client/rpc"
-	"gateway/internal/client/rpc/core-rpc/articlepb"
+	"gateway/internal/application"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ArticleController struct {
-	rpc *rpc.Client
+	svc *application.ArticleService
 }
 
-func NewArticleController(rpcClient *rpc.Client) *ArticleController {
-	return &ArticleController{rpc: rpcClient}
+func NewArticleController(svc *application.ArticleService) *ArticleController {
+	return &ArticleController{svc: svc}
 }
 
 func (ct *ArticleController) Create(c *gin.Context) {
 	var req dto.CreateArticleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.ArticleClient.CreateArticle(c, &articlepb.CreateArticleRequest{
-		AuthorID:   req.AuthorID,
-		Title:      req.Title,
-		Summary:    req.Summary,
-		Content:    req.Content,
-		CoverImage: req.CoverImage,
-		CategoryID: req.CategoryID,
-		IsTop:      req.IsTop,
-	})
+	result, err := ct.svc.Create(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToArticleBoolResponse(resp.GetSuccess()))
+	reponse.Success(c, result)
 }
 
 func (ct *ArticleController) Search(c *gin.Context) {
 	var req dto.SearchArticlesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.ArticleClient.SearchArticles(c, &articlepb.SearchArticlesRequest{
-		Q:        req.Q,
-		Page:     req.Page,
-		PageSize: req.PageSize,
-	})
+	result, err := ct.svc.Search(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToListArticlesResponse(resp.GetArticles()))
+	reponse.Success(c, result)
 }
 
 func (ct *ArticleController) Delete(c *gin.Context) {
 	var req dto.DeleteArticleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.ArticleClient.DeleteArticle(c, &articlepb.DeleteArticleRequest{
-		Id:       req.ID,
-		AuthorID: req.AuthorID,
-	})
+	result, err := ct.svc.Delete(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToArticleBoolResponse(resp.GetSuccess()))
+	reponse.Success(c, result)
 }
 
 func (ct *ArticleController) GetDetail(c *gin.Context) {
 	var req dto.GetArticleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.ArticleClient.GetArticle(c, &articlepb.GetArticleRequest{Id: req.ID})
+	result, err := ct.svc.GetDetail(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToGetArticleResponse(resp))
+	reponse.Success(c, result)
 }
 
 func (ct *ArticleController) List(c *gin.Context) {
 	var req dto.ListArticlesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.ArticleClient.ListArticles(c, &articlepb.ListArticlesRequest{
-		Page:     req.Page,
-		PageSize: req.PageSize,
-	})
+	result, err := ct.svc.List(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToListArticlesResponse(resp.GetArticles()))
+	reponse.Success(c, result)
 }
 
 func (ct *ArticleController) ListByUserID(c *gin.Context) {
 	var req dto.ListMyArticlesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.ArticleClient.ListMyArticles(c, &articlepb.ListMyArticlesRequest{
-		AuthorID: req.AuthorID,
-		Page:     req.Page,
-		PageSize: req.PageSize,
-	})
+	result, err := ct.svc.ListByUserID(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToListArticlesResponse(resp.GetArticles()))
+	reponse.Success(c, result)
 }
 
 func (ct *ArticleController) ByCategory(c *gin.Context) {
 	var req dto.ListByCategoryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.ArticleClient.ListByCategory(c, &articlepb.ListByCategoryRequest{
-		CategoryID: req.CategoryID,
-		Page:       req.Page,
-		PageSize:   req.PageSize,
-	})
+	result, err := ct.svc.ListByCategory(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToListArticlesResponse(resp.GetArticles()))
+	reponse.Success(c, result)
 }

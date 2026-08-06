@@ -2,9 +2,7 @@ package controller
 
 import (
 	"context"
-	"gateway/internal/client/rpc"
-	"gateway/internal/client/rpc/core-rpc/healthpb"
-	"gateway/internal/model/dto"
+	"gateway/internal/application"
 	"gateway/internal/model/reponse"
 	"log"
 	"net/http"
@@ -12,24 +10,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type HealthController struct {
-	rpc *rpc.Client
-}
+type HealthController struct{ svc *application.HealthService }
 
-func NewHealthController(rpcClient *rpc.Client) *HealthController {
-	return &HealthController{rpc: rpcClient}
+func NewHealthController(svc *application.HealthService) *HealthController {
+	return &HealthController{svc: svc}
 }
 
 func (h *HealthController) Ping(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(c.Request.Context(), h.rpc.GetRequestTimeout())
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 5e9)
 	defer cancel()
-
-	resp, err := h.rpc.GetHealthClient().Ping(ctx, &healthpb.PingRequest{})
+	resp, err := h.svc.Ping(ctx)
 	if err != nil {
 		log.Printf("health ping: %v", err)
 		reponse.Fail(c, http.StatusBadGateway, "core-server unavailable")
 		return
 	}
-
-	reponse.Success(c, dto.PingResponse{Message: resp.GetMessage()})
+	reponse.Success(c, resp)
 }

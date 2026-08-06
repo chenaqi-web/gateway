@@ -1,114 +1,89 @@
 package controller
 
 import (
-	"gateway/internal/client/rpc"
-	"gateway/internal/client/rpc/core-rpc/categorypb"
+	"gateway/internal/application"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type CategoryController struct {
-	rpc *rpc.Client
-}
+type CategoryController struct{ svc *application.CategoryService }
 
-func NewCategoryController(rpcClient *rpc.Client) *CategoryController {
-	return &CategoryController{rpc: rpcClient}
+func NewCategoryController(svc *application.CategoryService) *CategoryController {
+	return &CategoryController{svc: svc}
 }
 
 func (ct *CategoryController) CreateType(c *gin.Context) {
 	var req dto.CreateTypeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.CategoryClient.CreateType(c, &categorypb.CreateTypeRequest{Name: req.Name})
+	result, err := ct.svc.CreateType(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToCategoryBoolResponse(resp.GetSuccess()))
+	reponse.Success(c, result)
 }
 
 func (ct *CategoryController) DeleteType(c *gin.Context) {
 	var req dto.DeleteTypeRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.CategoryClient.DeleteType(c, &categorypb.DeleteTypeRequest{Id: req.ID})
+	result, err := ct.svc.DeleteType(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToCategoryBoolResponse(resp.GetSuccess()))
+	reponse.Success(c, result)
 }
 
 func (ct *CategoryController) ListTypes(c *gin.Context) {
-	resp, err := ct.rpc.CategoryClient.ListTypes(c, &categorypb.ListTypesRequest{})
+	result, err := ct.svc.ListTypes(c.Request.Context())
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToListTypesResponse(resp))
+	reponse.Success(c, result)
 }
 
 func (ct *CategoryController) CreateCategory(c *gin.Context) {
 	var req dto.CreateCategoryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.CategoryClient.CreateCategory(c, &categorypb.CreateCategoryRequest{
-		ParentID: req.ParentID,
-		Name:     req.Name,
-	})
+	result, err := ct.svc.CreateCategory(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToCategoryBoolResponse(resp.GetSuccess()))
+	reponse.Success(c, result)
 }
 
 func (ct *CategoryController) DeleteCategory(c *gin.Context) {
 	var req dto.DeleteCategoryRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.CategoryClient.DeleteCategory(c, &categorypb.DeleteCategoryRequest{Id: req.ID})
+	result, err := ct.svc.DeleteCategory(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToCategoryBoolResponse(resp.GetSuccess()))
+	reponse.Success(c, result)
 }
 
 func (ct *CategoryController) ListCategories(c *gin.Context) {
 	var req dto.ListCategoriesRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+	if !bindJSON(c, &req) {
 		return
 	}
-
-	resp, err := ct.rpc.CategoryClient.ListCategories(c, &categorypb.ListCategoriesRequest{
-		ParentID: req.ParentID,
-	})
+	result, err := ct.svc.ListCategories(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		rpcError(c, err)
 		return
 	}
-
-	reponse.Success(c, dto.ToListCategoriesResponse(resp))
+	reponse.Success(c, result)
 }
