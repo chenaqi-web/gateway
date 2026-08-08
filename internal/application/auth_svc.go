@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	"gateway/internal/client/rpc"
@@ -14,16 +13,11 @@ import (
 	"gateway/internal/utils"
 )
 
-var (
-	ErrInvalidOrExpiredVerificationCode = errors.New("invalid or expired verification code")
-	ErrPasswordsDoNotMatch              = errors.New("passwords do not match")
-)
-
 type AuthService struct {
 	rpc          *rpc.Client
 	jwtBlackList *cache.JwtBlacklist
 	email        *utils.Email
-	cfg          config.AuthConfig
+	cfg          *config.Config
 }
 
 func NewAuthService(rpcClient *rpc.Client, jwtBlackList *cache.JwtBlacklist, cfg *config.Config) *AuthService {
@@ -31,7 +25,7 @@ func NewAuthService(rpcClient *rpc.Client, jwtBlackList *cache.JwtBlacklist, cfg
 		rpc:          rpcClient,
 		jwtBlackList: jwtBlackList,
 		email:        utils.NewEmail(cfg, jwtBlackList.Cache),
-		cfg:          cfg.Auth,
+		cfg:          cfg,
 	}
 }
 
@@ -43,9 +37,6 @@ func (s *AuthService) SendEmailCode(ctx context.Context, req dto.SendEmailCodeRe
 
 func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) error {
 	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "register"); err != nil {
-		if strings.Contains(err.Error(), "invalid or expired") {
-			return fmt.Errorf("%w: %v", ErrInvalidOrExpiredVerificationCode, err)
-		}
 		return err
 	}
 	_, err := s.rpc.GetAuthClient().Register(ctx, &authpb.RegisterRequest{
@@ -74,9 +65,6 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Log
 func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest) (*dto.LoginResponse, string, error) {
 	// 1. 校验验证码是否正确
 	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "login"); err != nil {
-		if strings.Contains(err.Error(), "invalid or expired") {
-			return nil, "", fmt.Errorf("%w: %v", ErrInvalidOrExpiredVerificationCode, err)
-		}
 		return nil, "", err
 	}
 
@@ -99,18 +87,18 @@ func (s *AuthService) createLoginResult(user *authpb.UserInfo) (*dto.LoginRespon
 		Role:        user.GetRole(),
 		AuthVersion: user.GetAuthVersion(),
 	}
-	accessToken, err := utils.CreateAccessToken([]byte(s.cfg.JWTSecret), claims, s.cfg.AccessExpire)
+	accessToken, err := utils.CreateAccessToken([]byte(s.cfg.Auth.JWTSecret), claims, s.cfg.Auth.AccessExpire)
 	if err != nil {
 		return nil, "", err
 	}
-	refreshToken, err := utils.CreateRefreshToken([]byte(s.cfg.JWTSecret), claims, s.cfg.RefreshExpire)
+	refreshToken, err := utils.CreateRefreshToken([]byte(s.cfg.Auth.JWTSecret), claims, s.cfg.Auth.RefreshExpire)
 	if err != nil {
 		return nil, "", err
 	}
 
 	return &dto.LoginResponse{
 		AccessToken:     accessToken,
-		AccessExpiresIn: s.cfg.AccessExpire,
+		AccessExpiresIn: s.cfg.Auth.AccessExpire,
 		User: &dto.AuthUser{
 			ID:          user.GetId(),
 			Username:    user.GetUsername(),
@@ -127,26 +115,22 @@ func (s *AuthService) createLoginResult(user *authpb.UserInfo) (*dto.LoginRespon
 }
 
 func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken string) error {
-	accessToken := accessTokenFromAuthorization(authorization)
-	if strings.TrimSpace(accessToken) != "" {
-		if err := s.jwtBlackList.BlacklistToken(ctx, accessToken, s.cfg.AccessExpire); err != nil {
-			return err
-		}
+	// 直接从 authorization 提取 token
+	const prefix = "Bearer "
+	accessToken := strings.TrimPrefix(authorization, prefix)
+
+	if accessToken == authorization { // 没有 Bearer 前缀
+		return errors.New("invalid authorization header")
 	}
-	if strings.TrimSpace(refreshToken) != "" {
-		return s.jwtBlackList.BlacklistToken(ctx, refreshToken, s.cfg.RefreshExpire)
+
+	if err := s.jwtBlackList.BlacklistToken(ctx, accessToken, s.cfg.Auth.AccessExpire); err != nil {
+		return err
 	}
-	return nil
+	return s.jwtBlackList.BlacklistToken(ctx, refreshToken, s.cfg.Auth.RefreshExpire)
 }
 
 func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPasswordRequest) error {
-	if req.NewPassword != req.ConfirmPassword {
-		return ErrPasswordsDoNotMatch
-	}
 	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "reset_password"); err != nil {
-		if strings.Contains(err.Error(), "invalid or expired") {
-			return fmt.Errorf("%w: %v", ErrInvalidOrExpiredVerificationCode, err)
-		}
 		return err
 	}
 
@@ -158,12 +142,4 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPassword
 	return err
 }
 
-func (s *AuthService) RefreshCookieConfig() config.AuthConfig { return s.cfg }
-
-func accessTokenFromAuthorization(authorization string) string {
-	fields := strings.Fields(authorization)
-	if len(fields) == 2 && strings.EqualFold(fields[0], "Bearer") {
-		return fields[1]
-	}
-	return ""
-}
+func (s *AuthService) RefreshCookieConfig() config.AuthConfig { return s.cfg.Auth }
