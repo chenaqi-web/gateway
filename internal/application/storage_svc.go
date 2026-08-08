@@ -32,9 +32,9 @@ func NewStorageService(cfg *config.Config, client *storage.Client) *StorageServi
 }
 
 type UploadResponse struct {
-	URL      string
-	Key      string
-	Provider string
+	URL      string `json:"url"`
+	Key      string `json:"key"`
+	Provider string `json:"provider"`
 }
 
 func (s *StorageService) Upload(ctx context.Context, file *multipart.FileHeader) (*UploadResponse, error) {

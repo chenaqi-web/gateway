@@ -70,24 +70,6 @@ func (ct *LikeController) HasLike(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
-func (ct *LikeController) BatchLikeStatus(c *gin.Context) {
-	var req dto.BatchLikeStatusRequest
-	if !bindJSON(c, &req) {
-		return
-	}
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
-		return
-	}
-	result, err := ct.svc.BatchLikeStatus(c.Request.Context(), userID, req)
-	if err != nil {
-		rpcError(c, err)
-		return
-	}
-	reponse.Success(c, result)
-}
-
 func (ct *LikeController) UserLikeList(c *gin.Context) {
 	var req dto.UserLikeListRequest
 	if !bindJSON(c, &req) {
