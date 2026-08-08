@@ -14,7 +14,10 @@ import (
 	"gateway/internal/utils"
 )
 
-var ErrInvalidOrExpiredVerificationCode = errors.New("invalid or expired verification code")
+var (
+	ErrInvalidOrExpiredVerificationCode = errors.New("invalid or expired verification code")
+	ErrPasswordsDoNotMatch              = errors.New("passwords do not match")
+)
 
 type AuthService struct {
 	rpc          *rpc.Client
@@ -38,8 +41,6 @@ func (s *AuthService) SendEmailCode(ctx context.Context, req dto.SendEmailCodeRe
 	return s.email.SendCode(ctx, req.Email, req.Purpose)
 }
 
-// todo 注册还有问题，ai生成的
-
 func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) error {
 	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "register"); err != nil {
 		if strings.Contains(err.Error(), "invalid or expired") {
@@ -54,6 +55,20 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) err
 		ConfirmPassword: req.Password,
 	})
 	return err
+}
+
+func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, string, error) {
+	resp, err := s.rpc.GetAuthClient().Login(ctx, &authpb.LoginRequest{
+		Username: req.Username,
+		Password: req.Password,
+	})
+	if err != nil {
+		return nil, "", err
+	}
+	if resp == nil || resp.GetUser() == nil {
+		return nil, "", errors.New("invalid core response")
+	}
+	return s.createLoginResult(resp.GetUser())
 }
 
 func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest) (*dto.LoginResponse, string, error) {
@@ -75,7 +90,10 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 	}
 
 	// 3.准备token
-	user := resp.GetUser()
+	return s.createLoginResult(resp.GetUser())
+}
+
+func (s *AuthService) createLoginResult(user *authpb.UserInfo) (*dto.LoginResponse, string, error) {
 	claims := utils.JWTClaims{
 		UserID:      user.GetId(),
 		Role:        user.GetRole(),
@@ -90,9 +108,9 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 		return nil, "", err
 	}
 
-	// 4. 返回内容给controller层
 	return &dto.LoginResponse{
-		AccessToken: accessToken, AccessExpiresIn: s.cfg.AccessExpire,
+		AccessToken:     accessToken,
+		AccessExpiresIn: s.cfg.AccessExpire,
 		User: &dto.AuthUser{
 			ID:          user.GetId(),
 			Username:    user.GetUsername(),
@@ -108,8 +126,6 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 	}, refreshToken, nil
 }
 
-// todo 登出也可能有问题
-
 func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken string) error {
 	accessToken := accessTokenFromAuthorization(authorization)
 	if strings.TrimSpace(accessToken) != "" {
@@ -121,6 +137,25 @@ func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken st
 		return s.jwtBlackList.BlacklistToken(ctx, refreshToken, s.cfg.RefreshExpire)
 	}
 	return nil
+}
+
+func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPasswordRequest) error {
+	if req.NewPassword != req.ConfirmPassword {
+		return ErrPasswordsDoNotMatch
+	}
+	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "reset_password"); err != nil {
+		if strings.Contains(err.Error(), "invalid or expired") {
+			return fmt.Errorf("%w: %v", ErrInvalidOrExpiredVerificationCode, err)
+		}
+		return err
+	}
+
+	_, err := s.rpc.GetAuthClient().ForgotPassword(ctx, &authpb.ForgotPasswordRequest{
+		Email:           req.Email,
+		NewPassword:     req.NewPassword,
+		ConfirmPassword: req.ConfirmPassword,
+	})
+	return err
 }
 
 func (s *AuthService) RefreshCookieConfig() config.AuthConfig { return s.cfg }

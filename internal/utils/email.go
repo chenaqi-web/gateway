@@ -38,7 +38,7 @@ func (s *Email) SendCode(ctx context.Context, email, purpose string) error {
 	if email == "" {
 		return fmt.Errorf("email is required")
 	}
-	if purpose != "register" && purpose != "login" {
+	if purpose != "register" && purpose != "login" && purpose != "reset_password" {
 		return fmt.Errorf("unsupported verification purpose")
 	}
 	if strings.TrimSpace(s.cfg.Host) == "" || strings.TrimSpace(s.cfg.From) == "" || strings.TrimSpace(s.cfg.Secret) == "" {

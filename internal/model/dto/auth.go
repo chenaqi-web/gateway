@@ -6,9 +6,8 @@ type SendEmailCodeRequest struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Code     string `json:"code" binding:"required,len=6,numeric"`
-	Password string `json:"password" binding:"required,min=6"`
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required,min=6,max=72"`
 }
 
 type EmailLoginRequest struct {
@@ -21,6 +20,13 @@ type RegisterRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6,max=72"`
 	Code     string `json:"code" binding:"required,len=6,numeric"`
+}
+
+type ForgotPasswordRequest struct {
+	Email           string `json:"email" binding:"required,email"`
+	Code            string `json:"code" binding:"required,len=6,numeric"`
+	NewPassword     string `json:"new_password" binding:"required,min=6,max=72"`
+	ConfirmPassword string `json:"confirm_password" binding:"required,min=6,max=72"`
 }
 
 type AuthUser struct {
