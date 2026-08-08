@@ -14,6 +14,11 @@ func NewAuthRouter(v *gin.RouterGroup, auth *controller.AuthController, authMidd
 		group.POST("/login", auth.Login)
 		group.POST("/email_login", auth.EmailLogin)
 		group.POST("/forgot-password", auth.ForgotPassword)
-		group.POST("/logout", authMiddleware, auth.Logout)
+
+		authorized := group.Group("")
+		authorized.Use(authMiddleware)
+		{
+			authorized.GET("/logout", authMiddleware, auth.Logout)
+		}
 	}
 }
