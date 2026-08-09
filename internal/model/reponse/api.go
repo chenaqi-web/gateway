@@ -28,3 +28,8 @@ func Fail(c *gin.Context, httpStatus int, msg string) {
 	}
 	c.JSON(httpStatus, APIResponse{Code: httpStatus, Msg: msg})
 }
+
+// Unauthorized 未授权或者无权限
+func Unauthorized(c *gin.Context) {
+	c.JSON(http.StatusOK, APIResponse{Code: http.StatusUnauthorized, Msg: "unauthorized"})
+}
