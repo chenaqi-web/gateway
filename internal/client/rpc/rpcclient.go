@@ -14,8 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"gateway/internal/client/rpc/core-rpc/healthpb"
-
 	"gateway/internal/config"
 )
 
@@ -24,7 +22,6 @@ type Client struct {
 	coreConnection *grpc.ClientConn
 
 	// 不同的proto客户端
-	healthClient   healthpb.HealthServiceClient
 	UserClient     userpb.UserServiceClient
 	CategoryClient categorypb.CategoryServiceClient
 	ArticleClient  articlepb.ArticleServiceClient
@@ -49,7 +46,6 @@ func NewRPCClient(cfg *config.Config) (*Client, error) {
 
 	return &Client{
 		coreConnection: coreConn,
-		healthClient:   healthpb.NewHealthServiceClient(coreConn),
 		UserClient:     userpb.NewUserServiceClient(coreConn),
 		CategoryClient: categorypb.NewCategoryServiceClient(coreConn),
 		ArticleClient:  articlepb.NewArticleServiceClient(coreConn),
@@ -85,10 +81,6 @@ func (c *Client) GetRequestTimeout() time.Duration {
 
 // =====================================================================================================================
 // 下面是健康检测
-
-func (c *Client) GetHealthClient() healthpb.HealthServiceClient {
-	return c.healthClient
-}
 
 func (c *Client) GetUserClient() userpb.UserServiceClient {
 	return c.UserClient

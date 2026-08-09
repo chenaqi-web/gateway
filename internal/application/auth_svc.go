@@ -130,7 +130,7 @@ func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken st
 }
 
 func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPasswordRequest) error {
-	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "reset_password"); err != nil {
+	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "forgot_password"); err != nil {
 		return err
 	}
 

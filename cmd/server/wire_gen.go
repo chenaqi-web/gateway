@@ -60,7 +60,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	likeController := controller.NewLikeController(likeService)
 	jwtBlacklist := cache.NewJwtBlacklist(cacheClient)
 	authService := application.NewAuthService(client, jwtBlacklist, cfg)
-	authController := controller.NewAuthController(authService)
+	authController := controller.NewAuthController(authService, cfg)
 	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController, likeController, authController, jwtBlacklist)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
