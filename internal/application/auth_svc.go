@@ -141,5 +141,3 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPassword
 	})
 	return err
 }
-
-func (s *AuthService) RefreshCookieConfig() config.AuthConfig { return s.cfg.Auth }
