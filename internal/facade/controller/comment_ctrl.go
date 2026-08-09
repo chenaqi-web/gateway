@@ -5,7 +5,6 @@ import (
 	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,7 +22,7 @@ func (ct *CommentController) Create(c *gin.Context) {
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
@@ -42,7 +41,7 @@ func (ct *CommentController) CreateReply(c *gin.Context) {
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
@@ -61,7 +60,7 @@ func (ct *CommentController) Delete(c *gin.Context) {
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
@@ -80,7 +79,7 @@ func (ct *CommentController) List(c *gin.Context) {
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
@@ -99,7 +98,7 @@ func (ct *CommentController) Replies(c *gin.Context) {
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
