@@ -26,7 +26,8 @@ func (ct *LikeController) ThumbUp(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	result, err := ct.svc.ThumbUp(c.Request.Context(), userID, req)
+	req.UserID = userID
+	result, err := ct.svc.ThumbUp(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
 		return
@@ -44,25 +45,8 @@ func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	result, err := ct.svc.CancelThumbUp(c.Request.Context(), userID, req)
-	if err != nil {
-		rpcError(c, err)
-		return
-	}
-	reponse.Success(c, result)
-}
-
-func (ct *LikeController) HasLike(c *gin.Context) {
-	var req dto.LikeStatusRequest
-	if !bindJSON(c, &req) {
-		return
-	}
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
-		return
-	}
-	result, err := ct.svc.HasLike(c.Request.Context(), userID, req)
+	req.UserID = userID
+	result, err := ct.svc.CancelThumbUp(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
 		return
@@ -80,7 +64,8 @@ func (ct *LikeController) UserLikeList(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	result, err := ct.svc.UserLikeList(c.Request.Context(), userID, req)
+	req.UserID = userID
+	result, err := ct.svc.UserLikeList(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
 		return
