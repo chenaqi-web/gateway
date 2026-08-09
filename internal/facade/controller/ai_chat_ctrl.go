@@ -66,7 +66,12 @@ func (ct *AiChatController) GetSession(c *gin.Context) {
 }
 
 func (ct *AiChatController) ListMessages(c *gin.Context) {
-	list, err := ct.svc.ListMessages(c.Request.Context(), c.Param("id"))
+	userID, ok := currentAuthUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+	list, err := ct.svc.ListMessages(c.Request.Context(), userID, c.Param("id"))
 	if err != nil {
 		aiChatError(c, err)
 		return

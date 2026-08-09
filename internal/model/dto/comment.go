@@ -4,30 +4,32 @@ import "gateway/internal/client/rpc/core-rpc/commentpb"
 
 type CreateCommentRequest struct {
 	ArticleID uint64 `json:"articleId" binding:"required"`
-	UserID    uint64 `json:"userId" binding:"required"`
+	UserID    uint64 `json:"-"`
 	Content   string `json:"content" binding:"required"`
 }
 
 type CreateReplyRequest struct {
 	ArticleID uint64 `json:"articleId" binding:"required"`
 	ParentID  uint64 `json:"parentId" binding:"required"`
-	UserID    uint64 `json:"userId" binding:"required"`
+	UserID    uint64 `json:"-"`
 	ReplyToID uint64 `json:"replyToId"`
 	Content   string `json:"content" binding:"required"`
 }
 
 type DeleteCommentRequest struct {
 	ID     uint64 `json:"id" binding:"required"`
-	UserID uint64 `json:"userId" binding:"required"`
+	UserID uint64 `json:"-"`
 }
 
 type GetArticleCommentsRequest struct {
+	UserID    uint64 `json:"-"`
 	ArticleID uint64 `json:"articleId" binding:"required"`
 	Page      int32  `json:"page"`
 	Size      int32  `json:"size"`
 }
 
 type GetCommentRepliesRequest struct {
+	UserID   uint64 `json:"-"`
 	ParentID uint64 `json:"parentId" binding:"required"`
 	Page     int32  `json:"page"`
 	Size     int32  `json:"size"`

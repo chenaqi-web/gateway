@@ -42,7 +42,7 @@ func (s *CommentService) List(ctx context.Context, req dto.GetArticleCommentsReq
 	if err != nil {
 		return nil, err
 	}
-	if err := s.attachLikeStatuses(ctx, resp.GetComments()); err != nil {
+	if err := s.attachLikeStatuses(ctx, req.UserID, resp.GetComments()); err != nil {
 		return nil, err
 	}
 	return &dto.CommentListResponse{Comments: dto.ToCommentList(resp.GetComments()), Page: resp.GetPage(), Size: resp.GetSize()}, nil
@@ -53,13 +53,13 @@ func (s *CommentService) Replies(ctx context.Context, req dto.GetCommentRepliesR
 	if err != nil {
 		return nil, err
 	}
-	if err := s.attachLikeStatuses(ctx, resp.GetReplies()); err != nil {
+	if err := s.attachLikeStatuses(ctx, req.UserID, resp.GetReplies()); err != nil {
 		return nil, err
 	}
 	return &dto.CommentRepliesResponse{Replies: dto.ToCommentList(resp.GetReplies()), Page: resp.GetPage(), Size: resp.GetSize()}, nil
 }
 
-func (s *CommentService) attachLikeStatuses(ctx context.Context, comments []*commentpb.CommentInfo) error {
+func (s *CommentService) attachLikeStatuses(ctx context.Context, userID uint64, comments []*commentpb.CommentInfo) error {
 	objectIDs := make([]uint64, 0, len(comments))
 	for _, comment := range comments {
 		if comment != nil {
@@ -69,7 +69,7 @@ func (s *CommentService) attachLikeStatuses(ctx context.Context, comments []*com
 	if len(objectIDs) == 0 {
 		return nil
 	}
-	statusResp, err := s.rpc.LikeClient.BatchLikeStatus(ctx, &likepb.BatchCommentLikeStatusRequest{UserID: 1, ObjectType: "comment", ObjectIDs: objectIDs})
+	statusResp, err := s.rpc.LikeClient.BatchLikeStatus(ctx, &likepb.BatchCommentLikeStatusRequest{UserID: userID, ObjectType: "comment", ObjectIDs: objectIDs})
 	if err != nil {
 		return err
 	}

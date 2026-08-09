@@ -25,7 +25,7 @@ type Article struct {
 // ---------- 请求 ----------
 
 type CreateArticleRequest struct {
-	AuthorID   uint64 `json:"authorID" binding:"required"`
+	AuthorID   uint64 `json:"-"`
 	Title      string `json:"title" binding:"required"`
 	Summary    string `json:"summary"`
 	Content    string `json:"content" binding:"required"`
@@ -44,7 +44,7 @@ type ListArticlesRequest struct {
 }
 
 type ListMyArticlesRequest struct {
-	AuthorID uint64 `json:"authorID" binding:"required"`
+	AuthorID uint64 `json:"-"`
 	Page     uint32 `json:"page"`
 	PageSize uint32 `json:"pageSize"`
 }
@@ -63,7 +63,7 @@ type SearchArticlesRequest struct {
 
 type DeleteArticleRequest struct {
 	ID       uint64 `json:"id" binding:"required"`
-	AuthorID uint64 `json:"authorID" binding:"required"`
+	AuthorID uint64 `json:"-"`
 }
 
 // ---------- 响应 ----------

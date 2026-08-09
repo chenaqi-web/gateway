@@ -110,9 +110,7 @@ func (ct *ArticleController) ListByUserID(c *gin.Context) {
 		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
 		return
 	}
-	if middleware.GetRole(c) != "admin" || req.AuthorID == 0 {
-		req.AuthorID = userID
-	}
+	req.AuthorID = userID
 	result, err := ct.svc.ListByUserID(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)

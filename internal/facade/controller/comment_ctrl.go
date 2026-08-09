@@ -2,8 +2,10 @@ package controller
 
 import (
 	"gateway/internal/application"
+	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +21,12 @@ func (ct *CommentController) Create(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+	req.UserID = userID
 	result, err := ct.svc.Create(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
@@ -32,6 +40,12 @@ func (ct *CommentController) CreateReply(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+	req.UserID = userID
 	result, err := ct.svc.CreateReply(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
@@ -45,6 +59,12 @@ func (ct *CommentController) Delete(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+	req.UserID = userID
 	result, err := ct.svc.Delete(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
@@ -58,6 +78,12 @@ func (ct *CommentController) List(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+	req.UserID = userID
 	result, err := ct.svc.List(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
@@ -71,6 +97,12 @@ func (ct *CommentController) Replies(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+	req.UserID = userID
 	result, err := ct.svc.Replies(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)

@@ -86,7 +86,10 @@ func (s *AiChatService) ListSessions(ctx context.Context, userID uint64, page, p
 	return dto.ToAiChatSessionResponses(list), nil
 }
 
-func (s *AiChatService) ListMessages(ctx context.Context, sessionID string) ([]*dto.AiChatMessageResponse, error) {
+func (s *AiChatService) ListMessages(ctx context.Context, userID uint64, sessionID string) ([]*dto.AiChatMessageResponse, error) {
+	if err := s.ensureSessionOwner(ctx, userID, sessionID); err != nil {
+		return nil, err
+	}
 	list, err := s.aiChatRepo.ListMessagesBySession(ctx, sessionID)
 	if err != nil {
 		return nil, err
@@ -95,6 +98,9 @@ func (s *AiChatService) ListMessages(ctx context.Context, sessionID string) ([]*
 }
 
 func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, content string, callback AiChatStreamCallback) error {
+	if err := s.ensureSessionOwner(ctx, userID, sessionID); err != nil {
+		return err
+	}
 	// 1. 检索知识库
 	knowledgeContents, err := s.searchKnowledge(ctx, content)
 	if err != nil {
@@ -155,6 +161,17 @@ func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, cont
 }
 
 // =====================================================================================================================
+
+func (s *AiChatService) ensureSessionOwner(ctx context.Context, userID uint64, sessionID string) error {
+	if strings.TrimSpace(sessionID) == "" {
+		return ErrAiChatMissingSessionID
+	}
+	_, err := s.aiChatRepo.GetSessionByUser(ctx, strconv.FormatUint(userID, 10), sessionID)
+	if errors.Is(err, repo.ErrAiChatSessionNotFound) {
+		return ErrAiChatSessionNotFound
+	}
+	return err
+}
 
 func (s *AiChatService) saveChatRecords(ctx context.Context, userID, sessionID, content, reply string) error {
 	messages := []*entity.AiChatMessage{
