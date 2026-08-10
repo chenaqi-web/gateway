@@ -11,5 +11,7 @@ func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, auth
 	user.Use(authMiddleware)
 	{
 		user.GET("/", userCtrl.Get)
+		user.GET("/profile", userCtrl.GetProfile)
+		user.PUT("/profile", userCtrl.UpdateProfile)
 	}
 }
