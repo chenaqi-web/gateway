@@ -53,7 +53,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService)
 	articleService := application.NewArticleService(client)
-	articleController := controller.NewArticleController(articleService, storageService)
+	articleController := controller.NewArticleController(articleService)
 	commentService := application.NewCommentService(client)
 	commentController := controller.NewCommentController(commentService)
 	likeService := application.NewLikeService(client)

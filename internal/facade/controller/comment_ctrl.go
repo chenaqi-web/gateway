@@ -77,12 +77,9 @@ func (ct *CommentController) List(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		reponse.Unauthorized(c)
-		return
+	if userID, ok := middleware.GetUserID(c); ok {
+		req.UserID = userID
 	}
-	req.UserID = userID
 	result, err := ct.svc.List(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)
@@ -96,12 +93,9 @@ func (ct *CommentController) Replies(c *gin.Context) {
 	if !bindJSON(c, &req) {
 		return
 	}
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		reponse.Unauthorized(c)
-		return
+	if userID, ok := middleware.GetUserID(c); ok {
+		req.UserID = userID
 	}
-	req.UserID = userID
 	result, err := ct.svc.Replies(c.Request.Context(), req)
 	if err != nil {
 		rpcError(c, err)

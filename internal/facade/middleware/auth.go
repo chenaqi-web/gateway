@@ -125,6 +125,19 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	}
 }
 
+// OptionalAuth keeps public resources available to anonymous users while
+// allowing controllers to read the user identity when a valid access token
+// is present.
+func (m *AuthMiddleware) OptionalAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if strings.TrimSpace(c.GetHeader("Authorization")) == "" {
+			c.Next()
+			return
+		}
+		m.RequireAuth()(c)
+	}
+}
+
 func bearerToken(value string) (string, bool) {
 	parts := strings.Fields(value)
 	if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") || parts[1] == "" {
