@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strings"
 
 	"gateway/internal/application"
 	"gateway/internal/facade/middleware"
@@ -12,11 +13,12 @@ import (
 )
 
 type ArticleController struct {
-	svc *application.ArticleService
+	svc     *application.ArticleService
+	storage *application.StorageService
 }
 
-func NewArticleController(svc *application.ArticleService) *ArticleController {
-	return &ArticleController{svc: svc}
+func NewArticleController(svc *application.ArticleService, storage *application.StorageService) *ArticleController {
+	return &ArticleController{svc: svc, storage: storage}
 }
 
 func (ct *ArticleController) Create(c *gin.Context) {
@@ -35,7 +37,17 @@ func (ct *ArticleController) Create(c *gin.Context) {
 		rpcError(c, err)
 		return
 	}
+	if result.Success && req.UploadSessionID != "" && hasSessionAssets(req) {
+		if err := ct.storage.CommitSession(c.Request.Context(), userID, req.UploadSessionID); err != nil {
+			reponse.Fail(c, http.StatusInternalServerError, "article created but upload session could not be committed")
+			return
+		}
+	}
 	reponse.Success(c, result)
+}
+
+func hasSessionAssets(req dto.CreateArticleRequest) bool {
+	return strings.Contains(req.CoverImage, "/static/upload/blog/") || strings.Contains(req.Content, "/static/upload/blog/")
 }
 
 func (ct *ArticleController) Search(c *gin.Context) {

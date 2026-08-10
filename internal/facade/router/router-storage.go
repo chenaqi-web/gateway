@@ -10,7 +10,9 @@ func NewStorageRouter(v *gin.RouterGroup, storageCtrl *controller.StorageControl
 	storage := v.Group("/storage")
 	storage.Use(authMiddleware)
 	{
-		storage.POST("/upload", storageCtrl.Upload)
+		storage.POST("/content", storageCtrl.UploadContent)
+		storage.POST("/avatar", storageCtrl.UploadAvatar)
+		storage.POST("/cover", storageCtrl.UploadCover)
 		storage.POST("/delete", storageCtrl.Delete)
 	}
 }

@@ -46,14 +46,14 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	userController := controller.NewUserController(userService)
 	categoryService := application.NewCategoryService(client)
 	categoryController := controller.NewCategoryController(categoryService)
-	articleService := application.NewArticleService(client)
-	articleController := controller.NewArticleController(articleService)
 	storageClient, err := storage.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService)
+	articleService := application.NewArticleService(client)
+	articleController := controller.NewArticleController(articleService, storageService)
 	commentService := application.NewCommentService(client)
 	commentController := controller.NewCommentController(commentService)
 	likeService := application.NewLikeService(client)

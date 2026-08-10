@@ -25,13 +25,14 @@ type Article struct {
 // ---------- 请求 ----------
 
 type CreateArticleRequest struct {
-	AuthorID   uint64 `json:"-"`
-	Title      string `json:"title" binding:"required"`
-	Summary    string `json:"summary"`
-	Content    string `json:"content" binding:"required"`
-	CoverImage string `json:"coverImage"`
-	CategoryID uint64 `json:"categoryID" binding:"required"`
-	IsTop      bool   `json:"isTop"`
+	AuthorID        uint64 `json:"-"`
+	UploadSessionID string `json:"uploadSessionID"`
+	Title           string `json:"title" binding:"required"`
+	Summary         string `json:"summary"`
+	Content         string `json:"content" binding:"required"`
+	CoverImage      string `json:"coverImage"`
+	CategoryID      uint64 `json:"categoryID" binding:"required"`
+	IsTop           bool   `json:"isTop"`
 }
 
 type GetArticleRequest struct {

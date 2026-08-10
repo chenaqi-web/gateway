@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"mime/multipart"
 	"strings"
+	"time"
 
 	"gateway/internal/config"
 )
 
-// Client 对外暴露的存储客户端，内部按 provider 选择具体实现。
 type Client struct {
 	impl     Provider
 	provider string
@@ -46,9 +46,24 @@ func NewClient(cfg *config.Config) (*Client, error) {
 func (c *Client) Provider() string {
 	return c.provider
 }
+func (c *Client) UploadAvatar(ctx context.Context, userID uint64, file *multipart.FileHeader) (*UploadResult, error) {
+	return c.impl.UploadAvatar(ctx, userID, file)
+}
 
-func (c *Client) Upload(ctx context.Context, file *multipart.FileHeader) (*UploadResult, error) {
-	return c.impl.Upload(ctx, file)
+func (c *Client) UploadCover(ctx context.Context, userID uint64, sessionID string, file *multipart.FileHeader) (*UploadResult, error) {
+	return c.impl.UploadCover(ctx, userID, sessionID, file)
+}
+
+func (c *Client) UploadContent(ctx context.Context, userID uint64, sessionID string, file *multipart.FileHeader) (*UploadResult, error) {
+	return c.impl.UploadContent(ctx, userID, sessionID, file)
+}
+
+func (c *Client) CommitSession(ctx context.Context, userID uint64, sessionID string) error {
+	return c.impl.CommitSession(ctx, userID, sessionID)
+}
+
+func (c *Client) CleanupSessions(ctx context.Context, maxAge time.Duration) error {
+	return c.impl.CleanupSessions(ctx, maxAge)
 }
 
 func (c *Client) Delete(ctx context.Context, key string) error {

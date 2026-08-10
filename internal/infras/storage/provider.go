@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"mime/multipart"
+	"time"
 )
 
 const (
@@ -11,15 +12,17 @@ const (
 	ProviderOSS   = "oss"
 )
 
-// UploadResult 上传结果。
 type UploadResult struct {
-	URL string // 完整访问 URL
-	Key string // 对象 key / 相对路径
+	URL string
+	Key string
 }
 
-// Provider 存储后端接口，local / cos / oss 均实现该接口。
 type Provider interface {
-	Upload(ctx context.Context, file *multipart.FileHeader) (*UploadResult, error)
+	UploadAvatar(ctx context.Context, userID uint64, file *multipart.FileHeader) (*UploadResult, error)
+	UploadCover(ctx context.Context, userID uint64, sessionID string, file *multipart.FileHeader) (*UploadResult, error)
+	UploadContent(ctx context.Context, userID uint64, sessionID string, file *multipart.FileHeader) (*UploadResult, error)
+	CommitSession(ctx context.Context, userID uint64, sessionID string) error
+	CleanupSessions(ctx context.Context, maxAge time.Duration) error
 	Delete(ctx context.Context, key string) error
 	GetURL(key string) string
 }
