@@ -65,7 +65,8 @@ func (ct *StorageController) upload(c *gin.Context, handler func(context.Context
 
 func (ct *StorageController) Delete(c *gin.Context) {
 	var req dto.DeleteUploadRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	if err := ct.svc.Delete(c.Request.Context(), req.Key); err != nil {

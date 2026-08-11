@@ -26,11 +26,11 @@ type Article struct {
 
 type CreateArticleRequest struct {
 	AuthorID   uint64 `json:"-"`
+	CategoryID uint64 `json:"categoryID" binding:"required"`
+	Content    string `json:"content" binding:"required"`
 	Title      string `json:"title" binding:"required"`
 	Summary    string `json:"summary"`
-	Content    string `json:"content" binding:"required"`
 	CoverImage string `json:"coverImage"`
-	CategoryID uint64 `json:"categoryID" binding:"required"`
 	IsTop      bool   `json:"isTop"`
 }
 

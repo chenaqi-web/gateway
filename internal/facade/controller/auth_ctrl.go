@@ -25,7 +25,8 @@ func NewAuthController(svc *application.AuthService, cfg *config.Config) *AuthCo
 
 func (a *AuthController) SendEmailCode(c *gin.Context) {
 	var req dto.SendEmailCodeRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	if err := a.svc.SendEmailCode(c.Request.Context(), req); err != nil {
@@ -37,7 +38,8 @@ func (a *AuthController) SendEmailCode(c *gin.Context) {
 
 func (a *AuthController) Register(c *gin.Context) {
 	var req dto.RegisterRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	if err := a.svc.Register(c.Request.Context(), req); err != nil {
@@ -49,7 +51,8 @@ func (a *AuthController) Register(c *gin.Context) {
 
 func (a *AuthController) Login(c *gin.Context) {
 	var req dto.LoginRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	result, refreshToken, err := a.svc.Login(c.Request.Context(), req)
@@ -65,7 +68,8 @@ func (a *AuthController) Login(c *gin.Context) {
 
 func (a *AuthController) EmailLogin(c *gin.Context) {
 	var req dto.EmailLoginRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	result, refreshToken, err := a.svc.EmailLogin(c.Request.Context(), req)
@@ -79,7 +83,8 @@ func (a *AuthController) EmailLogin(c *gin.Context) {
 
 func (a *AuthController) ForgotPassword(c *gin.Context) {
 	var req dto.ForgotPasswordRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	if err := a.svc.ForgotPassword(c.Request.Context(), req); err != nil {

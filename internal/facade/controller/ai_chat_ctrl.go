@@ -81,7 +81,8 @@ func (ct *AiChatController) ListMessages(c *gin.Context) {
 
 func (ct *AiChatController) Chat(c *gin.Context) {
 	var input dto.AiChatChatRequest
-	if !bindJSON(c, &input) {
+	if err := c.ShouldBindJSON(&input); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	userID, ok := currentAuthUserID(c)

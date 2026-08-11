@@ -5,6 +5,7 @@ import (
 	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,18 +18,19 @@ func NewCommentController(svc *application.CommentService) *CommentController {
 
 func (ct *CommentController) Create(c *gin.Context) {
 	var req dto.CreateCommentRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Unauthorized(c)
+		reponse.Fail(c, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 	req.UserID = userID
 	result, err := ct.svc.Create(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -36,18 +38,19 @@ func (ct *CommentController) Create(c *gin.Context) {
 
 func (ct *CommentController) CreateReply(c *gin.Context) {
 	var req dto.CreateReplyRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Unauthorized(c)
+		reponse.Fail(c, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 	req.UserID = userID
 	result, err := ct.svc.CreateReply(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -55,18 +58,19 @@ func (ct *CommentController) CreateReply(c *gin.Context) {
 
 func (ct *CommentController) Delete(c *gin.Context) {
 	var req dto.DeleteCommentRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Unauthorized(c)
+		reponse.Fail(c, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 	req.UserID = userID
 	result, err := ct.svc.Delete(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -74,7 +78,8 @@ func (ct *CommentController) Delete(c *gin.Context) {
 
 func (ct *CommentController) List(c *gin.Context) {
 	var req dto.GetArticleCommentsRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	if userID, ok := middleware.GetUserID(c); ok {
@@ -82,7 +87,7 @@ func (ct *CommentController) List(c *gin.Context) {
 	}
 	result, err := ct.svc.List(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -90,7 +95,8 @@ func (ct *CommentController) List(c *gin.Context) {
 
 func (ct *CommentController) Replies(c *gin.Context) {
 	var req dto.GetCommentRepliesRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	if userID, ok := middleware.GetUserID(c); ok {
@@ -98,7 +104,7 @@ func (ct *CommentController) Replies(c *gin.Context) {
 	}
 	result, err := ct.svc.Replies(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)

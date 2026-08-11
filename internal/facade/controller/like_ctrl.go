@@ -18,7 +18,8 @@ func NewLikeController(svc *application.LikeService) *LikeController {
 
 func (ct *LikeController) ThumbUp(c *gin.Context) {
 	var req dto.LikeRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
@@ -29,7 +30,7 @@ func (ct *LikeController) ThumbUp(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.ThumbUp(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -37,7 +38,8 @@ func (ct *LikeController) ThumbUp(c *gin.Context) {
 
 func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 	var req dto.LikeRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
@@ -48,7 +50,7 @@ func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.CancelThumbUp(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -56,7 +58,8 @@ func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 
 func (ct *LikeController) UserLikeList(c *gin.Context) {
 	var req dto.UserLikeListRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
@@ -67,7 +70,7 @@ func (ct *LikeController) UserLikeList(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.UserLikeList(c.Request.Context(), req)
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)

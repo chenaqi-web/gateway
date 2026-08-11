@@ -22,7 +22,7 @@ func NewUserController(svc *application.UserService) *UserController {
 func (u *UserController) Get(c *gin.Context) {
 	result, err := u.svc.Get(c.Request.Context())
 	if err != nil {
-		rpcError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -50,7 +50,8 @@ func (u *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	var req dto.UpdateProfileRequest
-	if !bindJSON(c, &req) {
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 	result, err := u.svc.UpdateProfile(c.Request.Context(), userID, req)

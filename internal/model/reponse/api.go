@@ -19,17 +19,11 @@ func Success(c *gin.Context, data any) {
 }
 
 // Fail 失败响应，code 与 HTTP 状态码一致。
-func Fail(c *gin.Context, httpStatus int, msg string) {
-	if msg == "" {
-		msg = http.StatusText(httpStatus)
-	}
-	if msg == "" {
-		msg = "error"
-	}
-	c.JSON(httpStatus, APIResponse{Code: httpStatus, Msg: msg})
+func Fail(c *gin.Context, status int, msg string) {
+	c.JSON(status, APIResponse{Code: status, Msg: msg})
 }
 
 // Unauthorized 未授权或者无权限
 func Unauthorized(c *gin.Context) {
-	c.JSON(http.StatusOK, APIResponse{Code: http.StatusUnauthorized, Msg: "unauthorized"})
+	Fail(c, http.StatusUnauthorized, "unauthorized")
 }
