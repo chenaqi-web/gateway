@@ -97,6 +97,19 @@ func (s *AiChatService) ListMessages(ctx context.Context, userID uint64, session
 	return dto.ToAiChatMessageResponses(list), nil
 }
 
+func (s *AiChatService) DeleteSession(ctx context.Context, userID uint64, sessionID string) error {
+	if strings.TrimSpace(sessionID) == "" {
+		return ErrAiChatMissingSessionID
+	}
+	if err := s.aiChatRepo.DeleteSessionByUser(ctx, strconv.FormatUint(userID, 10), sessionID); err != nil {
+		if errors.Is(err, repo.ErrAiChatSessionNotFound) {
+			return ErrAiChatSessionNotFound
+		}
+		return err
+	}
+	return nil
+}
+
 func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, content string, callback AiChatStreamCallback) error {
 	if err := s.ensureSessionOwner(ctx, userID, sessionID); err != nil {
 		return err

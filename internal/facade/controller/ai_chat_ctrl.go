@@ -79,6 +79,19 @@ func (ct *AiChatController) ListMessages(c *gin.Context) {
 	reponse.Success(c, list)
 }
 
+func (ct *AiChatController) DeleteSession(c *gin.Context) {
+	userID, ok := currentAuthUserID(c)
+	if !ok {
+		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		return
+	}
+	if err := ct.svc.DeleteSession(c.Request.Context(), userID, c.Param("id")); err != nil {
+		aiChatError(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
 func (ct *AiChatController) Chat(c *gin.Context) {
 	var input dto.AiChatChatRequest
 	if err := c.ShouldBindJSON(&input); err != nil {

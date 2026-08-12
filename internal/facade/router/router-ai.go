@@ -14,6 +14,7 @@ func NewAIRouter(v *gin.RouterGroup, aiChat *controller.AiChatController, authMi
 		ai.GET("/sessions", aiChat.ListSessions)
 		ai.GET("/session/:id", aiChat.GetSession)
 		ai.GET("/session/:id/messages", aiChat.ListMessages)
+		ai.DELETE("/session/:id", aiChat.DeleteSession)
 		ai.POST("/chat", aiChat.Chat)
 	}
 }

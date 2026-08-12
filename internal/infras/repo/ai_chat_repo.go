@@ -76,3 +76,16 @@ func (r *AiChatRepo) ListMessagesBySession(ctx context.Context, sessionID string
 		Find(&list).Error
 	return list, err
 }
+
+func (r *AiChatRepo) DeleteSessionByUser(ctx context.Context, userID, sessionID string) error {
+	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("user_id = ? AND session_id = ?", userID, sessionID).Delete(&entity.AiChatSession{})
+		if result.Error != nil {
+			return result.Error
+		}
+		if result.RowsAffected == 0 {
+			return ErrAiChatSessionNotFound
+		}
+		return tx.Where("session_id = ?", sessionID).Delete(&entity.AiChatMessage{}).Error
+	})
+}

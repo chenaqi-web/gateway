@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="/like (snapshot).go">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="/like (snapshot).go" />
+              <option name="originalContent" value="package dto&#10;&#10;type LikeRequest struct {&#10;&#9;UserID     uint64 `json:&quot;-&quot;`&#10;&#9;ObjectType string `json:&quot;objectType&quot; binding:&quot;required&quot;`&#10;&#9;ObjectID   uint64 `json:&quot;objectId&quot; binding:&quot;required&quot;`&#10;}&#10;&#10;type LikeBoolResponse struct {&#10;&#9;Success bool `json:&quot;success&quot;`&#10;}&#10;&#10;type UserLikeListRequest struct {&#10;&#9;UserID     uint64 `json:&quot;-&quot;`&#10;&#9;ObjectType string `json:&quot;objectType&quot; binding:&quot;required&quot;`&#10;&#9;Page       int32  `json:&quot;page&quot;`&#10;&#9;PageSize   int32  `json:&quot;pageSize&quot;`&#10;}&#10;" />
+              <option name="updatedContent" value="package dto&#10;&#10;import &quot;gateway/internal/client/rpc/core-rpc/likepb&quot;&#10;&#10;type LikeRequest struct {&#10;&#9;UserID     uint64 `json:&quot;-&quot;`&#10;&#9;ObjectType string `json:&quot;objectType&quot; binding:&quot;required&quot;`&#10;&#9;ObjectID   uint64 `json:&quot;objectId&quot; binding:&quot;required&quot;`&#10;}&#10;&#10;type LikeBoolResponse struct {&#10;&#9;Success bool `json:&quot;success&quot;`&#10;}&#10;&#10;type UserLikeListRequest struct {&#10;&#9;UserID     uint64 `json:&quot;-&quot;`&#10;&#9;ObjectType string `json:&quot;objectType&quot; binding:&quot;required&quot;`&#10;&#9;Page       int32  `json:&quot;page&quot;`&#10;&#9;PageSize   int32  `json:&quot;pageSize&quot;`&#10;}&#10;&#10;// UserLikeListResponse 包含用户点赞的文章列表及总数&#10;type UserLikeListResponse struct {&#10;&#9;Articles []*Article `json:&quot;articles&quot;`&#10;&#9;Total    int64      `json:&quot;total&quot;`&#10;}&#10;&#10;// ToUserLikeListResponse 将 likepb.PageQueryUserLikeListResponse 转为 dto.UserLikeListResponse&#10;func ToUserLikeListResponse(resp *likepb.PageQueryUserLikeListResponse) *UserLikeListResponse {&#10;&#9;if resp == nil {&#10;&#9;&#9;return &amp;UserLikeListResponse{}&#10;&#9;}&#10;&#9;return &amp;UserLikeListResponse{Articles: ToArticles(resp.GetArticles()), Total: resp.GetTotal()}&#10;}&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

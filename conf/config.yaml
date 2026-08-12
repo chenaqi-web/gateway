@@ -19,7 +19,7 @@ rpc:
   request_timeout: 5
 
 http:
-  agent_server_addr: "http://127.0.0.1:8080"
+  agent_server_addr: "http://localhost:8080"
   request_timeout: 30
 
 Mysql:
@@ -41,16 +41,15 @@ Redis:
 
 llm:
   # provider: ollama | zhipu
-  provider: ollama
-  api_url: "http://localhost:11434"
-  model_id: "llama3.2"
-  model_name: "Llama 3.2"
-  # zhipu example:
-  # provider: zhipu
-  # api_key: "your-zhipu-api-key"
-  # api_url: "https://open.bigmodel.cn/api/paas/v4/"
-  # model_id: "glm-4-flash"
-  # model_name: "GLM-4-Flash"
+#  provider: ollama
+#  api_url: "http://localhost:11434"
+#  model_id: "llama3.2"
+#  model_name: "Llama 3.2"
+   provider: zhipu
+   api_key: "1c096e9ffa4f4113ac003048de2906d3.b5yrOb2N9Ee63Ol7"
+   api_url: "https://open.bigmodel.cn/api/paas/v4/"
+   model_id: "glm-4-flash"
+   model_name: "GLM-4-Flash"
 
 ai_chat:
   vector_collection: "test_knowledge"
