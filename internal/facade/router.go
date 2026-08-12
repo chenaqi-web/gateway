@@ -13,6 +13,7 @@ import (
 func New(cfg *config.Config,
 	health *controller.HealthController,
 	aiChat *controller.AiChatController,
+	vectorCtrl *controller.VectorController,
 	userCtrl *controller.UserController,
 	categoryCtrl *controller.CategoryController,
 	articleCtrl *controller.ArticleController,
@@ -49,6 +50,7 @@ func New(cfg *config.Config,
 
 		// 注册路由
 		router.NewAIRouter(v1, aiChat, auth)
+		router.NewVectorRouter(v1, vectorCtrl, auth)
 		router.NewUserRouter(v1, userCtrl, auth)
 		router.NewCategoryRouter(v1, categoryCtrl, auth)
 		router.NewArticleRouter(v1, articleCtrl, auth)

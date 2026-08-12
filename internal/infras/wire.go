@@ -1,7 +1,6 @@
 package infras
 
 import (
-	"gateway/internal/infras/api/llm"
 	"gateway/internal/infras/cache"
 	"gateway/internal/infras/clog"
 	"gateway/internal/infras/repo"
@@ -24,10 +23,6 @@ var LogProviderSet = wire.NewSet(
 	clog.NewLog,
 )
 
-var ApiProviderSet = wire.NewSet(
-	llm.NewClient,
-)
-
 var StorageProviderSet = wire.NewSet(
 	storage.NewClient,
 )
@@ -37,6 +32,5 @@ var ProviderSet = wire.NewSet(
 	LogProviderSet,
 	CacheProviderSet,
 	RepoProviderSet,
-	ApiProviderSet,
 	StorageProviderSet,
 )

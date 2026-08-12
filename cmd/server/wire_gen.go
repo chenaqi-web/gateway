@@ -13,7 +13,6 @@ import (
 	"gateway/internal/config"
 	"gateway/internal/facade"
 	"gateway/internal/facade/controller"
-	"gateway/internal/infras/api/llm"
 	"gateway/internal/infras/cache"
 	"gateway/internal/infras/repo"
 	"gateway/internal/infras/storage"
@@ -36,12 +35,10 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	healthController := controller.NewHealthController(healthService)
 	aiChatRepo := repo.NewAiChatRepo(dbClient)
 	pyClient := http.NewHTTPClient(cfg)
-	llmClient, err := llm.NewClient(cfg)
-	if err != nil {
-		return nil, err
-	}
-	aiChatService := application.NewAiChatService(cfg, aiChatRepo, pyClient, llmClient)
+	aiChatService := application.NewAiChatService(cfg, aiChatRepo, pyClient)
 	aiChatController := controller.NewAiChatController(aiChatService)
+	vectorService := application.NewVectorService(pyClient)
+	vectorController := controller.NewVectorController(vectorService)
 	userService := application.NewUserService(client)
 	userController := controller.NewUserController(userService)
 	categoryService := application.NewCategoryService(client)
@@ -61,7 +58,7 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	jwtBlacklist := cache.NewJwtBlacklist(cacheClient)
 	authService := application.NewAuthService(client, jwtBlacklist, cfg)
 	authController := controller.NewAuthController(authService, cfg)
-	engine := facade.New(cfg, healthController, aiChatController, userController, categoryController, articleController, storageController, commentController, likeController, authController, jwtBlacklist)
+	engine := facade.New(cfg, healthController, aiChatController, vectorController, userController, categoryController, articleController, storageController, commentController, likeController, authController, jwtBlacklist)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err

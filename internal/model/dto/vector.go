@@ -43,3 +43,28 @@ type VectorSearchResponse struct {
 	Msg  string             `json:"msg"`
 	Data []VectorSearchItem `json:"data"`
 }
+
+type VectorCollection struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+type VectorDocument struct {
+	ChunkID       string `json:"chunk_id"`
+	DocID         string `json:"doc_id"`
+	ChunkNo       int    `json:"chunk_no"`
+	Title         string `json:"title"`
+	Source        string `json:"source"`
+	KnowledgeType string `json:"knowledge_type"`
+	Status        int    `json:"status"`
+	CreatedAt     *int   `json:"created_at"`
+	UpdatedAt     *int   `json:"updated_at"`
+	Content       string `json:"content"`
+}
+
+type VectorDocumentPage struct {
+	Total    int              `json:"total"`
+	Page     int              `json:"page"`
+	PageSize int              `json:"page_size"`
+	Items    []VectorDocument `json:"items"`
+}
