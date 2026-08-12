@@ -24,7 +24,6 @@ func NewDBClient(cfg *config.Config) (*DBClient, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open mysql: %w", err)
 	}
-
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, fmt.Errorf("get sql db: %w", err)

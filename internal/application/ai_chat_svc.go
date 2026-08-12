@@ -14,6 +14,7 @@ import (
 	"gateway/internal/model/entity"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -24,35 +25,94 @@ const (
 )
 
 var (
-	ErrAiChatMissingContent   = errors.New("content is required")
-	ErrAiChatMissingSessionID = errors.New("session_id is required")
-	ErrAiChatSessionNotFound  = errors.New("session not found")
+	ErrAiChatMissingContent      = errors.New("content is required")
+	ErrAiChatMissingSessionID    = errors.New("session_id is required")
+	ErrAiChatMissingSessionTitle = errors.New("session title is required")
+	ErrAiChatSessionNotFound     = errors.New("session not found")
 )
 
 type AiChatService struct {
 	cfg        *config.Config
 	aiChatRepo *repo.AiChatRepo
 	vector     *http.PyClient
-	llm        *llm.Client
+	settingsMu sync.RWMutex
+	settings   aiChatRuntimeSettings
+}
+
+type aiChatRuntimeSettings struct {
+	assistantEnabled bool
+	provider         string
+	modelID          string
+	apiKey           string
 }
 
 func NewAiChatService(
 	cfg *config.Config,
 	aiChatRepo *repo.AiChatRepo,
 	vector *http.PyClient,
-	llmClient *llm.Client,
 ) *AiChatService {
-	return &AiChatService{
-		cfg:        cfg,
+	return &AiChatService{cfg: cfg,
 		aiChatRepo: aiChatRepo,
 		vector:     vector,
-		llm:        llmClient,
+		settings: aiChatRuntimeSettings{
+			assistantEnabled: true,
+			provider:         cfg.LLM.Provider,
+			modelID:          cfg.LLM.ModelID,
+			apiKey:           cfg.LLM.APIKey,
+		},
 	}
 }
 
-type AiChatStreamCallback func(chunk dto.AiChatStreamChunkResponse) error
+var ErrAiChatDisabled = errors.New("assistant is disabled")
+
+func (s *AiChatService) GetStatus(ctx context.Context) *dto.AiChatStatusResponse {
+	settings := s.runtimeSettings()
+	return &dto.AiChatStatusResponse{AssistantEnabled: settings.assistantEnabled}
+}
+
+func (s *AiChatService) UpdateStatus(ctx context.Context, enabled bool) *dto.AiChatStatusResponse {
+	s.settingsMu.Lock()
+	s.settings.assistantEnabled = enabled
+	s.settingsMu.Unlock()
+	return s.GetStatus(ctx)
+}
+
+func (s *AiChatService) GetSettings(ctx context.Context) (*dto.AiSettingsResponse, error) {
+	settings := s.runtimeSettings()
+	return &dto.AiSettingsResponse{AssistantEnabled: settings.assistantEnabled, Provider: settings.provider, ModelID: settings.modelID, APIKey: settings.apiKey, APIKeyConfigured: strings.TrimSpace(settings.apiKey) != ""}, nil
+}
+
+func (s *AiChatService) UpdateSettings(ctx context.Context, req dto.UpdateAiSettingsRequest) (*dto.AiSettingsResponse, error) {
+	settings := s.runtimeSettings()
+	settings.provider = strings.TrimSpace(req.Provider)
+	settings.modelID = strings.TrimSpace(req.ModelID)
+	settings.apiKey = strings.TrimSpace(req.APIKey)
+	if settings.provider != "zhipu" && settings.provider != "zhipuai" {
+		return nil, errors.New("unsupported provider")
+	}
+	if settings.modelID == "" {
+		return nil, errors.New("model is required")
+	}
+	s.settingsMu.Lock()
+	s.settings = settings
+	s.settingsMu.Unlock()
+	return s.GetSettings(ctx)
+}
+
+func (s *AiChatService) runtimeSettings() aiChatRuntimeSettings {
+	s.settingsMu.RLock()
+	defer s.settingsMu.RUnlock()
+	return s.settings
+}
+
+// =====================================================================================================================
+// session
 
 func (s *AiChatService) CreateSession(ctx context.Context, userID uint64) (*dto.AiChatSessionResponse, error) {
+	settings := s.runtimeSettings()
+	if !settings.assistantEnabled {
+		return nil, ErrAiChatDisabled
+	}
 	session := &entity.AiChatSession{
 		UserID:    strconv.FormatUint(userID, 10),
 		SessionID: newSessionID(),
@@ -64,22 +124,8 @@ func (s *AiChatService) CreateSession(ctx context.Context, userID uint64) (*dto.
 	return dto.ToAiChatSessionResponse(session), nil
 }
 
-func (s *AiChatService) GetSession(ctx context.Context, userID uint64, sessionID string) (*dto.AiChatSessionResponse, error) {
-	if strings.TrimSpace(sessionID) == "" {
-		return nil, ErrAiChatMissingSessionID
-	}
-	session, err := s.aiChatRepo.GetSessionByUser(ctx, strconv.FormatUint(userID, 10), sessionID)
-	if err != nil {
-		if errors.Is(err, repo.ErrAiChatSessionNotFound) {
-			return nil, ErrAiChatSessionNotFound
-		}
-		return nil, err
-	}
-	return dto.ToAiChatSessionResponse(session), nil
-}
-
-func (s *AiChatService) ListSessions(ctx context.Context, userID uint64, page, pageSize int) ([]*dto.AiChatSessionResponse, error) {
-	list, err := s.aiChatRepo.ListSessionsByUser(ctx, strconv.FormatUint(userID, 10), page, pageSize)
+func (s *AiChatService) ListSessions(ctx context.Context, userID uint64) ([]*dto.AiChatSessionResponse, error) {
+	list, err := s.aiChatRepo.ListSessionsByUser(ctx, strconv.FormatUint(userID, 10))
 	if err != nil {
 		return nil, err
 	}
@@ -110,12 +156,45 @@ func (s *AiChatService) DeleteSession(ctx context.Context, userID uint64, sessio
 	return nil
 }
 
-func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, content string, callback AiChatStreamCallback) error {
+func (s *AiChatService) UpdateSession(ctx context.Context, userID uint64, sessionID, title string) (*dto.AiChatSessionResponse, error) {
+	if strings.TrimSpace(sessionID) == "" {
+		return nil, ErrAiChatMissingSessionID
+	}
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return nil, ErrAiChatMissingSessionTitle
+	}
+	if len([]rune(title)) > 256 {
+		return nil, errors.New("session title is too long")
+	}
+	if err := s.aiChatRepo.UpdateSessionTitleByUser(ctx, strconv.FormatUint(userID, 10), sessionID, title); err != nil {
+		if errors.Is(err, repo.ErrAiChatSessionNotFound) {
+			return nil, ErrAiChatSessionNotFound
+		}
+		return nil, err
+	}
+	return &dto.AiChatSessionResponse{SessionID: sessionID, Title: title}, nil
+}
+
+// =====================================================================================================================
+// chat
+
+type AiChatStreamCallback func(chunk dto.AiChatStreamChunkResponse) error
+
+func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, content, collectionName string, callback AiChatStreamCallback) error {
+	settings := s.runtimeSettings()
+	if !settings.assistantEnabled {
+		return ErrAiChatDisabled
+	}
+	llmClient, err := llm.NewClient(&config.Config{LLM: config.LLMConfig{Provider: settings.provider, APIKey: settings.apiKey, APIURL: s.cfg.LLM.APIURL, ModelID: settings.modelID, ModelName: settings.modelID}})
+	if err != nil {
+		return err
+	}
 	if err := s.ensureSessionOwner(ctx, userID, sessionID); err != nil {
 		return err
 	}
 	// 1. 检索知识库
-	knowledgeContents, err := s.searchKnowledge(ctx, content)
+	knowledgeContents, err := s.searchKnowledge(ctx, strings.TrimSpace(collectionName), content)
 	if err != nil {
 		return err
 	}
@@ -146,7 +225,7 @@ func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, cont
 		return callback(chunk)
 	}
 
-	streamErr := s.llm.ChatStream(ctx, systemPrompt, userPrompt, func(chunk string) error {
+	streamErr := llmClient.ChatStream(ctx, systemPrompt, userPrompt, func(chunk string) error {
 		reply.WriteString(chunk)
 		return emit(chunk, false)
 	})
@@ -172,8 +251,6 @@ func (s *AiChatService) Chat(ctx context.Context, userID uint64, sessionID, cont
 	// 5.保存记录
 	return s.saveChatRecords(ctx, strconv.FormatUint(userID, 10), sessionID, content, reply.String())
 }
-
-// =====================================================================================================================
 
 func (s *AiChatService) ensureSessionOwner(ctx context.Context, userID uint64, sessionID string) error {
 	if strings.TrimSpace(sessionID) == "" {
@@ -207,10 +284,9 @@ func (s *AiChatService) saveChatRecords(ctx context.Context, userID, sessionID, 
 	return s.aiChatRepo.TouchSession(ctx, sessionID)
 }
 
-func (s *AiChatService) searchKnowledge(ctx context.Context, content string) ([]string, error) {
-	collection := strings.TrimSpace(s.cfg.AiChat.VectorCollection)
+func (s *AiChatService) searchKnowledge(ctx context.Context, collection, content string) ([]string, error) {
 	if collection == "" {
-		collection = "test_knowledge"
+		return nil, errors.New("collection_name is required")
 	}
 	topK := s.cfg.AiChat.DefaultTopK
 	if topK <= 0 {

@@ -36,23 +36,26 @@ func (r *AiChatRepo) GetSessionByUser(ctx context.Context, userID, sessionID str
 	return &session, nil
 }
 
-func (r *AiChatRepo) ListSessionsByUser(ctx context.Context, userID string, page, pageSize int) ([]*entity.AiChatSession, error) {
-	if page <= 0 {
-		page = 1
-	}
-	if pageSize <= 0 {
-		pageSize = 20
-	}
-	offset := (page - 1) * pageSize
-
+func (r *AiChatRepo) ListSessionsByUser(ctx context.Context, userID string) ([]*entity.AiChatSession, error) {
 	var list []*entity.AiChatSession
 	err := r.DB.WithContext(ctx).
 		Where("user_id = ?", userID).
 		Order("updated_at DESC, id DESC").
-		Limit(pageSize).
-		Offset(offset).
 		Find(&list).Error
 	return list, err
+}
+
+func (r *AiChatRepo) UpdateSessionTitleByUser(ctx context.Context, userID, sessionID, title string) error {
+	result := r.DB.WithContext(ctx).Model(&entity.AiChatSession{}).
+		Where("user_id = ? AND session_id = ?", userID, sessionID).
+		Update("title", title)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrAiChatSessionNotFound
+	}
+	return nil
 }
 
 func (r *AiChatRepo) TouchSession(ctx context.Context, sessionID string) error {

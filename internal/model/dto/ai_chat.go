@@ -5,14 +5,14 @@ import (
 	"time"
 )
 
-type AiChatListSessionsQuery struct {
-	Page     int `form:"page"`
-	PageSize int `form:"page_size"`
+type AiChatChatRequest struct {
+	SessionID      string `json:"session_id" binding:"required"`
+	Content        string `json:"content" binding:"required"`
+	CollectionName string `json:"collection_name" binding:"required"`
 }
 
-type AiChatChatRequest struct {
-	SessionID string `json:"session_id" binding:"required"`
-	Content   string `json:"content" binding:"required"`
+type AiChatUpdateSessionRequest struct {
+	Title string `json:"title" binding:"required"`
 }
 
 // =====================================================================================================================

@@ -15,8 +15,8 @@ import (
 )
 
 type PyClient struct {
-	baseURL        string
 	httpClient     *http.Client
+	baseURL        string
 	requestTimeout time.Duration
 }
 
@@ -94,4 +94,89 @@ func (c *PyClient) SearchVectors(
 	}
 
 	return &result, nil
+}
+
+func (c *PyClient) ListCollections(ctx context.Context) ([]dto.VectorCollection, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/v1/vector/collections", nil)
+	if err != nil {
+		return nil, fmt.Errorf("create collection request: %w", err)
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("call agent-server collections: %w", err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read agent-server collections: %w", err)
+	}
+	var result struct {
+		Code int                    `json:"code"`
+		Msg  string                 `json:"msg"`
+		Data []dto.VectorCollection `json:"data"`
+	}
+	if len(body) == 0 || json.Unmarshal(body, &result) != nil || resp.StatusCode != http.StatusOK || result.Code != http.StatusOK {
+		return nil, fmt.Errorf("agent-server collections unavailable")
+	}
+	return result.Data, nil
+}
+
+func (c *PyClient) CreateCollection(ctx context.Context, collectionName string) (*dto.VectorCollection, error) {
+	var result dto.VectorCollection
+	if err := c.doJSON(ctx, http.MethodPost, "/api/v1/vector/collections/"+collectionName, nil, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *PyClient) DeleteCollection(ctx context.Context, collectionName string) error {
+	return c.doJSON(ctx, http.MethodDelete, "/api/v1/vector/collections/"+collectionName, nil, nil)
+}
+
+func (c *PyClient) ListDocuments(ctx context.Context, collectionName string, page, pageSize int) (*dto.VectorDocumentPage, error) {
+	path := fmt.Sprintf("/api/v1/vector/collections/%s/documents?page=%d&page_size=%d", collectionName, page, pageSize)
+	var result dto.VectorDocumentPage
+	if err := c.doJSON(ctx, http.MethodGet, path, nil, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (c *PyClient) doJSON(ctx context.Context, method, path string, payload any, target any) error {
+	var body io.Reader
+	if payload != nil {
+		data, err := json.Marshal(payload)
+		if err != nil {
+			return err
+		}
+		body = bytes.NewReader(data)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, body)
+	if err != nil {
+		return err
+	}
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("call agent-server: %w", err)
+	}
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	result := struct {
+		Code int             `json:"code"`
+		Msg  string          `json:"msg"`
+		Data json.RawMessage `json:"data"`
+	}{}
+	if err := json.Unmarshal(data, &result); err != nil || resp.StatusCode != http.StatusOK || result.Code != http.StatusOK {
+		return fmt.Errorf("agent-server request failed: %s", result.Msg)
+	}
+	if target != nil && len(result.Data) > 0 && string(result.Data) != "null" {
+		return json.Unmarshal(result.Data, target)
+	}
+	return nil
 }
