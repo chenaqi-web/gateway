@@ -22,7 +22,8 @@ func NewStorageController(svc *application.StorageService, userSvc *application.
 	return &StorageController{svc: svc, userSvc: userSvc}
 }
 
-func (ct *StorageController) UploadCover(c *gin.Context)   { ct.upload(c, ct.svc.UploadCover) }
+func (ct *StorageController) UploadCover(c *gin.Context) { ct.upload(c, ct.svc.UploadCover) }
+
 func (ct *StorageController) UploadContent(c *gin.Context) { ct.upload(c, ct.svc.UploadContent) }
 
 func (ct *StorageController) UploadAvatar(c *gin.Context) {

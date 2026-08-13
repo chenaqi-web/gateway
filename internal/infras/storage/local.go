@@ -50,7 +50,7 @@ func (s *localProvider) Upload(_ context.Context, file *multipart.FileHeader, di
 		ext = ".jpg"
 	}
 	name := fmt.Sprintf("%d%s", now.UnixNano(), ext)
-	key := filepath.Join(directory, now.Format("2006"), now.Format("01"), now.Format("02"), name)
+	key := filepath.Join(directory, name)
 	path := filepath.Join(s.basePath, key)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return nil, err
