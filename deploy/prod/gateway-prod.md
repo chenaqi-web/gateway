@@ -4,38 +4,12 @@
 
 ## 1. 准备生产配置
 
-复制生产配置到服务器，并修改其中的密钥、数据库、Redis、LLM 和邮箱配置：
-
-```bash
-mkdir -p /home/newweb/gateway-config
-cp conf/config.prod.yaml /home/newweb/gateway-config/config.yaml
-chmod 600 /home/newweb/gateway-config/config.yaml
-vi /home/newweb/gateway-config/config.yaml
-```
-
-生产配置中的服务地址应使用 Docker 网络中的服务名：
-
-```yaml
-server:
-  addr: "0.0.0.0:8079"
-rpc:
-  core_server_addr: "core-server:8081"
-http:
-  agent_server_addr: "http://agent-server:8080"
-Redis:
-  Host: "redis"
-```
-
-请务必替换所有 `CHANGE_ME_*`、`YOUR_EMAIL@example.com` 和 `YOUR_DOMAIN_OR_PUBLIC_IP` 占位符。不要把真实密钥提交到代码仓库。
-
-## 2. 创建网络和持久化目录
-
 ```bash
 docker network create chenaqi-net 2>/dev/null || true
 mkdir -p /home/docker/gateway/uploads
 ```
 
-## 3. 构建镜像
+## 2. 构建镜像
 
 ```bash
 cd /home/newweb/gateway
@@ -45,18 +19,9 @@ docker build \
   .
 ```
 
-Dockerfile 默认使用 DaoCloud 镜像源和 `goproxy.cn`。如需更换镜像源，可传入：
+Dockerfile 默认使用 DaoCloud 镜像源、`goproxy.cn` 和 `conf/config.prod.yaml`，无需额外参数。
 
-```bash
-docker build \
-  --build-arg GO_IMAGE=golang:1.26-alpine \
-  --build-arg ALPINE_IMAGE=alpine:3.21 \
-  -f deploy/prod/Dockerfile \
-  -t renai-gateway:prod \
-  .
-```
-
-## 4. 启动 Gateway
+## 3. 启动 Gateway
 
 ```bash
 docker rm -f gateway 2>/dev/null || true
@@ -72,17 +37,17 @@ docker run -d \
 
 挂载配置文件后，容器使用服务器上的生产配置；挂载上传目录可避免更新容器时丢失用户文件。
 
-## 5. 检查运行状态
+## 4. 检查运行状态
 
 ```bash
-docker ps --filter name=gateway？
+docker ps --filter name=gateway
 docker logs -f gateway
 curl http://127.0.0.1:8079/health
 ```
 
 如果需要公网访问，还要在云安全组和服务器防火墙放行 TCP `8079`，或通过 Nginx 反向代理并启用 HTTPS。
 
-## 6. 更新部署
+## 5. 更新部署
 
 ```bash
 cd /home/newweb/gateway

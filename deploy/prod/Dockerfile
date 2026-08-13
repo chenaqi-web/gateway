@@ -1,6 +1,5 @@
 ARG GO_IMAGE=docker.m.daocloud.io/library/golang:1.26-alpine
 ARG ALPINE_IMAGE=docker.m.daocloud.io/library/alpine:3.21
-ARG CONFIG_FILE=conf/config.prod.yaml
 FROM ${GO_IMAGE} AS builder
 
 WORKDIR /src
@@ -15,11 +14,10 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/gateway ./cmd/serv
 
 FROM ${ALPINE_IMAGE}
 
-ARG CONFIG_FILE=conf/config.prod.yaml
 WORKDIR /app
 
 COPY --from=builder /out/gateway ./gateway
-COPY ${CONFIG_FILE} ./conf/config.yaml
+COPY conf/config.prod.yaml ./conf/config.yaml
 
 RUN mkdir -p conf logs static/upload
 
