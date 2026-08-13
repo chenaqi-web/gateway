@@ -16,8 +16,7 @@ type JWTClaims struct {
 	UserID uint64 `json:"user_id"`
 	Role   string `json:"role,omitempty"`
 	// 预留给Core校验token版本
-	AuthVersion uint64 `json:"auth_version,omitempty"`
-	TokenType   string `json:"token_type"`
+	TokenType string `json:"token_type"`
 	jwt.RegisteredClaims
 }
 

@@ -30,16 +30,15 @@ type ForgotPasswordRequest struct {
 }
 
 type AuthUser struct {
-	ID          uint64 `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	Phone       string `json:"phone"`
-	Avatar      string `json:"avatar"`
-	Sex         string `json:"sex"`
-	Age         uint32 `json:"age"`
-	Role        string `json:"role"`
-	Status      string `json:"status"`
-	AuthVersion uint64 `json:"auth_version"`
+	ID       uint64 `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Avatar   string `json:"avatar"`
+	Sex      string `json:"sex"`
+	Age      uint32 `json:"age"`
+	Role     string `json:"role"`
+	Status   string `json:"status"`
 }
 
 type LoginResponse struct {

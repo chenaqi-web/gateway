@@ -83,9 +83,8 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 
 func (s *AuthService) createLoginResult(user *authpb.UserInfo) (*dto.LoginResponse, string, error) {
 	claims := utils.JWTClaims{
-		UserID:      user.GetId(),
-		Role:        user.GetRole(),
-		AuthVersion: user.GetAuthVersion(),
+		UserID: user.GetId(),
+		Role:   user.GetRole(),
 	}
 	accessToken, err := utils.CreateAccessToken([]byte(s.cfg.Auth.JWTSecret), claims, s.cfg.Auth.AccessExpire)
 	if err != nil {
@@ -100,16 +99,15 @@ func (s *AuthService) createLoginResult(user *authpb.UserInfo) (*dto.LoginRespon
 		AccessToken:     accessToken,
 		AccessExpiresIn: s.cfg.Auth.AccessExpire,
 		User: &dto.AuthUser{
-			ID:          user.GetId(),
-			Username:    user.GetUsername(),
-			Email:       user.GetEmail(),
-			Phone:       user.GetPhone(),
-			Avatar:      user.GetAvatar(),
-			Sex:         user.GetSex(),
-			Age:         user.GetAge(),
-			Role:        user.GetRole(),
-			Status:      user.GetStatus(),
-			AuthVersion: user.GetAuthVersion(),
+			ID:       user.GetId(),
+			Username: user.GetUsername(),
+			Email:    user.GetEmail(),
+			Phone:    user.GetPhone(),
+			Avatar:   user.GetAvatar(),
+			Sex:      user.GetSex(),
+			Age:      user.GetAge(),
+			Role:     user.GetRole(),
+			Status:   user.GetStatus(),
 		},
 	}, refreshToken, nil
 }
