@@ -19,7 +19,7 @@ rpc:
   request_timeout: 5
 
 http:
-  agent_server_addr: "http://localhost:8082"
+  agent_server_addr: "http://localhost:8080"
   request_timeout: 30
 
 Mysql:
