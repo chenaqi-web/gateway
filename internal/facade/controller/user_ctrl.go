@@ -55,6 +55,7 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 	}
 
 	var req struct {
+		UserID uint64 `json:"user_id"`
 		Status string `json:"status" binding:"required,oneof=approved blocked"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -62,7 +63,7 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	success, err := u.svc.UpdateStatus(c.Request.Context(), userID, req.Status)
+	success, err := u.svc.UpdateStatus(c.Request.Context(), req.UserID, req.Status)
 	if err != nil {
 		userRPCError(c, err)
 		return

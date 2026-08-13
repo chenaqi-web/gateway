@@ -32,3 +32,6 @@ func (c *JwtBlacklist) IsTokenBlacklisted(ctx context.Context, token string) (bo
 func tokenBlacklistKey(token string) string {
 	return fmt.Sprintf("auth:blacklist:%x", sha256.Sum256([]byte(token)))
 }
+
+// =====================================================================================================================
+// 用户被强制拉黑时的缓存
