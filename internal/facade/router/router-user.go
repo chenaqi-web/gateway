@@ -10,8 +10,11 @@ func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, auth
 	user := v.Group("/user")
 	user.Use(authMiddleware)
 	{
+		user.GET("/list", userCtrl.List)
 		user.GET("/", userCtrl.Get)
 		user.GET("/profile", userCtrl.GetProfile)
 		user.PUT("/profile", userCtrl.UpdateProfile)
+		user.PUT("/avatar", userCtrl.UpdateAvatar)
+		user.PUT("/:id/status", userCtrl.UpdateStatus)
 	}
 }
