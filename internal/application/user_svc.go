@@ -76,27 +76,26 @@ func (s *UserService) List(ctx context.Context, keyword string, page, pageSize u
 	return users, resp.GetTotal(), nil
 }
 
-func (s *UserService) UpdateStatus(ctx context.Context, userID uint64, userStatus string) (bool, error) {
-	// 1.加入黑名单，首先将token存入redis
-	if userStatus == entity.StatusApproved {
-		err := s.jwtBlacklist.RemoveBlacklist(ctx, userID)
-		if err != nil {
-			return false, err
-		}
-	} else if userStatus == entity.StatusBlocked {
-		err := s.jwtBlacklist.AddBlacklist(ctx, userID)
-		if err != nil {
-			return false, err
-		}
+func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blacklisted bool) (bool, error) {
+	userStatus := entity.StatusApproved
+	if blacklisted {
+		userStatus = entity.StatusBlocked
 	}
 
-	// 2. 修改数据库状态
 	resp, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{UserId: userID, Status: userStatus})
 	if err != nil {
 		return false, err
 	}
 	if !resp.GetSuccess() {
 		return false, errors.New("user status update failed")
+	}
+	if blacklisted {
+		err = s.jwtBlacklist.AddBlacklist(ctx, userID)
+	} else {
+		err = s.jwtBlacklist.RemoveBlacklist(ctx, userID)
+	}
+	if err != nil {
+		return false, err
 	}
 	return true, nil
 }

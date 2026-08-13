@@ -15,6 +15,6 @@ func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, auth
 		user.GET("/profile", userCtrl.GetProfile)
 		user.PUT("/profile", userCtrl.UpdateProfile)
 		user.PUT("/avatar", userCtrl.UpdateAvatar)
-		user.PUT("/:id/status", userCtrl.UpdateStatus)
+		user.PUT("/status", userCtrl.UpdateStatus)
 	}
 }

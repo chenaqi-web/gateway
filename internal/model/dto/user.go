@@ -23,9 +23,9 @@ type UpdateProfileRequest struct {
 	Age      uint32 `json:"age" binding:"max=150"`
 }
 
-type UpdateUserStatusRequest struct {
-	UserID uint64 `json:"user_id" binding:"required,gt=0"`
-	Status string `json:"status" binding:"required,oneof=approved blocked"`
+type UpdateUserBlacklistRequest struct {
+	UserID      uint64 `json:"user_id" binding:"required,gt=0"`
+	Blacklisted bool   `json:"blacklisted"`
 }
 
 func ToUserProfile(user *userpb.UserInfo) *UserProfile {

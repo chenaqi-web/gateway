@@ -54,16 +54,13 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		UserID uint64 `json:"user_id"`
-		Status string `json:"status" binding:"required,oneof=approved blocked"`
-	}
+	var req dto.UpdateUserBlacklistRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
 		return
 	}
 
-	success, err := u.svc.UpdateStatus(c.Request.Context(), req.UserID, req.Status)
+	success, err := u.svc.UpdateBlacklist(c.Request.Context(), req.UserID, req.Blacklisted)
 	if err != nil {
 		userRPCError(c, err)
 		return

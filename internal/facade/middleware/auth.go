@@ -68,12 +68,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			}
 
 			// 校验是否拉黑
-			isBlacklisted, err := m.jwtBlackList.IsBlacklisted(c.Request.Context(), claims.UserID)
-			if err != nil {
-				return
-			}
-			if isBlacklisted {
-				reponse.Fail(c, http.StatusUnauthorized, "user is blacklisted")
+			if m.rejectBlacklistedUser(c, claims.UserID) {
 				return
 			}
 
@@ -118,6 +113,9 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
 			return
 		}
+		if m.rejectBlacklistedUser(c, refreshClaims.UserID) {
+			return
+		}
 
 		newAccessToken, err := utils.CreateAccessToken([]byte(cfg.JWTSecret), *refreshClaims, cfg.AccessExpire)
 		if err != nil {
@@ -133,6 +131,23 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		c.Set(AuthRoleContextKey, refreshClaims.Role)
 		c.Next()
 	}
+}
+
+func (m *AuthMiddleware) rejectBlacklistedUser(c *gin.Context, userID uint64) bool {
+	blacklisted, err := m.jwtBlackList.IsBlacklisted(c.Request.Context(), userID)
+	if err != nil {
+		log.Printf("auth middleware check user blacklist: %v", err)
+		c.Abort()
+		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+		return true
+	}
+	if !blacklisted {
+		return false
+	}
+	utils.ClearRefreshCookie(c.Writer, m.cfg)
+	c.Abort()
+	reponse.Fail(c, http.StatusUnauthorized, "user is blacklisted")
+	return true
 }
 
 // OptionalAuth keeps public resources available to anonymous users while
