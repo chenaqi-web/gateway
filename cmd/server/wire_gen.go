@@ -39,19 +39,19 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	aiChatController := controller.NewAiChatController(aiChatService)
 	vectorService := application.NewVectorService(pyClient)
 	vectorController := controller.NewVectorController(vectorService)
-	userService := application.NewUserService(client)
 	jwtBlacklist := cache.NewJwtBlacklist(cacheClient)
-	userController := controller.NewUserController(userService, jwtBlacklist)
+	userService := application.NewUserService(client, jwtBlacklist)
+	userController := controller.NewUserController(userService, cfg)
 	categoryService := application.NewCategoryService(client)
 	categoryController := controller.NewCategoryController(categoryService)
+	articleService := application.NewArticleService(client)
+	articleController := controller.NewArticleController(articleService)
 	storageClient, err := storage.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 	storageService := application.NewStorageService(cfg, storageClient)
 	storageController := controller.NewStorageController(storageService, userService)
-	articleService := application.NewArticleService(client)
-	articleController := controller.NewArticleController(articleService)
 	commentService := application.NewCommentService(client)
 	commentController := controller.NewCommentController(commentService)
 	likeService := application.NewLikeService(client)

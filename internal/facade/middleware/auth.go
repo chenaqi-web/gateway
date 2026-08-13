@@ -67,6 +67,16 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 				return
 			}
 
+			// 校验是否拉黑
+			isBlacklisted, err := m.jwtBlackList.IsBlacklisted(c.Request.Context(), claims.UserID)
+			if err != nil {
+				return
+			}
+			if isBlacklisted {
+				reponse.Fail(c, http.StatusUnauthorized, "user is blacklisted")
+				return
+			}
+
 			c.Set(AuthUserIDContextKey, claims.UserID)
 			c.Set(AuthRoleContextKey, claims.Role)
 			c.Next()
