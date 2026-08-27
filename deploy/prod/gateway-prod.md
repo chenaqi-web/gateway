@@ -2,11 +2,17 @@
 
 本文说明如何使用 Docker 独立部署 Gateway。Gateway、Core Server、Agent Server 和 Redis 必须加入同一个 Docker 网络（示例：`chenaqi-net`）。
 
-## 1. 准备生产配置
+## 1. 准备运行环境
 
 ```bash
-docker network create chenaqi-net 2>/dev/null || true
+docker network inspect chenaqi-net >/dev/null 2>&1 || docker network create --driver bridge chenaqi-net
 mkdir -p /home/docker/gateway/uploads
+```
+
+首次使用上传目录挂载前，如已有头像、封面或正文图片，先将旧上传文件复制到 `/home/docker/gateway/uploads`。该目录会覆盖容器内的 `/app/static/upload`；未迁移的历史文件将无法通过 `/static/upload/...` 访问。
+
+```bash
+cp -a /home/newweb/gateway/static/upload/. /home/docker/gateway/uploads/
 ```
 
 ## 2. 构建镜像
@@ -24,18 +30,16 @@ Dockerfile 默认使用 DaoCloud 镜像源、`goproxy.cn` 和 `conf/config.prod.
 ## 3. 启动 Gateway
 
 ```bash
-docker rm -f gateway 2>/dev/null || true
 docker run -d \
   --name gateway \
   --network chenaqi-net \
   -p 8079:8079 \
-  -v /home/newweb/gateway-config/config.yaml:/app/conf/config.yaml:ro \
   -v /home/docker/gateway/uploads:/app/static/upload \
   --restart unless-stopped \
   renai-gateway:prod
 ```
 
-挂载配置文件后，容器使用服务器上的生产配置；挂载上传目录可避免更新容器时丢失用户文件。
+镜像构建时已将 `conf/config.prod.yaml` 写入容器的 `/app/conf/config.yaml`。挂载上传目录可避免更新容器时丢失用户文件；修改生产配置后需重新构建镜像并重新创建容器。上传后的访问地址格式为 `storage.base_url/static/upload/...`。
 
 ## 4. 检查运行状态
 
@@ -57,7 +61,6 @@ docker run -d \
   --name gateway \
   --network chenaqi-net \
   -p 8079:8079 \
-  -v /home/newweb/gateway-config/config.yaml:/app/conf/config.yaml:ro \
   -v /home/docker/gateway/uploads:/app/static/upload \
   --restart unless-stopped \
   renai-gateway:prod

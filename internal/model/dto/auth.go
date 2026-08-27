@@ -29,7 +29,7 @@ type ForgotPasswordRequest struct {
 	ConfirmPassword string `json:"confirm_password" binding:"required,min=6,max=72"`
 }
 
-type AuthUser struct {
+type User struct {
 	ID       uint64 `json:"id"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -42,7 +42,7 @@ type AuthUser struct {
 }
 
 type LoginResponse struct {
-	AccessToken     string    `json:"access_token"`
-	AccessExpiresIn int       `json:"access_expires_in"`
-	User            *AuthUser `json:"user"`
+	AccessToken     string `json:"access_token"`
+	AccessExpiresIn int    `json:"access_expires_in"`
+	User            *User  `json:"user"`
 }
