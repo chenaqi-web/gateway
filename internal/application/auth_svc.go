@@ -21,13 +21,13 @@ type AuthService struct {
 	rpc *rpc.Client
 	log *clog.Log
 
-	jwtBlackList *cache.JwtBlacklist
+	jwtBlackList *cache.Blacklist
 	email        *utils.Email
 }
 
 func NewAuthService(
 	rpcClient *rpc.Client,
-	jwtBlackList *cache.JwtBlacklist,
+	jwtBlackList *cache.Blacklist,
 	cfg *config.Config,
 	log *clog.Log,
 ) *AuthService {
@@ -109,11 +109,11 @@ func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken st
 		return errors.New("invalid authorization header")
 	}
 
-	if err := s.jwtBlackList.BlacklistToken(ctx, accessToken, s.cfg.Auth.AccessExpire); err != nil {
+	if err := s.jwtBlackList.AddToken(ctx, accessToken, s.cfg.Auth.AccessExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}
-	if err := s.jwtBlackList.BlacklistToken(ctx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
+	if err := s.jwtBlackList.AddToken(ctx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}

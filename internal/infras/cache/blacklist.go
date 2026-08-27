@@ -7,44 +7,44 @@ import (
 	"time"
 )
 
-type JwtBlacklist struct {
+type Blacklist struct {
 	*CacheClient
 }
 
-func NewJwtBlacklist(client *CacheClient) *JwtBlacklist {
-	return &JwtBlacklist{client}
+func NewJwtBlacklist(client *CacheClient) *Blacklist {
+	return &Blacklist{client}
 }
 
-func (c *JwtBlacklist) BlacklistToken(ctx context.Context, token string, expireSeconds int) error {
+func (c *Blacklist) AddToken(ctx context.Context, token string, expireSeconds int) error {
 	return c.Cache.Set(
 		ctx,
 		tokenBlacklistKey(token),
-		1,
+		"",
 		time.Duration(expireSeconds)*time.Second,
 	).Err()
 }
 
-func (c *JwtBlacklist) IsTokenBlacklisted(ctx context.Context, token string) (bool, error) {
+func (c *Blacklist) IsTokenBlacklisted(ctx context.Context, token string) (bool, error) {
 	count, err := c.Cache.Exists(ctx, tokenBlacklistKey(token)).Result()
 	return count > 0, err
 }
 
 func tokenBlacklistKey(token string) string {
-	return fmt.Sprintf("auth:blacklist:token:%x", sha256.Sum256([]byte(token)))
+	return fmt.Sprintf("blacklist:token:%x", sha256.Sum256([]byte(token)))
 }
 
 // =====================================================================================================================
 // 用户被强制拉黑时的缓存
 
-func (c *JwtBlacklist) AddBlacklist(ctx context.Context, userID uint64) error {
+func (c *Blacklist) AddUser(ctx context.Context, userID uint64) error {
 	return c.Cache.Set(ctx, userIDBlacklistKey(userID), "", 0).Err()
 }
 
-func (c *JwtBlacklist) RemoveBlacklist(ctx context.Context, userID uint64) error {
+func (c *Blacklist) RemoveUser(ctx context.Context, userID uint64) error {
 	return c.Cache.Del(ctx, userIDBlacklistKey(userID)).Err()
 }
 
-func (c *JwtBlacklist) IsBlacklisted(ctx context.Context, userID uint64) (bool, error) {
+func (c *Blacklist) IsUserBlacklisted(ctx context.Context, userID uint64) (bool, error) {
 	exists, err := c.Cache.Exists(ctx, userIDBlacklistKey(userID)).Result()
 	if err != nil {
 		return false, err

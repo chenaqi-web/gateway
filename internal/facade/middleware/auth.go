@@ -22,20 +22,20 @@ const (
 )
 
 type AuthMiddleware struct {
-	cfg          config.AuthConfig
-	jwtBlackList *cache.JwtBlacklist
+	cfg       config.AuthConfig
+	Blacklist *cache.Blacklist
 }
 
-func NewAuthMiddleware(cfg config.AuthConfig, jwtBlackList *cache.JwtBlacklist) *AuthMiddleware {
+func NewAuthMiddleware(cfg config.AuthConfig, Blacklist *cache.Blacklist) *AuthMiddleware {
 	return &AuthMiddleware{
-		cfg:          cfg,
-		jwtBlackList: jwtBlackList,
+		cfg:       cfg,
+		Blacklist: Blacklist,
 	}
 }
 
 func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	cfg := m.cfg
-	jwtBlackList := m.jwtBlackList
+	Blacklist := m.Blacklist
 	return func(c *gin.Context) {
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
@@ -44,7 +44,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		blacklisted, err := jwtBlackList.IsTokenBlacklisted(c.Request.Context(), accessToken)
+		blacklisted, err := Blacklist.IsTokenBlacklisted(c.Request.Context(), accessToken)
 		if err != nil {
 			log.Printf("auth middleware check access blacklist: %v", err)
 			c.Abort()
@@ -91,7 +91,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		blacklisted, err = jwtBlackList.IsTokenBlacklisted(c.Request.Context(), refreshToken)
+		blacklisted, err = Blacklist.IsTokenBlacklisted(c.Request.Context(), refreshToken)
 		if err != nil {
 			log.Printf("auth middleware check refresh blacklist: %v", err)
 			c.Abort()
@@ -134,7 +134,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 }
 
 func (m *AuthMiddleware) rejectBlacklistedUser(c *gin.Context, userID uint64) bool {
-	blacklisted, err := m.jwtBlackList.IsBlacklisted(c.Request.Context(), userID)
+	blacklisted, err := m.Blacklist.IsUserBlacklisted(c.Request.Context(), userID)
 	if err != nil {
 		log.Printf("auth middleware check user blacklist: %v", err)
 		c.Abort()

@@ -26,7 +26,7 @@ func NewUserController(svc *application.UserService, cfg *config.Config) *UserCo
 	}
 }
 
-func (u *UserController) List(c *gin.Context) {
+func (u *UserController) UserList(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
 		reponse.Fail(c, http.StatusForbidden, "admin access required")
 		return
@@ -40,7 +40,7 @@ func (u *UserController) List(c *gin.Context) {
 		reponse.Fail(c, http.StatusBadRequest, "invalid query parameters")
 		return
 	}
-	users, total, err := u.svc.List(c.Request.Context(), query.Keyword, query.Page, query.PageSize)
+	users, total, err := u.svc.UserList(c.Request.Context(), query.Keyword, query.Page, query.PageSize)
 	if err != nil {
 		userRPCError(c, err)
 		return
@@ -66,20 +66,6 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 		return
 	}
 	reponse.Success(c, gin.H{"success": success})
-}
-
-func (u *UserController) Get(c *gin.Context) {
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "unauthorized")
-		return
-	}
-	result, err := u.svc.GetProfile(c.Request.Context(), userID)
-	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	reponse.Success(c, result)
 }
 
 func (u *UserController) GetProfile(c *gin.Context) {
