@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"gateway/internal/infras/clog"
 
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/categorypb"
@@ -10,10 +11,14 @@ import (
 
 type CategoryService struct {
 	rpc *rpc.Client
+	log clog.Log
 }
 
-func NewCategoryService(rpcClient *rpc.Client) *CategoryService {
-	return &CategoryService{rpc: rpcClient}
+func NewCategoryService(rpcClient *rpc.Client, log clog.Log) *CategoryService {
+	return &CategoryService{
+		rpc: rpcClient,
+		log: log,
+	}
 }
 
 func (s *CategoryService) CreateType(ctx context.Context, req dto.CreateTypeRequest) (*dto.CategoryBoolResponse, error) {

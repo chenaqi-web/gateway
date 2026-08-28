@@ -14,10 +14,7 @@ import (
 const defaultMaxUploadSize = 10 << 20
 
 var (
-	ErrStorageMissingFile  = errors.New("file is required")
-	ErrStorageFileTooLarge = errors.New("file exceeds max upload size")
-	ErrStorageInvalidImage = errors.New("only jpg, png, gif, webp and avif images are allowed")
-	ErrStorageInvalidKey   = errors.New("invalid storage key")
+	ErrStorageInvalidKey = errors.New("invalid storage key")
 )
 
 type StorageService struct {
