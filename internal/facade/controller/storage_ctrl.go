@@ -2,12 +2,12 @@ package controller
 
 import (
 	"context"
+	"gateway/internal/model/dto"
 	"mime/multipart"
 	"net/http"
 
 	"gateway/internal/application"
 	"gateway/internal/facade/middleware"
-	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 
 	"github.com/gin-gonic/gin"
@@ -44,7 +44,7 @@ func (ct *StorageController) UploadAvatar(c *gin.Context) {
 	}
 	if _, err := ct.userSvc.UpdateAvatar(c.Request.Context(), userID, result.URL); err != nil {
 		_ = ct.svc.Delete(c.Request.Context(), result.Key)
-		userRPCError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)

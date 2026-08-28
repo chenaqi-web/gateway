@@ -16,6 +16,12 @@ type UserProfile struct {
 	ReceiveLikeCount uint64 `json:"receive_like_count"`
 }
 
+type UserListFormRequest struct {
+	Keyword  string `form:"keyword"`
+	Page     uint32 `form:"page"`
+	PageSize uint32 `form:"page_size"`
+}
+
 type UpdateProfileRequest struct {
 	Username string `json:"username" binding:"required,min=2,max=50"`
 	Phone    string `json:"phone" binding:"max=20"`

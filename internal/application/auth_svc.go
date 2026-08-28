@@ -76,9 +76,6 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Log
 		s.log.Error("AuthService/Login error", zap.Error(err))
 		return nil, "", err
 	}
-	if resp == nil || resp.GetUser() == nil {
-		return nil, "", errors.New("invalid core response")
-	}
 	return s.createLoginResult(resp.GetUser())
 }
 
@@ -113,6 +110,7 @@ func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken st
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}
+
 	if err := s.jwtBlackList.AddToken(ctx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err

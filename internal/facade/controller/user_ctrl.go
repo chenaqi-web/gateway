@@ -10,8 +10,6 @@ import (
 	"gateway/internal/model/reponse"
 
 	"github.com/gin-gonic/gin"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type UserController struct {
@@ -28,21 +26,17 @@ func NewUserController(svc *application.UserService, cfg *config.Config) *UserCo
 
 func (u *UserController) UserList(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
-	var query struct {
-		Keyword  string `form:"keyword"`
-		Page     uint32 `form:"page"`
-		PageSize uint32 `form:"page_size"`
-	}
-	if err := c.ShouldBindQuery(&query); err != nil {
+	var rep dto.UserListFormRequest
+	if err := c.ShouldBindQuery(&rep); err != nil {
 		reponse.Fail(c, http.StatusBadRequest, "invalid query parameters")
 		return
 	}
-	users, total, err := u.svc.UserList(c.Request.Context(), query.Keyword, query.Page, query.PageSize)
+	users, total, err := u.svc.UserList(c.Request.Context(), rep.Keyword, rep.Page, rep.PageSize)
 	if err != nil {
-		userRPCError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, gin.H{"users": users, "total": total})
@@ -50,7 +44,7 @@ func (u *UserController) UserList(c *gin.Context) {
 
 func (u *UserController) UpdateStatus(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
 
@@ -62,7 +56,7 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 
 	success, err := u.svc.UpdateBlacklist(c.Request.Context(), req.UserID, req.Blacklisted)
 	if err != nil {
-		userRPCError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, gin.H{"success": success})
@@ -71,12 +65,12 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 func (u *UserController) GetProfile(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "unauthorized")
+		reponse.Unauthorized(c)
 		return
 	}
 	result, err := u.svc.GetProfile(c.Request.Context(), userID)
 	if err != nil {
-		userRPCError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -85,7 +79,7 @@ func (u *UserController) GetProfile(c *gin.Context) {
 func (u *UserController) UpdateProfile(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "unauthorized")
+		reponse.Unauthorized(c)
 		return
 	}
 
@@ -96,7 +90,7 @@ func (u *UserController) UpdateProfile(c *gin.Context) {
 	}
 	result, err := u.svc.UpdateProfile(c.Request.Context(), userID, req)
 	if err != nil {
-		userRPCError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -105,7 +99,7 @@ func (u *UserController) UpdateProfile(c *gin.Context) {
 func (u *UserController) UpdateAvatar(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "unauthorized")
+		reponse.Unauthorized(c)
 		return
 	}
 
@@ -118,24 +112,8 @@ func (u *UserController) UpdateAvatar(c *gin.Context) {
 	}
 	result, err := u.svc.UpdateAvatar(c.Request.Context(), userID, req.Avatar)
 	if err != nil {
-		userRPCError(c, err)
+		reponse.Fail(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	reponse.Success(c, result)
-}
-
-func userRPCError(c *gin.Context, err error) {
-	rpcStatus := status.Convert(err)
-	httpStatus := http.StatusInternalServerError
-	switch rpcStatus.Code() {
-	case codes.InvalidArgument:
-		httpStatus = http.StatusBadRequest
-	case codes.NotFound:
-		httpStatus = http.StatusNotFound
-	case codes.AlreadyExists:
-		httpStatus = http.StatusConflict
-	case codes.PermissionDenied:
-		httpStatus = http.StatusForbidden
-	}
-	reponse.Fail(c, httpStatus, rpcStatus.Message())
 }

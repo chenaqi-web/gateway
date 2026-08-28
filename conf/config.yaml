@@ -77,6 +77,6 @@ Email:
 
 Auth:
   jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
-  access_expire: 300000
+  access_expire: 30
   refresh_expire: 720000
   cookie_secure: false

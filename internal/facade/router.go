@@ -21,7 +21,7 @@ func New(cfg *config.Config,
 	commentCtrl *controller.CommentController,
 	likeCtrl *controller.LikeController,
 	authCtrl *controller.AuthController,
-	jwtBlackList *cache.JwtBlacklist,
+	BlackList *cache.Blacklist,
 ) *gin.Engine {
 	gin.SetMode(cfg.Server.Mode)
 
@@ -31,7 +31,7 @@ func New(cfg *config.Config,
 	r.Use(middleware.Cors())
 
 	// 认证中间件
-	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth, jwtBlackList)
+	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth, BlackList)
 	auth := authMiddleware.RequireAuth()
 
 	// Prometheus metrics middleware
@@ -49,15 +49,19 @@ func New(cfg *config.Config,
 		v1.GET("/health/ping", health.Ping)
 
 		// 注册路由
+
+		// RAG模块
 		router.NewAIRouter(v1, aiChat, auth)
 		router.NewVectorRouter(v1, vectorCtrl, auth)
+
+		// 博客模块
+		router.NewAuthRouter(v1, authCtrl, auth)
 		router.NewUserRouter(v1, userCtrl, auth)
 		router.NewCategoryRouter(v1, categoryCtrl, auth)
 		router.NewArticleRouter(v1, articleCtrl, auth)
 		router.NewStorageRouter(v1, storageCtrl, auth)
 		router.NewCommentRouter(v1, commentCtrl, auth, authMiddleware.OptionalAuth())
 		router.NewLikeRouter(v1, likeCtrl, auth)
-		router.NewAuthRouter(v1, authCtrl, auth)
 
 	}
 
