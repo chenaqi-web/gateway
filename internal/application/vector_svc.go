@@ -4,14 +4,19 @@ import (
 	"context"
 	"errors"
 	"gateway/internal/client/http"
+	"gateway/internal/infras/clog"
 	"gateway/internal/model/dto"
+	"go.uber.org/zap"
 	"strings"
 )
 
-type VectorService struct{ client *http.PyClient }
+type VectorService struct {
+	client *http.PyClient
+	log    *clog.Log
+}
 
-func NewVectorService(client *http.PyClient) *VectorService {
-	return &VectorService{client: client}
+func NewVectorService(client *http.PyClient, log *clog.Log) *VectorService {
+	return &VectorService{client: client, log: log}
 }
 
 func (s *VectorService) ListCollections(ctx context.Context) ([]dto.VectorCollection, error) {
@@ -21,14 +26,18 @@ func (s *VectorService) ListCollections(ctx context.Context) ([]dto.VectorCollec
 func (s *VectorService) CreateCollection(ctx context.Context, name string) (*dto.VectorCollection, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return nil, errors.New("collection name is required")
+		err := errors.New("collection name is required")
+		s.log.Error("VectorService/CreateCollection error", zap.Error(err))
+		return nil, err
 	}
 	return s.client.CreateCollection(ctx, name)
 }
 
 func (s *VectorService) DeleteCollection(ctx context.Context, name string) error {
 	if strings.TrimSpace(name) == "" {
-		return errors.New("collection name is required")
+		err := errors.New("collection name is required")
+		s.log.Error("VectorService/DeleteCollection error", zap.Error(err))
+		return err
 	}
 	return s.client.DeleteCollection(ctx, name)
 }

@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"gateway/internal/config"
+	"gateway/internal/infras/clog"
 	"gateway/internal/infras/storage"
+	"go.uber.org/zap"
 )
 
 const defaultMaxUploadSize = 10 << 20
@@ -20,6 +22,7 @@ var (
 type StorageService struct {
 	cfg    *config.Config
 	client *storage.Client
+	log    *clog.Log
 }
 type UploadResponse struct {
 	URL      string `json:"url"`
@@ -27,8 +30,8 @@ type UploadResponse struct {
 	Provider string `json:"provider"`
 }
 
-func NewStorageService(cfg *config.Config, client *storage.Client) *StorageService {
-	return &StorageService{cfg: cfg, client: client}
+func NewStorageService(cfg *config.Config, client *storage.Client, log *clog.Log) *StorageService {
+	return &StorageService{cfg: cfg, client: client, log: log}
 }
 func (s *StorageService) UploadAvatar(ctx context.Context, file *multipart.FileHeader) (*UploadResponse, error) {
 	return s.uploadImage(ctx, file, "avatar")
@@ -42,10 +45,12 @@ func (s *StorageService) UploadContent(ctx context.Context, file *multipart.File
 
 func (s *StorageService) uploadImage(ctx context.Context, file *multipart.FileHeader, directory string) (*UploadResponse, error) {
 	if err := utils.ValidateImage(s.cfg, file); err != nil {
+		s.log.Error("StorageService/uploadImage error", zap.Error(err))
 		return nil, err
 	}
 	result, err := s.client.Upload(ctx, file, directory)
 	if err != nil {
+		s.log.Error("StorageService/uploadImage error", zap.Error(err))
 		return nil, err
 	}
 	return &UploadResponse{URL: result.URL, Key: result.Key, Provider: s.client.Provider()}, nil

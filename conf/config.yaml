@@ -11,7 +11,7 @@ auth:
 Log:
   Level: "debug"
   # console=仅终端彩色 | file=仅文件JSON
-  Mode: "console"
+  Mode: "file"
   Filename: "logs/gateway.log"
 
 rpc:

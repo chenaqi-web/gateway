@@ -32,34 +32,34 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 		return nil, err
 	}
 	cacheClient := cache.NewClient(cfg)
-	healthService := application.NewHealthService(client)
+	log, err := clog.NewLog(cfg)
+	if err != nil {
+		return nil, err
+	}
+	healthService := application.NewHealthService(client, log)
 	healthController := controller.NewHealthController(healthService)
 	aiChatRepo := repo.NewAiChatRepo(dbClient)
 	pyClient := http.NewHTTPClient(cfg)
 	aiChatService := application.NewAiChatService(cfg, aiChatRepo, pyClient)
 	aiChatController := controller.NewAiChatController(aiChatService)
-	vectorService := application.NewVectorService(pyClient)
+	vectorService := application.NewVectorService(pyClient, log)
 	vectorController := controller.NewVectorController(vectorService)
-	log, err := clog.NewLog(cfg)
-	if err != nil {
-		return nil, err
-	}
 	blacklist := cache.NewJwtBlacklist(cacheClient)
 	userService := application.NewUserService(client, log, blacklist)
 	userController := controller.NewUserController(userService, cfg)
-	categoryService := application.NewCategoryService(client)
+	categoryService := application.NewCategoryService(client, log)
 	categoryController := controller.NewCategoryController(categoryService)
-	articleService := application.NewArticleService(client)
+	articleService := application.NewArticleService(client, log)
 	articleController := controller.NewArticleController(articleService)
 	storageClient, err := storage.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
-	storageService := application.NewStorageService(cfg, storageClient)
+	storageService := application.NewStorageService(cfg, storageClient, log)
 	storageController := controller.NewStorageController(storageService, userService)
-	commentService := application.NewCommentService(client)
+	commentService := application.NewCommentService(client, log)
 	commentController := controller.NewCommentController(commentService)
-	likeService := application.NewLikeService(client)
+	likeService := application.NewLikeService(client, log)
 	likeController := controller.NewLikeController(likeService)
 	authService := application.NewAuthService(client, blacklist, cfg, log)
 	authController := controller.NewAuthController(authService, cfg)
