@@ -82,7 +82,7 @@ func (s *UserService) UserList(ctx context.Context, keyword string, page, pageSi
 	return users, resp.GetTotal(), nil
 }
 
-func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blacklisted bool) (bool, error) {
+func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blacklisted bool) (*dto.UserBoolResponse, error) {
 	userStatus := entity.StatusApproved
 	if blacklisted {
 		userStatus = entity.StatusBlocked
@@ -91,7 +91,7 @@ func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blackl
 	resp, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{UserId: userID, Status: userStatus})
 	if err != nil {
 		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
-		return false, err
+		return nil, err
 	}
 
 	if blacklisted {
@@ -101,7 +101,7 @@ func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blackl
 	}
 	if err != nil {
 		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
-		return false, err
+		return nil, err
 	}
-	return resp.Success, nil
+	return dto.ToUserBoolResponse(resp.GetSuccess()), nil
 }

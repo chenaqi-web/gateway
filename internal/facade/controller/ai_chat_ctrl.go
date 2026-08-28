@@ -7,7 +7,6 @@ import (
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +23,7 @@ func NewAiChatController(svc *application.AiChatService) *AiChatController {
 func (ct *AiChatController) CreateSession(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	session, err := ct.svc.CreateSession(c.Request.Context(), userID)
@@ -38,7 +37,7 @@ func (ct *AiChatController) CreateSession(c *gin.Context) {
 func (ct *AiChatController) ListSessions(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	list, err := ct.svc.ListSessions(c.Request.Context(), userID)
@@ -52,7 +51,7 @@ func (ct *AiChatController) ListSessions(c *gin.Context) {
 func (ct *AiChatController) ListMessages(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	list, err := ct.svc.ListMessages(c.Request.Context(), userID, c.Param("id"))
@@ -66,25 +65,25 @@ func (ct *AiChatController) ListMessages(c *gin.Context) {
 func (ct *AiChatController) DeleteSession(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	if err := ct.svc.DeleteSession(c.Request.Context(), userID, c.Param("id")); err != nil {
 		aiChatError(c, err)
 		return
 	}
-	c.Status(http.StatusNoContent)
+	reponse.Success(c, nil)
 }
 
 func (ct *AiChatController) UpdateSession(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	var input dto.AiChatUpdateSessionRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		reponse.StatusBadRequest(c)
 		return
 	}
 	session, err := ct.svc.UpdateSession(c.Request.Context(), userID, c.Param("id"), input.Title)
@@ -101,12 +100,12 @@ func (ct *AiChatController) UpdateSession(c *gin.Context) {
 func (ct *AiChatController) Chat(c *gin.Context) {
 	var input dto.AiChatChatRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		reponse.StatusBadRequest(c)
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	c.Header("Content-Type", "text/event-stream")
@@ -136,12 +135,12 @@ func (ct *AiChatController) GetStatus(c *gin.Context) {
 
 func (ct *AiChatController) UpdateStatus(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
 	var input dto.UpdateAiChatStatusRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		reponse.StatusBadRequest(c)
 		return
 	}
 	reponse.Success(c, ct.svc.UpdateStatus(c.Request.Context(), input.AssistantEnabled))
@@ -149,12 +148,12 @@ func (ct *AiChatController) UpdateStatus(c *gin.Context) {
 
 func (ct *AiChatController) GetSettings(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
 	settings, err := ct.svc.GetSettings(c.Request.Context())
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		reponse.InternalServerError(c)
 		return
 	}
 	reponse.Success(c, settings)
@@ -162,17 +161,17 @@ func (ct *AiChatController) GetSettings(c *gin.Context) {
 
 func (ct *AiChatController) UpdateSettings(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
 	var input dto.UpdateAiSettingsRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		reponse.StatusBadRequest(c)
 		return
 	}
 	settings, err := ct.svc.UpdateSettings(c.Request.Context(), input)
 	if err != nil {
-		reponse.Fail(c, http.StatusBadRequest, err.Error())
+		reponse.StatusBadRequest(c)
 		return
 	}
 	reponse.Success(c, settings)
@@ -181,9 +180,9 @@ func (ct *AiChatController) UpdateSettings(c *gin.Context) {
 func aiChatError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, application.ErrAiChatMissingContent), errors.Is(err, application.ErrAiChatMissingSessionID), errors.Is(err, application.ErrAiChatMissingSessionTitle), errors.Is(err, application.ErrAiChatSessionNotFound), errors.Is(err, application.ErrAiChatDisabled):
-		reponse.Fail(c, http.StatusBadRequest, err.Error())
+		reponse.StatusBadRequest(c)
 	default:
 		log.Printf("ai chat request failed: %v", err)
-		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+		reponse.InternalServerError(c)
 	}
 }

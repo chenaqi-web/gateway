@@ -32,3 +32,5 @@ func ToUserLikeListResponse(resp *likepb.PageQueryUserLikeListResponse) *UserLik
 	}
 	return &UserLikeListResponse{Articles: ToArticles(resp.GetArticles()), Total: resp.GetTotal()}
 }
+
+func ToLikeBoolResponse(success bool) *LikeBoolResponse { return &LikeBoolResponse{Success: success} }

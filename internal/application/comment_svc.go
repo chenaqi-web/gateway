@@ -22,7 +22,7 @@ func (s *CommentService) Create(ctx context.Context, req dto.CreateCommentReques
 	if err != nil {
 		return nil, err
 	}
-	return &dto.CommentBoolResponse{Success: resp.GetSuccess()}, nil
+	return dto.ToCommentBoolResponse(resp.GetSuccess()), nil
 }
 
 func (s *CommentService) CreateReply(ctx context.Context, req dto.CreateReplyRequest) (*dto.CommentBoolResponse, error) {
@@ -35,7 +35,7 @@ func (s *CommentService) CreateReply(ctx context.Context, req dto.CreateReplyReq
 	if err != nil {
 		return nil, err
 	}
-	return &dto.CommentBoolResponse{Success: resp.GetSuccess()}, nil
+	return dto.ToCommentBoolResponse(resp.GetSuccess()), nil
 }
 
 func (s *CommentService) Delete(ctx context.Context, req dto.DeleteCommentRequest) (*dto.CommentBoolResponse, error) {
@@ -46,7 +46,7 @@ func (s *CommentService) Delete(ctx context.Context, req dto.DeleteCommentReques
 	if err != nil {
 		return nil, err
 	}
-	return &dto.CommentBoolResponse{Success: resp.GetSuccess()}, nil
+	return dto.ToCommentBoolResponse(resp.GetSuccess()), nil
 }
 
 func (s *CommentService) List(ctx context.Context, req dto.GetArticleCommentsRequest) (*dto.CommentListResponse, error) {

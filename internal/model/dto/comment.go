@@ -82,3 +82,7 @@ func ToCommentList(items []*commentpb.CommentInfo) []*CommentInfo {
 	}
 	return result
 }
+
+func ToCommentBoolResponse(success bool) *CommentBoolResponse {
+	return &CommentBoolResponse{Success: success}
+}

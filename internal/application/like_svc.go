@@ -17,7 +17,7 @@ func (s *LikeService) ThumbUp(ctx context.Context, req dto.LikeRequest) (*dto.Li
 	if err != nil {
 		return nil, err
 	}
-	return &dto.LikeBoolResponse{Success: resp.GetSuccess()}, nil
+	return dto.ToLikeBoolResponse(resp.GetSuccess()), nil
 }
 
 func (s *LikeService) CancelThumbUp(ctx context.Context, req dto.LikeRequest) (*dto.LikeBoolResponse, error) {
@@ -25,7 +25,7 @@ func (s *LikeService) CancelThumbUp(ctx context.Context, req dto.LikeRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	return &dto.LikeBoolResponse{Success: resp.GetSuccess()}, nil
+	return dto.ToLikeBoolResponse(resp.GetSuccess()), nil
 }
 
 func (s *LikeService) UserLikeList(ctx context.Context, req dto.UserLikeListRequest) (*dto.UserLikeListResponse, error) {

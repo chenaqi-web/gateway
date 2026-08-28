@@ -116,5 +116,5 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 		reponse.InternalServerError(c)
 		return
 	}
-	reponse.Success(c, gin.H{"success": success})
+	reponse.Success(c, success)
 }

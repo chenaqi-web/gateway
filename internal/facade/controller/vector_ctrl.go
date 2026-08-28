@@ -4,7 +4,6 @@ import (
 	"gateway/internal/application"
 	"gateway/internal/facade/middleware"
 	"gateway/internal/model/reponse"
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +18,7 @@ func NewVectorController(svc *application.VectorService) *VectorController {
 func (ct *VectorController) ListCollections(c *gin.Context) {
 	list, err := ct.svc.ListCollections(c.Request.Context())
 	if err != nil {
-		reponse.Fail(c, http.StatusBadGateway, err.Error())
+		reponse.InternalServerError(c)
 		return
 	}
 	reponse.Success(c, list)
@@ -27,12 +26,12 @@ func (ct *VectorController) ListCollections(c *gin.Context) {
 
 func (ct *VectorController) CreateCollection(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
 	result, err := ct.svc.CreateCollection(c.Request.Context(), c.Param("name"))
 	if err != nil {
-		reponse.Fail(c, http.StatusBadRequest, err.Error())
+		reponse.StatusBadRequest(c)
 		return
 	}
 	reponse.Success(c, result)
@@ -40,19 +39,19 @@ func (ct *VectorController) CreateCollection(c *gin.Context) {
 
 func (ct *VectorController) DeleteCollection(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
 	if err := ct.svc.DeleteCollection(c.Request.Context(), c.Param("name")); err != nil {
-		reponse.Fail(c, http.StatusBadGateway, err.Error())
+		reponse.InternalServerError(c)
 		return
 	}
-	c.Status(http.StatusNoContent)
+	reponse.Success(c, nil)
 }
 
 func (ct *VectorController) ListDocuments(c *gin.Context) {
 	if middleware.GetRole(c) != "admin" {
-		reponse.Fail(c, http.StatusForbidden, "admin access required")
+		reponse.Forbidden(c)
 		return
 	}
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -62,7 +61,7 @@ func (ct *VectorController) ListDocuments(c *gin.Context) {
 	}
 	result, err := ct.svc.ListDocuments(c.Request.Context(), c.Param("name"), page, pageSize)
 	if err != nil {
-		reponse.Fail(c, http.StatusBadGateway, err.Error())
+		reponse.InternalServerError(c)
 		return
 	}
 	reponse.Success(c, result)

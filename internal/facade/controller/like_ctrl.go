@@ -5,7 +5,6 @@ import (
 	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,18 +18,18 @@ func NewLikeController(svc *application.LikeService) *LikeController {
 func (ct *LikeController) ThumbUp(c *gin.Context) {
 	var req dto.LikeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		reponse.StatusBadRequest(c)
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
 	result, err := ct.svc.ThumbUp(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		reponse.InternalServerError(c)
 		return
 	}
 	reponse.Success(c, result)
@@ -39,18 +38,18 @@ func (ct *LikeController) ThumbUp(c *gin.Context) {
 func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 	var req dto.LikeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		reponse.StatusBadRequest(c)
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
 	result, err := ct.svc.CancelThumbUp(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		reponse.InternalServerError(c)
 		return
 	}
 	reponse.Success(c, result)
@@ -59,18 +58,18 @@ func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 func (ct *LikeController) UserLikeList(c *gin.Context) {
 	var req dto.UserLikeListRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.Fail(c, http.StatusBadRequest, "invalid request parameters")
+		reponse.StatusBadRequest(c)
 		return
 	}
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
-		reponse.Fail(c, http.StatusUnauthorized, "authentication required")
+		reponse.Unauthorized(c)
 		return
 	}
 	req.UserID = userID
 	result, err := ct.svc.UserLikeList(c.Request.Context(), req)
 	if err != nil {
-		reponse.Fail(c, http.StatusInternalServerError, err.Error())
+		reponse.InternalServerError(c)
 		return
 	}
 	reponse.Success(c, result)

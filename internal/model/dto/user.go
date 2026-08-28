@@ -52,3 +52,9 @@ func ToUserProfile(user *userpb.UserInfo) *UserProfile {
 		ReceiveLikeCount: user.GetReceiveLikeCount(),
 	}
 }
+
+type UserBoolResponse struct {
+	Success bool `json:"success"`
+}
+
+func ToUserBoolResponse(success bool) *UserBoolResponse { return &UserBoolResponse{Success: success} }
