@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"errors"
-	"log"
 	"net/http"
 	"strings"
 
@@ -12,7 +10,6 @@ import (
 	"gateway/internal/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -34,120 +31,92 @@ func NewAuthMiddleware(cfg config.AuthConfig, Blacklist *cache.Blacklist) *AuthM
 }
 
 func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
-	cfg := m.cfg
-	Blacklist := m.Blacklist
 	return func(c *gin.Context) {
+		// 1.首先获取accessToken
 		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
 		if !ok {
 			c.Abort()
-			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired accesstoken")
 			return
 		}
 
-		blacklisted, err := Blacklist.IsTokenBlacklisted(c.Request.Context(), accessToken)
+		// 2.判断是否在黑名单里
+		blacklisted, err := m.Blacklist.IsTokenBlacklisted(c.Request.Context(), accessToken)
 		if err != nil {
-			log.Printf("auth middleware check access blacklist: %v", err)
 			c.Abort()
 			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 			return
 		}
 		if blacklisted {
-			utils.ClearRefreshCookie(c.Writer, cfg)
+			utils.ClearRefreshCookie(c.Writer, m.cfg)
 			c.Abort()
-			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			reponse.Fail(c, http.StatusUnauthorized, "token is in blacklist")
 			return
 		}
 
-		// 校验access token
-		claims, err := utils.GetClaims(accessToken, []byte(cfg.JWTSecret))
-		if err == nil {
-			if !validClaims(claims, utils.TokenTypeAccess) {
+		// 3.校验access token
+		claims, err := utils.GetClaims(accessToken, []byte(m.cfg.JWTSecret))
+		UserID, Role := claims.UserID, claims.Role
+		if err != nil {
+			// 4. 如果有问题，则需要申请refreshToken
+			refreshToken, err := utils.RefreshTokenFromCookie(c.Request)
+			if err != nil {
+				c.Abort()
+				reponse.Fail(c, http.StatusUnauthorized, "invalid or expired refreshtoken")
+				return
+			}
+
+			// 5.判断refreshToken是否在黑名单中
+			blacklisted, err = m.Blacklist.IsTokenBlacklisted(c.Request.Context(), refreshToken)
+			if err != nil {
+				c.Abort()
+				reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+				return
+			}
+			if blacklisted {
 				c.Abort()
 				reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
 				return
 			}
 
-			// 校验是否拉黑
-			if m.rejectBlacklistedUser(c, claims.UserID) {
+			// 6.使用refresh刷新access
+			refreshClaims, err := utils.GetClaims(refreshToken, []byte(m.cfg.JWTSecret))
+			if err != nil {
+				c.Abort()
+				reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
 				return
 			}
 
-			c.Set(AuthUserIDContextKey, claims.UserID)
-			c.Set(AuthRoleContextKey, claims.Role)
-			c.Next()
-			return
-		}
-		if !isExpiredToken(err) {
-			c.Abort()
-			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
-			return
+			newAccessToken, err := utils.CreateAccessToken([]byte(m.cfg.JWTSecret), *refreshClaims, m.cfg.AccessExpire)
+			if err != nil {
+				c.Abort()
+				reponse.Fail(c, http.StatusInternalServerError, "internal server error")
+				return
+			}
+
+			c.Header(refreshedAccessTokenHeader, "Bearer "+newAccessToken)
+			c.Header("Access-Control-Expose-Headers", refreshedAccessTokenHeader)
+			UserID = refreshClaims.UserID
+			Role = refreshClaims.Role
 		}
 
-		refreshToken, err := utils.RefreshTokenFromCookie(c.Request)
+		// 4.校验是否拉黑
+		isUserInBlacklist, err := m.Blacklist.IsUserBlacklisted(c.Request.Context(), UserID)
 		if err != nil {
-
-			utils.ClearRefreshCookie(c.Writer, cfg)
-			c.Abort()
-			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
-			return
-		}
-
-		blacklisted, err = Blacklist.IsTokenBlacklisted(c.Request.Context(), refreshToken)
-		if err != nil {
-			log.Printf("auth middleware check refresh blacklist: %v", err)
 			c.Abort()
 			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 			return
 		}
-		if blacklisted {
-			utils.ClearRefreshCookie(c.Writer, cfg)
+		if isUserInBlacklist {
+			utils.ClearRefreshCookie(c.Writer, m.cfg)
 			c.Abort()
-			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+			reponse.Fail(c, http.StatusUnauthorized, "user is blacklisted")
 			return
 		}
-
-		// 使用refresh刷新access
-		refreshClaims, err := utils.GetClaims(refreshToken, []byte(cfg.JWTSecret))
-		if err != nil || !validClaims(refreshClaims, utils.TokenTypeRefresh) {
-			utils.ClearRefreshCookie(c.Writer, cfg)
-			c.Abort()
-			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
-			return
-		}
-		if m.rejectBlacklistedUser(c, refreshClaims.UserID) {
-			return
-		}
-
-		newAccessToken, err := utils.CreateAccessToken([]byte(cfg.JWTSecret), *refreshClaims, cfg.AccessExpire)
-		if err != nil {
-			log.Printf("auth middleware create access token: %v", err)
-			c.Abort()
-			reponse.Fail(c, http.StatusInternalServerError, "internal server error")
-			return
-		}
-
-		c.Header(refreshedAccessTokenHeader, "Bearer "+newAccessToken)
-		c.Header("Access-Control-Expose-Headers", refreshedAccessTokenHeader)
-		c.Set(AuthUserIDContextKey, refreshClaims.UserID)
-		c.Set(AuthRoleContextKey, refreshClaims.Role)
+		c.Set(AuthUserIDContextKey, UserID)
+		c.Set(AuthRoleContextKey, Role)
 		c.Next()
 	}
-}
-
-func (m *AuthMiddleware) rejectBlacklistedUser(c *gin.Context, userID uint64) bool {
-	blacklisted, err := m.Blacklist.IsUserBlacklisted(c.Request.Context(), userID)
-	if err != nil {
-		c.Abort()
-		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
-		return true
-	}
-	if !blacklisted {
-		return false
-	}
-	utils.ClearRefreshCookie(c.Writer, m.cfg)
-	c.Abort()
-	reponse.Fail(c, http.StatusUnauthorized, "user is blacklisted")
-	return true
 }
 
 // OptionalAuth keeps public resources available to anonymous users while
@@ -169,15 +138,4 @@ func bearerToken(value string) (string, bool) {
 		return "", false
 	}
 	return parts[1], true
-}
-
-func isExpiredToken(err error) bool {
-	return errors.Is(err, jwt.ErrTokenExpired) &&
-		!errors.Is(err, jwt.ErrTokenMalformed) &&
-		!errors.Is(err, jwt.ErrTokenUnverifiable) &&
-		!errors.Is(err, jwt.ErrTokenSignatureInvalid)
-}
-
-func validClaims(claims *utils.JWTClaims, tokenType string) bool {
-	return claims != nil && claims.TokenType == tokenType && claims.UserID > 0 && claims.Role != ""
 }
