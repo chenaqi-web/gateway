@@ -4,17 +4,6 @@ package auth;
 
 option go_package = "gateway/internal/client/rpc/core-rpc/authpb;authpb";
 
-message UserInfo {
-  uint64 id = 1;
-  string username = 2;
-  string email = 3;
-  string phone = 4;
-  string avatar = 5;
-  string sex = 6;
-  uint32 age = 7;
-  string role = 8;
-  string status = 9;
-}
 
 message RegisterRequest {
   string username = 1;
@@ -23,7 +12,6 @@ message RegisterRequest {
 }
 message RegisterResponse {
   bool success = 1;
-  UserInfo user = 2;
 }
 
 message LoginRequest {
@@ -34,7 +22,15 @@ message EmailLoginRequest {
   string email = 1;
 }
 message LoginResponse {
-  UserInfo user = 1;
+  uint64 id = 1;
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string avatar = 5;
+  string sex = 6;
+  uint32 age = 7;
+  string role = 8;
+  string status = 9;
 }
 
 message ForgotPasswordRequest {

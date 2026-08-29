@@ -76,7 +76,7 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Log
 		s.log.Error("AuthService/Login error", zap.Error(err))
 		return nil, "", err
 	}
-	return s.createLoginResult(resp.GetUser())
+	return s.createLoginResult(resp)
 }
 
 func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest) (*dto.LoginResponse, string, error) {
@@ -94,7 +94,7 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 	}
 
 	// 3.准备token
-	return s.createLoginResult(resp.GetUser())
+	return s.createLoginResult(resp)
 }
 
 func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken string) error {
@@ -137,7 +137,7 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPassword
 
 // =====================================================================================================================
 
-func (s *AuthService) createLoginResult(user *authpb.UserInfo) (*dto.LoginResponse, string, error) {
+func (s *AuthService) createLoginResult(user *authpb.LoginResponse) (*dto.LoginResponse, string, error) {
 	claims := utils.JWTClaims{
 		UserID: user.GetId(),
 		Role:   user.GetRole(),

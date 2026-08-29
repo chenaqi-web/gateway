@@ -85,6 +85,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 
 		refreshToken, err := utils.RefreshTokenFromCookie(c.Request)
 		if err != nil {
+
 			utils.ClearRefreshCookie(c.Writer, cfg)
 			c.Abort()
 			reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
@@ -136,7 +137,6 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 func (m *AuthMiddleware) rejectBlacklistedUser(c *gin.Context, userID uint64) bool {
 	blacklisted, err := m.Blacklist.IsUserBlacklisted(c.Request.Context(), userID)
 	if err != nil {
-		log.Printf("auth middleware check user blacklist: %v", err)
 		c.Abort()
 		reponse.Fail(c, http.StatusInternalServerError, "internal server error")
 		return true
