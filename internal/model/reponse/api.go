@@ -46,6 +46,6 @@ func StatusBadRequest(c *gin.Context) {
 }
 
 // InternalServerError 服务器内部错误
-func InternalServerError(c *gin.Context) {
-	Fail(c, http.StatusInternalServerError, "internal server error")
+func InternalServerError(c *gin.Context, msg string) {
+	Fail(c, http.StatusInternalServerError, msg)
 }

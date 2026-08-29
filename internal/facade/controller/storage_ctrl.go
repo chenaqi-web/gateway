@@ -38,12 +38,12 @@ func (ct *StorageController) UploadAvatar(c *gin.Context) {
 	}
 	result, err := ct.svc.UploadAvatar(c.Request.Context(), file)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	if _, err := ct.userSvc.UpdateAvatar(c.Request.Context(), userID, result.URL); err != nil {
 		_ = ct.svc.Delete(c.Request.Context(), result.Key)
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -57,7 +57,7 @@ func (ct *StorageController) upload(c *gin.Context, handler func(context.Context
 	}
 	result, err := handler(c.Request.Context(), file)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -70,7 +70,7 @@ func (ct *StorageController) Delete(c *gin.Context) {
 		return
 	}
 	if err := ct.svc.Delete(c.Request.Context(), req.Key); err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, nil)

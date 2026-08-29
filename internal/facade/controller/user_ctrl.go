@@ -30,7 +30,7 @@ func (u *UserController) GetProfile(c *gin.Context) {
 	}
 	result, err := u.svc.GetProfile(c.Request.Context(), userID)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -50,7 +50,7 @@ func (u *UserController) UpdateProfile(c *gin.Context) {
 	}
 	result, err := u.svc.UpdateProfile(c.Request.Context(), userID, req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -72,7 +72,7 @@ func (u *UserController) UpdateAvatar(c *gin.Context) {
 	}
 	result, err := u.svc.UpdateAvatar(c.Request.Context(), userID, req.Avatar)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -93,7 +93,7 @@ func (u *UserController) UserList(c *gin.Context) {
 	}
 	users, total, err := u.svc.UserList(c.Request.Context(), rep.Keyword, rep.Page, rep.PageSize)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, gin.H{"users": users, "total": total})
@@ -113,7 +113,7 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 
 	success, err := u.svc.UpdateBlacklist(c.Request.Context(), req.UserID, req.Blacklisted)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, success)

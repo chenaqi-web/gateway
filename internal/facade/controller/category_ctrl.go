@@ -30,7 +30,7 @@ func (ct *CategoryController) CreateType(c *gin.Context) {
 
 	result, err := ct.svc.CreateType(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -51,7 +51,7 @@ func (ct *CategoryController) DeleteType(c *gin.Context) {
 
 	result, err := ct.svc.DeleteType(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -72,7 +72,7 @@ func (ct *CategoryController) CreateCategory(c *gin.Context) {
 
 	result, err := ct.svc.CreateCategory(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -93,7 +93,7 @@ func (ct *CategoryController) DeleteCategory(c *gin.Context) {
 
 	result, err := ct.svc.DeleteCategory(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -102,7 +102,7 @@ func (ct *CategoryController) DeleteCategory(c *gin.Context) {
 func (ct *CategoryController) ListTypes(c *gin.Context) {
 	result, err := ct.svc.ListTypes(c.Request.Context())
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -116,7 +116,7 @@ func (ct *CategoryController) ListCategories(c *gin.Context) {
 	}
 	result, err := ct.svc.ListCategories(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)

@@ -153,7 +153,7 @@ func (ct *AiChatController) GetSettings(c *gin.Context) {
 	}
 	settings, err := ct.svc.GetSettings(c.Request.Context())
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, settings)
@@ -183,6 +183,6 @@ func aiChatError(c *gin.Context, err error) {
 		reponse.StatusBadRequest(c)
 	default:
 		log.Printf("ai chat request failed: %v", err)
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 	}
 }

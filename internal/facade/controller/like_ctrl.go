@@ -29,7 +29,7 @@ func (ct *LikeController) ThumbUp(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.ThumbUp(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -49,7 +49,7 @@ func (ct *LikeController) CancelThumbUp(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.CancelThumbUp(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -69,7 +69,7 @@ func (ct *LikeController) UserLikeList(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.UserLikeList(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)

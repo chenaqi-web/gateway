@@ -29,7 +29,7 @@ func (a *AuthController) SendEmailCode(c *gin.Context) {
 		return
 	}
 	if err := a.svc.SendEmailCode(c.Request.Context(), req); err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, nil)
@@ -42,7 +42,7 @@ func (a *AuthController) Register(c *gin.Context) {
 		return
 	}
 	if err := a.svc.Register(c.Request.Context(), req); err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, nil)
@@ -57,10 +57,9 @@ func (a *AuthController) Login(c *gin.Context) {
 
 	result, refreshToken, err := a.svc.Login(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
-
 	// 在cookie设置refresh_token
 	utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg.Auth)
 	reponse.Success(c, result)
@@ -75,7 +74,7 @@ func (a *AuthController) EmailLogin(c *gin.Context) {
 	}
 	result, refreshToken, err := a.svc.EmailLogin(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg.Auth)
@@ -90,7 +89,7 @@ func (a *AuthController) ForgotPassword(c *gin.Context) {
 		return
 	}
 	if err := a.svc.ForgotPassword(c.Request.Context(), req); err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, nil)
@@ -100,7 +99,7 @@ func (a *AuthController) Logout(c *gin.Context) {
 	refreshToken, _ := utils.RefreshTokenFromCookie(c.Request)
 	utils.ClearRefreshCookie(c.Writer, a.cfg.Auth)
 	if err := a.svc.Logout(c.Request.Context(), c.GetHeader("Authorization"), refreshToken); err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, nil)

@@ -18,7 +18,7 @@ func NewVectorController(svc *application.VectorService) *VectorController {
 func (ct *VectorController) ListCollections(c *gin.Context) {
 	list, err := ct.svc.ListCollections(c.Request.Context())
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, list)
@@ -43,7 +43,7 @@ func (ct *VectorController) DeleteCollection(c *gin.Context) {
 		return
 	}
 	if err := ct.svc.DeleteCollection(c.Request.Context(), c.Param("name")); err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, nil)
@@ -61,7 +61,7 @@ func (ct *VectorController) ListDocuments(c *gin.Context) {
 	}
 	result, err := ct.svc.ListDocuments(c.Request.Context(), c.Param("name"), page, pageSize)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)

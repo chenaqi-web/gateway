@@ -33,7 +33,7 @@ func (ct *ArticleController) Create(c *gin.Context) {
 
 	result, err := ct.svc.Create(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -48,7 +48,7 @@ func (ct *ArticleController) Search(c *gin.Context) {
 
 	result, err := ct.svc.Search(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 
@@ -76,7 +76,7 @@ func (ct *ArticleController) Delete(c *gin.Context) {
 
 	result, err := ct.svc.Delete(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -91,7 +91,7 @@ func (ct *ArticleController) GetDetail(c *gin.Context) {
 
 	result, err := ct.svc.GetDetail(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 
@@ -107,7 +107,7 @@ func (ct *ArticleController) List(c *gin.Context) {
 
 	result, err := ct.svc.List(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 
@@ -130,7 +130,7 @@ func (ct *ArticleController) ListByUserID(c *gin.Context) {
 
 	result, err := ct.svc.ListByUserID(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 
@@ -146,7 +146,7 @@ func (ct *ArticleController) ByCategory(c *gin.Context) {
 
 	result, err := ct.svc.ListByCategory(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 

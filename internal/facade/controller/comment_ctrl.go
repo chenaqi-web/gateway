@@ -29,7 +29,7 @@ func (ct *CommentController) Create(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.Create(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -49,7 +49,7 @@ func (ct *CommentController) CreateReply(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.CreateReply(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -69,7 +69,7 @@ func (ct *CommentController) Delete(c *gin.Context) {
 	req.UserID = userID
 	result, err := ct.svc.Delete(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -86,7 +86,7 @@ func (ct *CommentController) List(c *gin.Context) {
 	}
 	result, err := ct.svc.List(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
@@ -103,7 +103,7 @@ func (ct *CommentController) Replies(c *gin.Context) {
 	}
 	result, err := ct.svc.Replies(c.Request.Context(), req)
 	if err != nil {
-		reponse.InternalServerError(c)
+		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	reponse.Success(c, result)
