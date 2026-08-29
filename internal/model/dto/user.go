@@ -34,6 +34,10 @@ type UpdateUserBlacklistRequest struct {
 	Blacklisted bool   `json:"blacklisted"`
 }
 
+type UserBoolResponse struct {
+	Success bool `json:"success"`
+}
+
 func ToUserProfile(user *userpb.UserInfo) *UserProfile {
 	if user == nil {
 		return nil
@@ -53,8 +57,8 @@ func ToUserProfile(user *userpb.UserInfo) *UserProfile {
 	}
 }
 
-type UserBoolResponse struct {
-	Success bool `json:"success"`
+func ToUserBoolResponse(success bool) *UserBoolResponse {
+	return &UserBoolResponse{
+		Success: success,
+	}
 }
-
-func ToUserBoolResponse(success bool) *UserBoolResponse { return &UserBoolResponse{Success: success} }

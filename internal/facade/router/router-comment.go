@@ -6,11 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewCommentRouter(v *gin.RouterGroup, ct *controller.CommentController, authMiddleware gin.HandlerFunc, optionalAuth gin.HandlerFunc) {
+func NewCommentRouter(v *gin.RouterGroup, ct *controller.CommentController, authMiddleware gin.HandlerFunc) {
 	comments := v.Group("/comment")
 	{
 		publicReads := comments.Group("")
-		publicReads.Use(optionalAuth)
 		publicReads.POST("/list", ct.List)
 		publicReads.POST("/replies", ct.Replies)
 

@@ -74,7 +74,11 @@ func (s *CommentService) List(ctx context.Context, req dto.GetArticleCommentsReq
 		s.log.Error("CommentService/List error", zap.Error(err))
 		return nil, err
 	}
-	return &dto.CommentListResponse{Comments: dto.ToCommentList(resp.GetComments()), Page: resp.GetPage(), Size: resp.GetSize()}, nil
+	return &dto.CommentListResponse{
+		Comments: dto.ToCommentList(resp.GetComments()),
+		Page:     resp.GetPage(),
+		Size:     resp.GetSize(),
+	}, nil
 }
 
 func (s *CommentService) Replies(ctx context.Context, req dto.GetCommentRepliesRequest) (*dto.CommentRepliesResponse, error) {
@@ -91,7 +95,11 @@ func (s *CommentService) Replies(ctx context.Context, req dto.GetCommentRepliesR
 		s.log.Error("CommentService/Replies error", zap.Error(err))
 		return nil, err
 	}
-	return &dto.CommentRepliesResponse{Replies: dto.ToCommentList(resp.GetReplies()), Page: resp.GetPage(), Size: resp.GetSize()}, nil
+	return &dto.CommentRepliesResponse{
+		Replies: dto.ToCommentList(resp.GetReplies()),
+		Page:    resp.GetPage(),
+		Size:    resp.GetSize(),
+	}, nil
 }
 
 //======================================================================================================================
