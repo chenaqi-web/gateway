@@ -6,8 +6,9 @@ import (
 	"gateway/internal/client/http"
 	"gateway/internal/infras/clog"
 	"gateway/internal/model/dto"
-	"go.uber.org/zap"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type VectorService struct {
@@ -26,11 +27,13 @@ func (s *VectorService) ListCollections(ctx context.Context) ([]dto.VectorCollec
 func (s *VectorService) CreateCollection(ctx context.Context, name string) (*dto.VectorCollection, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		err := errors.New("collection name is required")
-		s.log.Error("VectorService/CreateCollection error", zap.Error(err))
+		return nil, errors.New("empty name")
+	}
+	collection, err := s.client.CreateCollection(ctx, name)
+	if err != nil {
 		return nil, err
 	}
-	return s.client.CreateCollection(ctx, name)
+	return collection, nil
 }
 
 func (s *VectorService) DeleteCollection(ctx context.Context, name string) error {

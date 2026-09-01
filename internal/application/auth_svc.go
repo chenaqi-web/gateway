@@ -21,22 +21,22 @@ type AuthService struct {
 	rpc *rpc.Client
 	log *clog.Log
 
-	jwtBlackList *cache.Blacklist
-	email        *utils.Email
+	blackList *cache.Blacklist
+	email     *utils.Email
 }
 
 func NewAuthService(
 	rpcClient *rpc.Client,
-	jwtBlackList *cache.Blacklist,
+	blackList *cache.Blacklist,
 	cfg *config.Config,
 	log *clog.Log,
 ) *AuthService {
 	return &AuthService{
-		cfg:          cfg,
-		rpc:          rpcClient,
-		log:          log,
-		jwtBlackList: jwtBlackList,
-		email:        utils.NewEmail(cfg, jwtBlackList.Cache),
+		cfg:       cfg,
+		rpc:       rpcClient,
+		log:       log,
+		blackList: blackList,
+		email:     utils.NewEmail(cfg, blackList.Cache),
 	}
 }
 
@@ -56,6 +56,7 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) err
 		s.log.Error("AuthService/Register error", zap.Error(err))
 		return err
 	}
+
 	if _, err := s.rpc.GetAuthClient().Register(ctx, &authpb.RegisterRequest{
 		Username: req.Username,
 		Email:    req.Email,
@@ -64,6 +65,7 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) err
 		s.log.Error("AuthService/Register error", zap.Error(err))
 		return err
 	}
+
 	return nil
 }
 
@@ -106,12 +108,12 @@ func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken st
 		return errors.New("invalid authorization header")
 	}
 
-	if err := s.jwtBlackList.AddToken(ctx, accessToken, s.cfg.Auth.AccessExpire); err != nil {
+	if err := s.blackList.AddToken(ctx, accessToken, s.cfg.Auth.AccessExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}
 
-	if err := s.jwtBlackList.AddToken(ctx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
+	if err := s.blackList.AddToken(ctx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}
@@ -122,6 +124,10 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPassword
 	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "forgot_password"); err != nil {
 		s.log.Error("AuthService/ForgotPassword error", zap.Error(err))
 		return err
+	}
+
+	if req.NewPassword != req.ConfirmPassword {
+		return errors.New("passwords do not match")
 	}
 
 	if _, err := s.rpc.GetAuthClient().ForgotPassword(ctx, &authpb.ForgotPasswordRequest{
