@@ -63,14 +63,13 @@ func (u *UserController) UpdateAvatar(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		Avatar string `json:"avatar" binding:"required,max=500"`
-	}
+	var req dto.UserAvatarRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
 		return
 	}
-	result, err := u.svc.UpdateAvatar(c.Request.Context(), userID, req.Avatar)
+	req.UserID = userID
+	result, err := u.svc.UpdateAvatar(c.Request.Context(), req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
@@ -91,7 +90,7 @@ func (u *UserController) UserList(c *gin.Context) {
 		reponse.StatusBadRequest(c)
 		return
 	}
-	users, total, err := u.svc.UserList(c.Request.Context(), rep.Keyword, rep.Page, rep.PageSize)
+	users, total, err := u.svc.UserList(c.Request.Context(), rep)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return

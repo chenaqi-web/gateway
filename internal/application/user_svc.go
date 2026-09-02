@@ -29,6 +29,23 @@ func NewUserService(
 	}
 }
 
+func (s *UserService) UserList(ctx context.Context, rep dto.UserListFormRequest) ([]*dto.UserProfile, uint64, error) {
+	resp, err := s.rpc.GetUserClient().ListUsers(ctx, &userpb.ListUsersRequest{
+		Keyword:  rep.Keyword,
+		Page:     rep.Page,
+		PageSize: rep.PageSize,
+	})
+	if err != nil {
+		s.log.Error("UserService/List error", zap.Error(err))
+		return nil, 0, err
+	}
+	users := make([]*dto.UserProfile, 0, len(resp.GetUsers()))
+	for _, user := range resp.GetUsers() {
+		users = append(users, dto.ToUserProfile(user))
+	}
+	return users, resp.GetTotal(), nil
+}
+
 func (s *UserService) GetProfile(ctx context.Context, userID uint64) (*dto.UserProfile, error) {
 	resp, err := s.rpc.GetUserClient().GetProfile(ctx, &userpb.GetProfileRequest{UserId: userID})
 	if err != nil {
@@ -53,33 +70,16 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uint64, req dto.
 	return dto.ToUserProfile(resp.GetUser()), nil
 }
 
-func (s *UserService) UpdateAvatar(ctx context.Context, userID uint64, avatar string) (*dto.UserProfile, error) {
+func (s *UserService) UpdateAvatar(ctx context.Context, req dto.UserAvatarRequest) (*dto.UserAvatarResponse, error) {
 	resp, err := s.rpc.GetUserClient().UpdateAvatar(ctx, &userpb.UpdateAvatarRequest{
-		UserId: userID,
-		Avatar: avatar,
+		UserId: req.UserID,
+		Avatar: req.Avatar,
 	})
 	if err != nil {
 		s.log.Error("UserService/UpdateAvatar error", zap.Error(err))
 		return nil, err
 	}
-	return dto.ToUserProfile(resp.GetUser()), nil
-}
-
-func (s *UserService) UserList(ctx context.Context, keyword string, page, pageSize uint32) ([]*dto.UserProfile, uint64, error) {
-	resp, err := s.rpc.GetUserClient().ListUsers(ctx, &userpb.ListUsersRequest{
-		Keyword:  keyword,
-		Page:     page,
-		PageSize: pageSize,
-	})
-	if err != nil {
-		s.log.Error("UserService/List error", zap.Error(err))
-		return nil, 0, err
-	}
-	users := make([]*dto.UserProfile, 0, len(resp.GetUsers()))
-	for _, user := range resp.GetUsers() {
-		users = append(users, dto.ToUserProfile(user))
-	}
-	return users, resp.GetTotal(), nil
+	return dto.ToUserAvatarResponse(resp.Url), nil
 }
 
 func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blacklisted bool) (*dto.UserBoolResponse, error) {

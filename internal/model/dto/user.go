@@ -38,6 +38,20 @@ type UserBoolResponse struct {
 	Success bool `json:"success"`
 }
 
+type UserAvatarRequest struct {
+	UserID uint64 `json:"-"`
+	Avatar string `json:"avatar"`
+}
+type UserAvatarResponse struct {
+	Avatar string `json:"avatar"`
+}
+
+func ToUserAvatarResponse(url string) *UserAvatarResponse {
+	return &UserAvatarResponse{
+		Avatar: url,
+	}
+}
+
 func ToUserProfile(user *userpb.UserInfo) *UserProfile {
 	if user == nil {
 		return nil
