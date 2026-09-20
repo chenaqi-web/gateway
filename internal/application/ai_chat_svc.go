@@ -293,7 +293,7 @@ func (s *AiChatService) searchKnowledge(ctx context.Context, collection, content
 		topK = 5
 	}
 
-	resp, err := s.vector.SearchVectors(ctx, collection, &dto.VectorSearchRequest{
+	resp, err := s.vector.SearchVectors(ctx, collection, &dto.DocsSearchRequest{
 		Content: content,
 		TopK:    &topK,
 	})

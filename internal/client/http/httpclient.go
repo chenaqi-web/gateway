@@ -46,11 +46,7 @@ func (c *PyClient) GetRequestTimeout() time.Duration {
 	return c.requestTimeout
 }
 
-func (c *PyClient) SearchVectors(
-	ctx context.Context,
-	collectionName string,
-	req *dto.VectorSearchRequest,
-) (*dto.VectorSearchResponse, error) {
+func (c *PyClient) SearchVectors(ctx context.Context, collectionName string, req *dto.DocsSearchRequest) (*dto.DocsSearchResponse, error) {
 	if collectionName == "" {
 		return nil, fmt.Errorf("collection_name is required")
 	}
@@ -81,7 +77,7 @@ func (c *PyClient) SearchVectors(
 		return nil, fmt.Errorf("read agent-server response: %w", err)
 	}
 
-	var result dto.VectorSearchResponse
+	var result dto.DocsSearchResponse
 	if err := json.Unmarshal(respBody, &result); err != nil {
 		return nil, fmt.Errorf("unmarshal agent-server response: %w", err)
 	}
@@ -96,7 +92,7 @@ func (c *PyClient) SearchVectors(
 	return &result, nil
 }
 
-func (c *PyClient) ListCollections(ctx context.Context) ([]dto.VectorCollection, error) {
+func (c *PyClient) ListCollections(ctx context.Context) ([]*dto.Collection, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/api/v1/vector/collections", nil)
 	if err != nil {
 		return nil, fmt.Errorf("create collection request: %w", err)
@@ -111,9 +107,9 @@ func (c *PyClient) ListCollections(ctx context.Context) ([]dto.VectorCollection,
 		return nil, fmt.Errorf("read agent-server collections: %w", err)
 	}
 	var result struct {
-		Code int                    `json:"code"`
-		Msg  string                 `json:"msg"`
-		Data []dto.VectorCollection `json:"data"`
+		Code int               `json:"code"`
+		Msg  string            `json:"msg"`
+		Data []*dto.Collection `json:"data"`
 	}
 	if len(body) == 0 || json.Unmarshal(body, &result) != nil || resp.StatusCode != http.StatusOK || result.Code != http.StatusOK {
 		return nil, fmt.Errorf("agent-server collections unavailable")
@@ -121,21 +117,21 @@ func (c *PyClient) ListCollections(ctx context.Context) ([]dto.VectorCollection,
 	return result.Data, nil
 }
 
-func (c *PyClient) CreateCollection(ctx context.Context, collectionName string) (*dto.VectorCollection, error) {
-	var result dto.VectorCollection
+func (c *PyClient) CreateCollection(ctx context.Context, collectionName string) error {
+	var result dto.Collection
 	if err := c.doJSON(ctx, http.MethodPost, "/api/v1/vector/collections/"+collectionName, nil, &result); err != nil {
-		return nil, err
+		return err
 	}
-	return &result, nil
+	return nil
 }
 
 func (c *PyClient) DeleteCollection(ctx context.Context, collectionName string) error {
 	return c.doJSON(ctx, http.MethodDelete, "/api/v1/vector/collections/"+collectionName, nil, nil)
 }
 
-func (c *PyClient) ListDocuments(ctx context.Context, collectionName string, page, pageSize int) (*dto.VectorDocumentPage, error) {
+func (c *PyClient) ListDocuments(ctx context.Context, collectionName string, page, pageSize int) (*dto.ListDocumentsResponse, error) {
 	path := fmt.Sprintf("/api/v1/vector/collections/%s/documents?page=%d&page_size=%d", collectionName, page, pageSize)
-	var result dto.VectorDocumentPage
+	var result dto.ListDocumentsResponse
 	if err := c.doJSON(ctx, http.MethodGet, path, nil, &result); err != nil {
 		return nil, err
 	}

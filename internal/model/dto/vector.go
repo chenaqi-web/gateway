@@ -1,7 +1,27 @@
 package dto
 
-// VectorSearchRequest 向量检索请求，对齐 agent-server VectorSearchQuery。
-type VectorSearchRequest struct {
+type CreateVectorCollectionRequest struct {
+	Name string `json:"name"`
+}
+
+type DelVectorCollectionRequest struct {
+	Name string `json:"name"`
+}
+
+type ListDocumentsRequest struct {
+	Name     string `json:"name"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"pageSize"`
+}
+
+type ListDocumentsResponse struct {
+	Total    int              `json:"total"`
+	Page     int              `json:"page"`
+	PageSize int              `json:"page_size"`
+	Items    []VectorDocument `json:"items"`
+}
+
+type DocsSearchRequest struct {
 	Content         string   `json:"content"`
 	TopK            *int     `json:"top_k,omitempty"`
 	KnowledgeType   *string  `json:"knowledge_type,omitempty"`
@@ -17,8 +37,7 @@ type VectorSearchRequest struct {
 	UpdatedAtMax    *int     `json:"updated_at_max,omitempty"`
 }
 
-// VectorSearchItem 单条向量检索结果。
-type VectorSearchItem struct {
+type Document struct {
 	ChunkID         string   `json:"chunk_id"`
 	DocID           string   `json:"doc_id"`
 	ChunkNo         int      `json:"chunk_no"`
@@ -37,14 +56,13 @@ type VectorSearchItem struct {
 	Ext             string   `json:"ext,omitempty"`
 }
 
-// VectorSearchResponse 向量检索响应（对齐 agent-server：code / msg / data）。
-type VectorSearchResponse struct {
-	Code int                `json:"code"`
-	Msg  string             `json:"msg"`
-	Data []VectorSearchItem `json:"data"`
+type DocsSearchResponse struct {
+	Code int        `json:"code"`
+	Msg  string     `json:"msg"`
+	Data []Document `json:"data"`
 }
 
-type VectorCollection struct {
+type Collection struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
 }
@@ -60,11 +78,4 @@ type VectorDocument struct {
 	CreatedAt     *int   `json:"created_at"`
 	UpdatedAt     *int   `json:"updated_at"`
 	Content       string `json:"content"`
-}
-
-type VectorDocumentPage struct {
-	Total    int              `json:"total"`
-	Page     int              `json:"page"`
-	PageSize int              `json:"page_size"`
-	Items    []VectorDocument `json:"items"`
 }
