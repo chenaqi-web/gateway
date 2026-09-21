@@ -11,19 +11,34 @@ message UserInfo {
   string phone = 4;
   string avatar = 5;
   string sex = 6;
-  uint32 age = 7;
+  string birthday = 7;
   string role = 8;
   string status = 9;
-  uint64 like_count = 10;
-  uint64 receive_like_count = 11;
 }
+
 
 message GetProfileRequest {
   uint64 user_id = 1;
 }
 
 message GetProfileResponse {
-  UserInfo user = 1;
+  uint64 id = 1;
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string avatar = 5;
+  string sex = 6;
+  string birthday = 7;
+  string role = 8;
+  string status = 9;
+
+  uint64 followers_count = 10;
+  uint64 following_count = 11;
+  uint64 like_count = 12;
+  uint64 receive_like_count = 13;
+  uint64 favor_count = 14;
+  uint64 receive_favor_count = 15;
+  uint64 article_count = 16;
 }
 
 message UpdateProfileRequest {
@@ -31,11 +46,11 @@ message UpdateProfileRequest {
   string username = 2;
   string phone = 3;
   string sex = 4;
-  uint32 age = 5;
+  string birthday = 5;
 }
 
 message UpdateProfileResponse {
-  UserInfo user = 1;
+  bool success = 1;
 }
 
 message UpdateAvatarRequest {
@@ -48,12 +63,22 @@ message UpdateAvatarResponse {
 }
 
 message ListUsersRequest {
+  uint32 page = 1;
+  uint32 page_size = 2;
+}
+
+message ListUsersResponse {
+  repeated UserInfo users = 1;
+  uint64 total = 2;
+}
+
+message SearchUsersRequest {
   string keyword = 1;
   uint32 page = 2;
   uint32 page_size = 3;
 }
 
-message ListUsersResponse {
+message SearchUsersResponse {
   repeated UserInfo users = 1;
   uint64 total = 2;
 }
@@ -69,6 +94,7 @@ message UpdateUserStatusResponse {
 
 service UserService {
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc SearchUsers(SearchUsersRequest) returns (SearchUsersResponse);
   rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
   rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
   rpc UpdateAvatar(UpdateAvatarRequest) returns (UpdateAvatarResponse);

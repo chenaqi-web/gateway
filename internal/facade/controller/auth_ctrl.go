@@ -55,13 +55,13 @@ func (a *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	result, refreshToken, err := a.svc.Login(c.Request.Context(), req)
+	result, err := a.svc.Login(c.Request.Context(), req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
 	}
 	// 在cookie设置refresh_token
-	utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg.Auth)
+	utils.SetRefreshCookie(c.Writer, result.RefreshToken, a.cfg.Auth)
 	reponse.Success(c, result)
 }
 
@@ -72,12 +72,12 @@ func (a *AuthController) EmailLogin(c *gin.Context) {
 
 		return
 	}
-	result, refreshToken, err := a.svc.EmailLogin(c.Request.Context(), req)
+	result, err := a.svc.EmailLogin(c.Request.Context(), req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
 	}
-	utils.SetRefreshCookie(c.Writer, refreshToken, a.cfg.Auth)
+	utils.SetRefreshCookie(c.Writer, result.RefreshToken, a.cfg.Auth)
 	reponse.Success(c, result)
 }
 

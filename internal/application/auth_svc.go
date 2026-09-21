@@ -69,30 +69,30 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) err
 	return nil
 }
 
-func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, string, error) {
+func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {
 	resp, err := s.rpc.GetAuthClient().Login(ctx, &authpb.LoginRequest{
 		Username: req.Username,
 		Password: req.Password,
 	})
 	if err != nil {
 		s.log.Error("AuthService/Login error", zap.Error(err))
-		return nil, "", err
+		return nil, err
 	}
 	return s.createLoginResult(resp)
 }
 
-func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest) (*dto.LoginResponse, string, error) {
+func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest) (*dto.LoginResponse, error) {
 	// 1. 校验验证码是否正确
 	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "login"); err != nil {
 		s.log.Error("AuthService/EmailLogin error", zap.Error(err))
-		return nil, "", err
+		return nil, err
 	}
 
 	// 2.调用rpc服务
 	resp, err := s.rpc.GetAuthClient().EmailLogin(ctx, &authpb.EmailLoginRequest{Email: req.Email})
 	if err != nil {
 		s.log.Error("AuthService/EmailLogin error", zap.Error(err))
-		return nil, "", err
+		return nil, err
 	}
 
 	// 3.准备token
@@ -143,33 +143,28 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPassword
 
 // =====================================================================================================================
 
-func (s *AuthService) createLoginResult(user *authpb.LoginResponse) (*dto.LoginResponse, string, error) {
+func (s *AuthService) createLoginResult(user *authpb.LoginResponse) (*dto.LoginResponse, error) {
 	claims := utils.JWTClaims{
 		UserID: user.GetId(),
 		Role:   user.GetRole(),
 	}
 	accessToken, err := utils.CreateAccessToken([]byte(s.cfg.Auth.JWTSecret), claims, s.cfg.Auth.AccessExpire)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 	refreshToken, err := utils.CreateRefreshToken([]byte(s.cfg.Auth.JWTSecret), claims, s.cfg.Auth.RefreshExpire)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	return &dto.LoginResponse{
-		AccessToken:     accessToken,
-		AccessExpiresIn: s.cfg.Auth.AccessExpire,
-		User: &dto.User{
-			ID:       user.GetId(),
-			Username: user.GetUsername(),
-			Email:    user.GetEmail(),
-			Phone:    user.GetPhone(),
-			Avatar:   user.GetAvatar(),
-			Sex:      user.GetSex(),
-			Age:      user.GetAge(),
-			Role:     user.GetRole(),
-			Status:   user.GetStatus(),
-		},
-	}, refreshToken, nil
+		AccessToken:   accessToken,
+		AccessExpires: s.cfg.Auth.AccessExpire,
+		RefreshToken:  refreshToken,
+		ID:            user.GetId(),
+		Username:      user.GetUsername(),
+		Avatar:        user.GetAvatar(),
+		Role:          user.GetRole(),
+		Status:        user.GetStatus(),
+	}, nil
 }

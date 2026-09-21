@@ -31,7 +31,6 @@ func NewUserService(
 
 func (s *UserService) UserList(ctx context.Context, rep dto.UserListFormRequest) ([]*dto.UserProfile, uint64, error) {
 	resp, err := s.rpc.GetUserClient().ListUsers(ctx, &userpb.ListUsersRequest{
-		Keyword:  rep.Keyword,
 		Page:     rep.Page,
 		PageSize: rep.PageSize,
 	})
@@ -47,27 +46,26 @@ func (s *UserService) UserList(ctx context.Context, rep dto.UserListFormRequest)
 }
 
 func (s *UserService) GetProfile(ctx context.Context, userID uint64) (*dto.UserProfile, error) {
-	resp, err := s.rpc.GetUserClient().GetProfile(ctx, &userpb.GetProfileRequest{UserId: userID})
+	_, err := s.rpc.GetUserClient().GetProfile(ctx, &userpb.GetProfileRequest{UserId: userID})
 	if err != nil {
 		s.log.Error("UserService/GetProfile error", zap.Error(err))
 		return nil, err
 	}
-	return dto.ToUserProfile(resp.GetUser()), nil
+	return dto.ToUserProfile(nil), nil
 }
 
 func (s *UserService) UpdateProfile(ctx context.Context, userID uint64, req dto.UpdateProfileRequest) (*dto.UserProfile, error) {
-	resp, err := s.rpc.GetUserClient().UpdateProfile(ctx, &userpb.UpdateProfileRequest{
+	_, err := s.rpc.GetUserClient().UpdateProfile(ctx, &userpb.UpdateProfileRequest{
 		UserId:   userID,
 		Username: req.Username,
 		Phone:    req.Phone,
 		Sex:      req.Sex,
-		Age:      req.Age,
 	})
 	if err != nil {
 		s.log.Error("UserService/UpdateProfile error", zap.Error(err))
 		return nil, err
 	}
-	return dto.ToUserProfile(resp.GetUser()), nil
+	return dto.ToUserProfile(nil), nil
 }
 
 func (s *UserService) UpdateAvatar(ctx context.Context, req dto.UserAvatarRequest) (*dto.UserAvatarResponse, error) {

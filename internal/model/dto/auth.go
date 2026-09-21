@@ -42,7 +42,13 @@ type User struct {
 }
 
 type LoginResponse struct {
-	AccessToken     string `json:"access_token"`
-	AccessExpiresIn int    `json:"access_expires_in"`
-	User            *User  `json:"user"`
+	AccessToken   string `json:"access_token"`
+	AccessExpires int    `json:"access_expires"`
+	RefreshToken  string `json:"-"`
+
+	ID       uint64 `json:"id"`
+	Username string `json:"username"`
+	Avatar   string `json:"avatar"`
+	Role     string `json:"role"`
+	Status   string `json:"status"`
 }

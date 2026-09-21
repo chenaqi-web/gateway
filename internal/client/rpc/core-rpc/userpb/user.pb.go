@@ -22,20 +22,18 @@ const (
 )
 
 type UserInfo struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Username         string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Email            string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	Phone            string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
-	Avatar           string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
-	Sex              string                 `protobuf:"bytes,6,opt,name=sex,proto3" json:"sex,omitempty"`
-	Age              uint32                 `protobuf:"varint,7,opt,name=age,proto3" json:"age,omitempty"`
-	Role             string                 `protobuf:"bytes,8,opt,name=role,proto3" json:"role,omitempty"`
-	Status           string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
-	LikeCount        uint64                 `protobuf:"varint,10,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
-	ReceiveLikeCount uint64                 `protobuf:"varint,11,opt,name=receive_like_count,json=receiveLikeCount,proto3" json:"receive_like_count,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
+	Avatar        string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Sex           string                 `protobuf:"bytes,6,opt,name=sex,proto3" json:"sex,omitempty"`
+	Birthday      string                 `protobuf:"bytes,7,opt,name=birthday,proto3" json:"birthday,omitempty"`
+	Role          string                 `protobuf:"bytes,8,opt,name=role,proto3" json:"role,omitempty"`
+	Status        string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UserInfo) Reset() {
@@ -110,11 +108,11 @@ func (x *UserInfo) GetSex() string {
 	return ""
 }
 
-func (x *UserInfo) GetAge() uint32 {
+func (x *UserInfo) GetBirthday() string {
 	if x != nil {
-		return x.Age
+		return x.Birthday
 	}
-	return 0
+	return ""
 }
 
 func (x *UserInfo) GetRole() string {
@@ -129,20 +127,6 @@ func (x *UserInfo) GetStatus() string {
 		return x.Status
 	}
 	return ""
-}
-
-func (x *UserInfo) GetLikeCount() uint64 {
-	if x != nil {
-		return x.LikeCount
-	}
-	return 0
-}
-
-func (x *UserInfo) GetReceiveLikeCount() uint64 {
-	if x != nil {
-		return x.ReceiveLikeCount
-	}
-	return 0
 }
 
 type GetProfileRequest struct {
@@ -190,10 +174,25 @@ func (x *GetProfileRequest) GetUserId() uint64 {
 }
 
 type GetProfileResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserInfo              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username          string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Email             string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Phone             string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
+	Avatar            string                 `protobuf:"bytes,5,opt,name=avatar,proto3" json:"avatar,omitempty"`
+	Sex               string                 `protobuf:"bytes,6,opt,name=sex,proto3" json:"sex,omitempty"`
+	Birthday          string                 `protobuf:"bytes,7,opt,name=birthday,proto3" json:"birthday,omitempty"`
+	Role              string                 `protobuf:"bytes,8,opt,name=role,proto3" json:"role,omitempty"`
+	Status            string                 `protobuf:"bytes,9,opt,name=status,proto3" json:"status,omitempty"`
+	FollowersCount    uint64                 `protobuf:"varint,10,opt,name=followers_count,json=followersCount,proto3" json:"followers_count,omitempty"`
+	FollowingCount    uint64                 `protobuf:"varint,11,opt,name=following_count,json=followingCount,proto3" json:"following_count,omitempty"`
+	LikeCount         uint64                 `protobuf:"varint,12,opt,name=like_count,json=likeCount,proto3" json:"like_count,omitempty"`
+	ReceiveLikeCount  uint64                 `protobuf:"varint,13,opt,name=receive_like_count,json=receiveLikeCount,proto3" json:"receive_like_count,omitempty"`
+	FavorCount        uint64                 `protobuf:"varint,14,opt,name=favor_count,json=favorCount,proto3" json:"favor_count,omitempty"`
+	ReceiveFavorCount uint64                 `protobuf:"varint,15,opt,name=receive_favor_count,json=receiveFavorCount,proto3" json:"receive_favor_count,omitempty"`
+	ArticleCount      uint64                 `protobuf:"varint,16,opt,name=article_count,json=articleCount,proto3" json:"article_count,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *GetProfileResponse) Reset() {
@@ -226,11 +225,116 @@ func (*GetProfileResponse) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *GetProfileResponse) GetUser() *UserInfo {
+func (x *GetProfileResponse) GetId() uint64 {
 	if x != nil {
-		return x.User
+		return x.Id
 	}
-	return nil
+	return 0
+}
+
+func (x *GetProfileResponse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetSex() string {
+	if x != nil {
+		return x.Sex
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetBirthday() string {
+	if x != nil {
+		return x.Birthday
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *GetProfileResponse) GetFollowersCount() uint64 {
+	if x != nil {
+		return x.FollowersCount
+	}
+	return 0
+}
+
+func (x *GetProfileResponse) GetFollowingCount() uint64 {
+	if x != nil {
+		return x.FollowingCount
+	}
+	return 0
+}
+
+func (x *GetProfileResponse) GetLikeCount() uint64 {
+	if x != nil {
+		return x.LikeCount
+	}
+	return 0
+}
+
+func (x *GetProfileResponse) GetReceiveLikeCount() uint64 {
+	if x != nil {
+		return x.ReceiveLikeCount
+	}
+	return 0
+}
+
+func (x *GetProfileResponse) GetFavorCount() uint64 {
+	if x != nil {
+		return x.FavorCount
+	}
+	return 0
+}
+
+func (x *GetProfileResponse) GetReceiveFavorCount() uint64 {
+	if x != nil {
+		return x.ReceiveFavorCount
+	}
+	return 0
+}
+
+func (x *GetProfileResponse) GetArticleCount() uint64 {
+	if x != nil {
+		return x.ArticleCount
+	}
+	return 0
 }
 
 type UpdateProfileRequest struct {
@@ -239,7 +343,7 @@ type UpdateProfileRequest struct {
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Phone         string                 `protobuf:"bytes,3,opt,name=phone,proto3" json:"phone,omitempty"`
 	Sex           string                 `protobuf:"bytes,4,opt,name=sex,proto3" json:"sex,omitempty"`
-	Age           uint32                 `protobuf:"varint,5,opt,name=age,proto3" json:"age,omitempty"`
+	Birthday      string                 `protobuf:"bytes,5,opt,name=birthday,proto3" json:"birthday,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -302,16 +406,16 @@ func (x *UpdateProfileRequest) GetSex() string {
 	return ""
 }
 
-func (x *UpdateProfileRequest) GetAge() uint32 {
+func (x *UpdateProfileRequest) GetBirthday() string {
 	if x != nil {
-		return x.Age
+		return x.Birthday
 	}
-	return 0
+	return ""
 }
 
 type UpdateProfileResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *UserInfo              `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -346,11 +450,11 @@ func (*UpdateProfileResponse) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *UpdateProfileResponse) GetUser() *UserInfo {
+func (x *UpdateProfileResponse) GetSuccess() bool {
 	if x != nil {
-		return x.User
+		return x.Success
 	}
-	return nil
+	return false
 }
 
 type UpdateAvatarRequest struct {
@@ -451,9 +555,8 @@ func (x *UpdateAvatarResponse) GetUrl() string {
 
 type ListUsersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
-	Page          uint32                 `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	PageSize      uint32                 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Page          uint32                 `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      uint32                 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -486,13 +589,6 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *ListUsersRequest) GetKeyword() string {
-	if x != nil {
-		return x.Keyword
-	}
-	return ""
 }
 
 func (x *ListUsersRequest) GetPage() uint32 {
@@ -561,6 +657,118 @@ func (x *ListUsersResponse) GetTotal() uint64 {
 	return 0
 }
 
+type SearchUsersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Keyword       string                 `protobuf:"bytes,1,opt,name=keyword,proto3" json:"keyword,omitempty"`
+	Page          uint32                 `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      uint32                 `protobuf:"varint,3,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchUsersRequest) Reset() {
+	*x = SearchUsersRequest{}
+	mi := &file_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchUsersRequest) ProtoMessage() {}
+
+func (x *SearchUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchUsersRequest.ProtoReflect.Descriptor instead.
+func (*SearchUsersRequest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SearchUsersRequest) GetKeyword() string {
+	if x != nil {
+		return x.Keyword
+	}
+	return ""
+}
+
+func (x *SearchUsersRequest) GetPage() uint32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchUsersRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type SearchUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Users         []*UserInfo            `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	Total         uint64                 `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchUsersResponse) Reset() {
+	*x = SearchUsersResponse{}
+	mi := &file_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchUsersResponse) ProtoMessage() {}
+
+func (x *SearchUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchUsersResponse.ProtoReflect.Descriptor instead.
+func (*SearchUsersResponse) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SearchUsersResponse) GetUsers() []*UserInfo {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *SearchUsersResponse) GetTotal() uint64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
 type UpdateUserStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        uint64                 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -571,7 +779,7 @@ type UpdateUserStatusRequest struct {
 
 func (x *UpdateUserStatusRequest) Reset() {
 	*x = UpdateUserStatusRequest{}
-	mi := &file_user_proto_msgTypes[9]
+	mi := &file_user_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -583,7 +791,7 @@ func (x *UpdateUserStatusRequest) String() string {
 func (*UpdateUserStatusRequest) ProtoMessage() {}
 
 func (x *UpdateUserStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[9]
+	mi := &file_user_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -596,7 +804,7 @@ func (x *UpdateUserStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserStatusRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{9}
+	return file_user_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *UpdateUserStatusRequest) GetUserId() uint64 {
@@ -622,7 +830,7 @@ type UpdateUserStatusResponse struct {
 
 func (x *UpdateUserStatusResponse) Reset() {
 	*x = UpdateUserStatusResponse{}
-	mi := &file_user_proto_msgTypes[10]
+	mi := &file_user_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +842,7 @@ func (x *UpdateUserStatusResponse) String() string {
 func (*UpdateUserStatusResponse) ProtoMessage() {}
 
 func (x *UpdateUserStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[10]
+	mi := &file_user_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +855,7 @@ func (x *UpdateUserStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserStatusResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{10}
+	return file_user_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UpdateUserStatusResponse) GetSuccess() bool {
@@ -662,52 +870,73 @@ var File_user_proto protoreflect.FileDescriptor
 const file_user_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"user.proto\x12\x04user\"\x97\x02\n" +
+	"user.proto\x12\x04user\"\xd4\x01\n" +
 	"\bUserInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
 	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x16\n" +
 	"\x06avatar\x18\x05 \x01(\tR\x06avatar\x12\x10\n" +
-	"\x03sex\x18\x06 \x01(\tR\x03sex\x12\x10\n" +
-	"\x03age\x18\a \x01(\rR\x03age\x12\x12\n" +
+	"\x03sex\x18\x06 \x01(\tR\x03sex\x12\x1a\n" +
+	"\bbirthday\x18\a \x01(\tR\bbirthday\x12\x12\n" +
 	"\x04role\x18\b \x01(\tR\x04role\x12\x16\n" +
-	"\x06status\x18\t \x01(\tR\x06status\x12\x1d\n" +
-	"\n" +
-	"like_count\x18\n" +
-	" \x01(\x04R\tlikeCount\x12,\n" +
-	"\x12receive_like_count\x18\v \x01(\x04R\x10receiveLikeCount\",\n" +
+	"\x06status\x18\t \x01(\tR\x06status\",\n" +
 	"\x11GetProfileRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\x04R\x06userId\"8\n" +
-	"\x12GetProfileResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.user.UserInfoR\x04user\"\x85\x01\n" +
+	"\auser_id\x18\x01 \x01(\x04R\x06userId\"\xf3\x03\n" +
+	"\x12GetProfileResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x16\n" +
+	"\x06avatar\x18\x05 \x01(\tR\x06avatar\x12\x10\n" +
+	"\x03sex\x18\x06 \x01(\tR\x03sex\x12\x1a\n" +
+	"\bbirthday\x18\a \x01(\tR\bbirthday\x12\x12\n" +
+	"\x04role\x18\b \x01(\tR\x04role\x12\x16\n" +
+	"\x06status\x18\t \x01(\tR\x06status\x12'\n" +
+	"\x0ffollowers_count\x18\n" +
+	" \x01(\x04R\x0efollowersCount\x12'\n" +
+	"\x0ffollowing_count\x18\v \x01(\x04R\x0efollowingCount\x12\x1d\n" +
+	"\n" +
+	"like_count\x18\f \x01(\x04R\tlikeCount\x12,\n" +
+	"\x12receive_like_count\x18\r \x01(\x04R\x10receiveLikeCount\x12\x1f\n" +
+	"\vfavor_count\x18\x0e \x01(\x04R\n" +
+	"favorCount\x12.\n" +
+	"\x13receive_favor_count\x18\x0f \x01(\x04R\x11receiveFavorCount\x12#\n" +
+	"\rarticle_count\x18\x10 \x01(\x04R\farticleCount\"\x8f\x01\n" +
 	"\x14UpdateProfileRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
 	"\x05phone\x18\x03 \x01(\tR\x05phone\x12\x10\n" +
-	"\x03sex\x18\x04 \x01(\tR\x03sex\x12\x10\n" +
-	"\x03age\x18\x05 \x01(\rR\x03age\";\n" +
-	"\x15UpdateProfileResponse\x12\"\n" +
-	"\x04user\x18\x01 \x01(\v2\x0e.user.UserInfoR\x04user\"F\n" +
+	"\x03sex\x18\x04 \x01(\tR\x03sex\x12\x1a\n" +
+	"\bbirthday\x18\x05 \x01(\tR\bbirthday\"1\n" +
+	"\x15UpdateProfileResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\"F\n" +
 	"\x13UpdateAvatarRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x16\n" +
 	"\x06avatar\x18\x02 \x01(\tR\x06avatar\"(\n" +
 	"\x14UpdateAvatarResponse\x12\x10\n" +
-	"\x03url\x18\x01 \x01(\tR\x03url\"]\n" +
-	"\x10ListUsersRequest\x12\x18\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\"C\n" +
+	"\x10ListUsersRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\rR\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\rR\bpageSize\"O\n" +
+	"\x11ListUsersResponse\x12$\n" +
+	"\x05users\x18\x01 \x03(\v2\x0e.user.UserInfoR\x05users\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x04R\x05total\"_\n" +
+	"\x12SearchUsersRequest\x12\x18\n" +
 	"\akeyword\x18\x01 \x01(\tR\akeyword\x12\x12\n" +
 	"\x04page\x18\x02 \x01(\rR\x04page\x12\x1b\n" +
-	"\tpage_size\x18\x03 \x01(\rR\bpageSize\"O\n" +
-	"\x11ListUsersResponse\x12$\n" +
+	"\tpage_size\x18\x03 \x01(\rR\bpageSize\"Q\n" +
+	"\x13SearchUsersResponse\x12$\n" +
 	"\x05users\x18\x01 \x03(\v2\x0e.user.UserInfoR\x05users\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x04R\x05total\"J\n" +
 	"\x17UpdateUserStatusRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x04R\x06userId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"4\n" +
 	"\x18UpdateUserStatusResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess2\xf0\x02\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xb4\x03\n" +
 	"\vUserService\x12<\n" +
-	"\tListUsers\x12\x16.user.ListUsersRequest\x1a\x17.user.ListUsersResponse\x12?\n" +
+	"\tListUsers\x12\x16.user.ListUsersRequest\x1a\x17.user.ListUsersResponse\x12B\n" +
+	"\vSearchUsers\x12\x18.user.SearchUsersRequest\x1a\x19.user.SearchUsersResponse\x12?\n" +
 	"\n" +
 	"GetProfile\x12\x17.user.GetProfileRequest\x1a\x18.user.GetProfileResponse\x12H\n" +
 	"\rUpdateProfile\x12\x1a.user.UpdateProfileRequest\x1a\x1b.user.UpdateProfileResponse\x12E\n" +
@@ -726,7 +955,7 @@ func file_user_proto_rawDescGZIP() []byte {
 	return file_user_proto_rawDescData
 }
 
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_user_proto_goTypes = []any{
 	(*UserInfo)(nil),                 // 0: user.UserInfo
 	(*GetProfileRequest)(nil),        // 1: user.GetProfileRequest
@@ -737,28 +966,31 @@ var file_user_proto_goTypes = []any{
 	(*UpdateAvatarResponse)(nil),     // 6: user.UpdateAvatarResponse
 	(*ListUsersRequest)(nil),         // 7: user.ListUsersRequest
 	(*ListUsersResponse)(nil),        // 8: user.ListUsersResponse
-	(*UpdateUserStatusRequest)(nil),  // 9: user.UpdateUserStatusRequest
-	(*UpdateUserStatusResponse)(nil), // 10: user.UpdateUserStatusResponse
+	(*SearchUsersRequest)(nil),       // 9: user.SearchUsersRequest
+	(*SearchUsersResponse)(nil),      // 10: user.SearchUsersResponse
+	(*UpdateUserStatusRequest)(nil),  // 11: user.UpdateUserStatusRequest
+	(*UpdateUserStatusResponse)(nil), // 12: user.UpdateUserStatusResponse
 }
 var file_user_proto_depIdxs = []int32{
-	0,  // 0: user.GetProfileResponse.user:type_name -> user.UserInfo
-	0,  // 1: user.UpdateProfileResponse.user:type_name -> user.UserInfo
-	0,  // 2: user.ListUsersResponse.users:type_name -> user.UserInfo
-	7,  // 3: user.UserService.ListUsers:input_type -> user.ListUsersRequest
+	0,  // 0: user.ListUsersResponse.users:type_name -> user.UserInfo
+	0,  // 1: user.SearchUsersResponse.users:type_name -> user.UserInfo
+	7,  // 2: user.UserService.ListUsers:input_type -> user.ListUsersRequest
+	9,  // 3: user.UserService.SearchUsers:input_type -> user.SearchUsersRequest
 	1,  // 4: user.UserService.GetProfile:input_type -> user.GetProfileRequest
 	3,  // 5: user.UserService.UpdateProfile:input_type -> user.UpdateProfileRequest
 	5,  // 6: user.UserService.UpdateAvatar:input_type -> user.UpdateAvatarRequest
-	9,  // 7: user.UserService.UpdateUserStatus:input_type -> user.UpdateUserStatusRequest
+	11, // 7: user.UserService.UpdateUserStatus:input_type -> user.UpdateUserStatusRequest
 	8,  // 8: user.UserService.ListUsers:output_type -> user.ListUsersResponse
-	2,  // 9: user.UserService.GetProfile:output_type -> user.GetProfileResponse
-	4,  // 10: user.UserService.UpdateProfile:output_type -> user.UpdateProfileResponse
-	6,  // 11: user.UserService.UpdateAvatar:output_type -> user.UpdateAvatarResponse
-	10, // 12: user.UserService.UpdateUserStatus:output_type -> user.UpdateUserStatusResponse
-	8,  // [8:13] is the sub-list for method output_type
-	3,  // [3:8] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	10, // 9: user.UserService.SearchUsers:output_type -> user.SearchUsersResponse
+	2,  // 10: user.UserService.GetProfile:output_type -> user.GetProfileResponse
+	4,  // 11: user.UserService.UpdateProfile:output_type -> user.UpdateProfileResponse
+	6,  // 12: user.UserService.UpdateAvatar:output_type -> user.UpdateAvatarResponse
+	12, // 13: user.UserService.UpdateUserStatus:output_type -> user.UpdateUserStatusResponse
+	8,  // [8:14] is the sub-list for method output_type
+	2,  // [2:8] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_user_proto_init() }
@@ -772,7 +1004,7 @@ func file_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

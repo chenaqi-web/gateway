@@ -3,17 +3,15 @@ package dto
 import "gateway/internal/client/rpc/core-rpc/userpb"
 
 type UserProfile struct {
-	ID               uint64 `json:"id"`
-	Username         string `json:"username"`
-	Email            string `json:"email"`
-	Phone            string `json:"phone"`
-	Avatar           string `json:"avatar"`
-	Sex              string `json:"sex"`
-	Age              uint32 `json:"age"`
-	Role             string `json:"role"`
-	Status           string `json:"status"`
-	LikeCount        uint64 `json:"like_count"`
-	ReceiveLikeCount uint64 `json:"receive_like_count"`
+	ID       uint64 `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Avatar   string `json:"avatar"`
+	Sex      string `json:"sex"`
+	Age      uint32 `json:"age"`
+	Role     string `json:"role"`
+	Status   string `json:"status"`
 }
 
 type UserListFormRequest struct {
@@ -57,17 +55,14 @@ func ToUserProfile(user *userpb.UserInfo) *UserProfile {
 		return nil
 	}
 	return &UserProfile{
-		ID:               user.GetId(),
-		Username:         user.GetUsername(),
-		Email:            user.GetEmail(),
-		Phone:            user.GetPhone(),
-		Avatar:           user.GetAvatar(),
-		Sex:              user.GetSex(),
-		Age:              user.GetAge(),
-		Role:             user.GetRole(),
-		Status:           user.GetStatus(),
-		LikeCount:        user.GetLikeCount(),
-		ReceiveLikeCount: user.GetReceiveLikeCount(),
+		ID:       user.GetId(),
+		Username: user.GetUsername(),
+		Email:    user.GetEmail(),
+		Phone:    user.GetPhone(),
+		Avatar:   user.GetAvatar(),
+		Sex:      user.GetSex(),
+		Role:     user.GetRole(),
+		Status:   user.GetStatus(),
 	}
 }
 

@@ -41,7 +41,11 @@ func (ct *StorageController) UploadAvatar(c *gin.Context) {
 		reponse.InternalServerError(c, err.Error())
 		return
 	}
-	if _, err := ct.userSvc.UpdateAvatar(c.Request.Context(), userID, result.URL); err != nil {
+
+	if _, err := ct.userSvc.UpdateAvatar(c.Request.Context(), dto.UserAvatarRequest{
+		UserID: userID,
+		Avatar: result.URL,
+	}); err != nil {
 		_ = ct.svc.Delete(c.Request.Context(), result.Key)
 		reponse.InternalServerError(c, err.Error())
 		return
