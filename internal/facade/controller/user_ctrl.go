@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"gateway/internal/application"
 	"gateway/internal/config"
 	"gateway/internal/facade/middleware"
@@ -51,7 +50,9 @@ func (u *UserController) UpdateProfile(c *gin.Context) {
 		reponse.StatusBadRequest(c)
 		return
 	}
-	err := u.svc.UpdateProfile(c.Request.Context(), userID, req)
+	req.UserID = userID
+
+	err := u.svc.UpdateProfile(c.Request.Context(), req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
@@ -102,7 +103,7 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	err := u.svc.UpdateBlacklist(c.Request.Context(), req.UserID, req.Blacklisted)
+	err := u.svc.UpdateBlacklist(c.Request.Context(), &req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
@@ -111,16 +112,16 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 }
 
 func (u *UserController) SearchUser(c *gin.Context) {
-	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
-	keyword := c.Query("keyword")
+	var req dto.UserSearchRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
 
-	result, err := u.svc.SearchUser(c.Request.Context(), &dto.UserSearchRequest{
-		Keyword:  keyword,
-		Page:     vaildate.Page(page),
-		PageSize: vaildate.PageSize(pageSize),
-	})
-	fmt.Println("ha", result)
+	req.Page = vaildate.Page(req.Page)
+	req.PageSize = vaildate.Page(req.PageSize)
+
+	result, err := u.svc.SearchUser(c.Request.Context(), &req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return

@@ -24,6 +24,7 @@ type GetProfileResponse struct {
 	ReceiveFavorCount uint64 `json:"receive_favor_count"`
 }
 type UpdateProfileRequest struct {
+	UserID    uint64 `json:"-"`
 	Username  string `json:"username" binding:"required,min=2,max=50"`
 	Phone     string `json:"phone" binding:"max=20"`
 	Sex       string `json:"sex" binding:"omitempty,oneof=male female"`
@@ -67,9 +68,9 @@ type UserListResponse struct {
 }
 
 type UserSearchRequest struct {
-	Keyword  string `form:"keyword"`
-	Page     int    `form:"page"`
-	PageSize int    `form:"page_size"`
+	Keyword  string `form:"keyword" binding:"max=100"`
+	Page     int    `form:"page" binding:"omitempty,min=1"`
+	PageSize int    `form:"page_size" binding:"omitempty,min=1,max=100"`
 }
 
 type UserSearchResponse struct {

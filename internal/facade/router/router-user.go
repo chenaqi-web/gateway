@@ -18,12 +18,12 @@ func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, auth
 	}
 
 	// 管理员对用户信息的操作
-	admin := user.Group("/admin")
+	admin := v.Group("/admin")
 	admin.Use(authMiddleware)
 	admin.Use(middleware.Role())
 	{
-		user.GET("/list", userCtrl.UserList)
-		user.GET("/search", userCtrl.SearchUser)
-		user.PUT("/status", userCtrl.UpdateStatus)
+		admin.GET("/list", userCtrl.UserList)
+		admin.GET("/search", userCtrl.SearchUser)
+		admin.PUT("/status", userCtrl.UpdateStatus)
 	}
 }

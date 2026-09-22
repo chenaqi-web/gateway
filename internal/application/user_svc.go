@@ -38,9 +38,9 @@ func (s *UserService) GetProfile(ctx context.Context, userID uint64) (*dto.GetPr
 	return dto.ToGetProfileResponse(res), nil
 }
 
-func (s *UserService) UpdateProfile(ctx context.Context, userID uint64, req dto.UpdateProfileRequest) error {
+func (s *UserService) UpdateProfile(ctx context.Context, req dto.UpdateProfileRequest) error {
 	_, err := s.rpc.GetUserClient().UpdateProfile(ctx, &userpb.UpdateProfileRequest{
-		UserId:   userID,
+		UserId:   req.UserID,
 		Username: req.Username,
 		Phone:    req.Phone,
 		Sex:      req.Sex,
@@ -94,22 +94,22 @@ func (s *UserService) UserList(ctx context.Context, rep *dto.UserListRequest) (*
 	return dto.ToUserListResponse(resp.GetUsers(), resp.GetTotal()), nil
 }
 
-func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blacklisted bool) error {
+func (s *UserService) UpdateBlacklist(ctx context.Context, rep *dto.UpdateUserBlacklistRequest) error {
 	userStatus := entity.StatusApproved
-	if blacklisted {
+	if rep.Blacklisted {
 		userStatus = entity.StatusBlocked
 	}
 
-	_, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{UserId: userID, Status: userStatus})
+	_, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{UserId: rep.UserID, Status: userStatus})
 	if err != nil {
 		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
 		return err
 	}
 
-	if blacklisted {
-		err = s.userBlacklist.AddUser(ctx, userID)
+	if rep.Blacklisted {
+		err = s.userBlacklist.AddUser(ctx, rep.UserID)
 	} else {
-		err = s.userBlacklist.RemoveUser(ctx, userID)
+		err = s.userBlacklist.RemoveUser(ctx, rep.UserID)
 	}
 	if err != nil {
 		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
