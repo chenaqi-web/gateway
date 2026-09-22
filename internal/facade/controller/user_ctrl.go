@@ -96,14 +96,29 @@ func (u *UserController) UserList(c *gin.Context) {
 	reponse.Success(c, res)
 }
 
-func (u *UserController) UpdateStatus(c *gin.Context) {
-	var req dto.UpdateUserBlacklistRequest
+func (u *UserController) AddBlacklist(c *gin.Context) {
+	var req dto.UserBlacklistRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
 		return
 	}
 
-	err := u.svc.UpdateBlacklist(c.Request.Context(), &req)
+	err := u.svc.AddBlacklist(c.Request.Context(), &req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, nil)
+}
+
+func (u *UserController) RemoveBlacklist(c *gin.Context) {
+	var req dto.UserBlacklistRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	err := u.svc.RemoveBlacklist(c.Request.Context(), &req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return

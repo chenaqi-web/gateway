@@ -94,25 +94,37 @@ func (s *UserService) UserList(ctx context.Context, rep *dto.UserListRequest) (*
 	return dto.ToUserListResponse(resp.GetUsers(), resp.GetTotal()), nil
 }
 
-func (s *UserService) UpdateBlacklist(ctx context.Context, rep *dto.UpdateUserBlacklistRequest) error {
-	userStatus := entity.StatusApproved
-	if rep.Blacklisted {
-		userStatus = entity.StatusBlocked
-	}
-
-	_, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{UserId: rep.UserID, Status: userStatus})
+func (s *UserService) AddBlacklist(ctx context.Context, req *dto.UserBlacklistRequest) error {
+	_, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{
+		UserId: req.UserID,
+		Status: entity.StatusBlocked,
+	})
 	if err != nil {
-		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
+		s.log.Error("UserService/AddBlacklist error", zap.Error(err))
 		return err
 	}
 
-	if rep.Blacklisted {
-		err = s.userBlacklist.AddUser(ctx, rep.UserID)
-	} else {
-		err = s.userBlacklist.RemoveUser(ctx, rep.UserID)
-	}
+	err = s.userBlacklist.AddUser(ctx, req.UserID)
 	if err != nil {
-		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
+		s.log.Error("UserService/AddBlacklist error", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) RemoveBlacklist(ctx context.Context, req *dto.UserBlacklistRequest) error {
+	_, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{
+		UserId: req.UserID,
+		Status: entity.StatusApproved,
+	})
+	if err != nil {
+		s.log.Error("UserService/RemoveBlacklist error", zap.Error(err))
+		return err
+	}
+
+	err = s.userBlacklist.RemoveUser(ctx, req.UserID)
+	if err != nil {
+		s.log.Error("UserService/RemoveBlacklist error", zap.Error(err))
 		return err
 	}
 	return nil

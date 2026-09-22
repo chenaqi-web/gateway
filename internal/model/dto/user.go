@@ -32,9 +32,8 @@ type UpdateProfileRequest struct {
 	Signature string `json:"signature" binding:"max=255"`
 }
 
-type UpdateUserBlacklistRequest struct {
-	UserID      uint64 `json:"user_id" binding:"required,gt=0"`
-	Blacklisted bool   `json:"blacklisted"`
+type UserBlacklistRequest struct {
+	UserID uint64 `json:"user_id" binding:"required,gt=0"`
 }
 
 type UserAvatarRequest struct {

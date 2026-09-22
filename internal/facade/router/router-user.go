@@ -24,6 +24,7 @@ func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, auth
 	{
 		admin.GET("/list", userCtrl.UserList)
 		admin.GET("/search", userCtrl.SearchUser)
-		admin.PUT("/status", userCtrl.UpdateStatus)
+		admin.PUT("/blacklist/add", userCtrl.AddBlacklist)
+		admin.PUT("/blacklist/remove", userCtrl.RemoveBlacklist)
 	}
 }

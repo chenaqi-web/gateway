@@ -26,7 +26,10 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{impl: impl, provider: name}, nil
+	return &Client{
+		impl:     impl,
+		provider: name,
+	}, nil
 }
 
 func (c *Client) Provider() string { return c.provider }
