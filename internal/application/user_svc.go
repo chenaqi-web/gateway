@@ -69,7 +69,7 @@ func (s *UserService) UpdateAvatar(ctx context.Context, req dto.UserAvatarReques
 
 // =====================================================================================================================
 
-func (s *UserService) SearchUser(ctx context.Context, req dto.UserSearchRequest) (*dto.UserSearchResponse, error) {
+func (s *UserService) SearchUser(ctx context.Context, req *dto.UserSearchRequest) (*dto.UserSearchResponse, error) {
 	resp, err := s.rpc.GetUserClient().SearchUsers(ctx, &userpb.SearchUsersRequest{
 		Keyword:  req.Keyword,
 		Page:     int32(req.Page),

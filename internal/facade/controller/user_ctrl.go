@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"gateway/internal/application"
 	"gateway/internal/config"
 	"gateway/internal/facade/middleware"
@@ -110,13 +111,16 @@ func (u *UserController) UpdateStatus(c *gin.Context) {
 }
 
 func (u *UserController) SearchUser(c *gin.Context) {
-	var req dto.UserSearchRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		reponse.StatusBadRequest(c)
-		return
-	}
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+	keyword := c.Query("keyword")
 
-	result, err := u.svc.SearchUser(c.Request.Context(), req)
+	result, err := u.svc.SearchUser(c.Request.Context(), &dto.UserSearchRequest{
+		Keyword:  keyword,
+		Page:     vaildate.Page(page),
+		PageSize: vaildate.PageSize(pageSize),
+	})
+	fmt.Println("ha", result)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return

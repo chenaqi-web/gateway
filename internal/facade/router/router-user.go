@@ -23,7 +23,7 @@ func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, auth
 	admin.Use(middleware.Role())
 	{
 		user.GET("/list", userCtrl.UserList)
+		user.GET("/search", userCtrl.SearchUser)
 		user.PUT("/status", userCtrl.UpdateStatus)
-		user.POST("/search", userCtrl.SearchUser)
 	}
 }

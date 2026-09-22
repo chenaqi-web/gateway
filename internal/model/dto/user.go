@@ -67,7 +67,7 @@ type UserListResponse struct {
 }
 
 type UserSearchRequest struct {
-	Keyword  string `json:"keyword"`
+	Keyword  string `form:"keyword"`
 	Page     int    `form:"page"`
 	PageSize int    `form:"page_size"`
 }
