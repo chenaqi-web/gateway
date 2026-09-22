@@ -6,6 +6,8 @@ import (
 	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
+	"gateway/internal/utils/vaildate"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -48,12 +50,12 @@ func (u *UserController) UpdateProfile(c *gin.Context) {
 		reponse.StatusBadRequest(c)
 		return
 	}
-	result, err := u.svc.UpdateProfile(c.Request.Context(), userID, req)
+	err := u.svc.UpdateProfile(c.Request.Context(), userID, req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
 	}
-	reponse.Success(c, result)
+	reponse.Success(c, nil)
 }
 
 func (u *UserController) UpdateAvatar(c *gin.Context) {
@@ -77,43 +79,47 @@ func (u *UserController) UpdateAvatar(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
-// =====================================================================================================================
-// 用户管理方面
-
 func (u *UserController) UserList(c *gin.Context) {
-	if middleware.GetRole(c) != "admin" {
-		reponse.Forbidden(c)
-		return
-	}
-	var rep dto.UserListFormRequest
-	if err := c.ShouldBindQuery(&rep); err != nil {
-		reponse.StatusBadRequest(c)
-		return
-	}
-	users, total, err := u.svc.UserList(c.Request.Context(), rep)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+
+	res, err := u.svc.UserList(c.Request.Context(), &dto.UserListRequest{
+		Page:     vaildate.Page(page),
+		PageSize: vaildate.PageSize(pageSize),
+	})
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
 	}
-	reponse.Success(c, gin.H{"users": users, "total": total})
+	reponse.Success(c, res)
 }
 
 func (u *UserController) UpdateStatus(c *gin.Context) {
-	if middleware.GetRole(c) != "admin" {
-		reponse.Forbidden(c)
-		return
-	}
-
 	var req dto.UpdateUserBlacklistRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
 		return
 	}
 
-	success, err := u.svc.UpdateBlacklist(c.Request.Context(), req.UserID, req.Blacklisted)
+	err := u.svc.UpdateBlacklist(c.Request.Context(), req.UserID, req.Blacklisted)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return
 	}
-	reponse.Success(c, success)
+	reponse.Success(c, nil)
+}
+
+func (u *UserController) SearchUser(c *gin.Context) {
+	var req dto.UserSearchRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	result, err := u.svc.SearchUser(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
 }

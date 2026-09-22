@@ -56,7 +56,6 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 
 		// 3.校验access token
 		claims, err := utils.GetClaims(accessToken, []byte(m.cfg.JWTSecret))
-		UserID, Role := claims.UserID, claims.Role
 		if err != nil {
 			// 4. 如果有问题，则需要申请refreshToken
 			refreshToken, err := utils.RefreshTokenFromCookie(c.Request)
@@ -96,10 +95,10 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 
 			c.Header(refreshedAccessTokenHeader, "Bearer "+newAccessToken)
 			c.Header("Access-Control-Expose-Headers", refreshedAccessTokenHeader)
-			UserID = refreshClaims.UserID
-			Role = refreshClaims.Role
+			claims = refreshClaims
 		}
 
+		UserID, Role := claims.UserID, claims.Role
 		// 4.校验是否拉黑
 		isUserInBlacklist, err := m.Blacklist.IsUserBlacklisted(c.Request.Context(), UserID)
 		if err != nil {

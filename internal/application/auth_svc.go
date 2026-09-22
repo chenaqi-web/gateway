@@ -99,16 +99,11 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 	return s.createLoginResult(resp)
 }
 
-func (s *AuthService) Logout(ctx context.Context, authorization, refreshToken string) error {
+func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken string) error {
 	// 直接从 authorization 提取 token
 	const prefix = "Bearer"
-	accessToken := strings.TrimPrefix(authorization, prefix)
 
-	if accessToken == authorization { // 没有 Bearer 前缀
-		return errors.New("invalid authorization header")
-	}
-
-	if err := s.blackList.AddToken(ctx, accessToken, s.cfg.Auth.AccessExpire); err != nil {
+	if err := s.blackList.AddToken(ctx, strings.TrimPrefix(accessToken, prefix), s.cfg.Auth.AccessExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}

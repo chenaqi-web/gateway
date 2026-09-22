@@ -29,44 +29,31 @@ func NewUserService(
 	}
 }
 
-func (s *UserService) UserList(ctx context.Context, rep dto.UserListFormRequest) ([]*dto.UserProfile, uint64, error) {
-	resp, err := s.rpc.GetUserClient().ListUsers(ctx, &userpb.ListUsersRequest{
-		Page:     rep.Page,
-		PageSize: rep.PageSize,
-	})
-	if err != nil {
-		s.log.Error("UserService/List error", zap.Error(err))
-		return nil, 0, err
-	}
-	users := make([]*dto.UserProfile, 0, len(resp.GetUsers()))
-	for _, user := range resp.GetUsers() {
-		users = append(users, dto.ToUserProfile(user))
-	}
-	return users, resp.GetTotal(), nil
-}
-
-func (s *UserService) GetProfile(ctx context.Context, userID uint64) (*dto.UserProfile, error) {
-	_, err := s.rpc.GetUserClient().GetProfile(ctx, &userpb.GetProfileRequest{UserId: userID})
+func (s *UserService) GetProfile(ctx context.Context, userID uint64) (*dto.GetProfileResponse, error) {
+	res, err := s.rpc.GetUserClient().GetProfile(ctx, &userpb.GetProfileRequest{UserId: userID})
 	if err != nil {
 		s.log.Error("UserService/GetProfile error", zap.Error(err))
 		return nil, err
 	}
-	return dto.ToUserProfile(nil), nil
+	return dto.ToGetProfileResponse(res), nil
 }
 
-func (s *UserService) UpdateProfile(ctx context.Context, userID uint64, req dto.UpdateProfileRequest) (*dto.UserProfile, error) {
+func (s *UserService) UpdateProfile(ctx context.Context, userID uint64, req dto.UpdateProfileRequest) error {
 	_, err := s.rpc.GetUserClient().UpdateProfile(ctx, &userpb.UpdateProfileRequest{
 		UserId:   userID,
 		Username: req.Username,
 		Phone:    req.Phone,
 		Sex:      req.Sex,
+		Birthday: req.Birthday,
 	})
 	if err != nil {
 		s.log.Error("UserService/UpdateProfile error", zap.Error(err))
-		return nil, err
+		return err
 	}
-	return dto.ToUserProfile(nil), nil
+	return nil
 }
+
+// todo 图床的内容后续修改
 
 func (s *UserService) UpdateAvatar(ctx context.Context, req dto.UserAvatarRequest) (*dto.UserAvatarResponse, error) {
 	resp, err := s.rpc.GetUserClient().UpdateAvatar(ctx, &userpb.UpdateAvatarRequest{
@@ -80,16 +67,43 @@ func (s *UserService) UpdateAvatar(ctx context.Context, req dto.UserAvatarReques
 	return dto.ToUserAvatarResponse(resp.Url), nil
 }
 
-func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blacklisted bool) (*dto.UserBoolResponse, error) {
+// =====================================================================================================================
+
+func (s *UserService) SearchUser(ctx context.Context, req dto.UserSearchRequest) (*dto.UserSearchResponse, error) {
+	resp, err := s.rpc.GetUserClient().SearchUsers(ctx, &userpb.SearchUsersRequest{
+		Keyword:  req.Keyword,
+		Page:     int32(req.Page),
+		PageSize: int32(req.PageSize),
+	})
+	if err != nil {
+		s.log.Error("UserService/SearchUser error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToUserSearchResponse(resp.GetUsers(), resp.GetTotal()), nil
+}
+
+func (s *UserService) UserList(ctx context.Context, rep *dto.UserListRequest) (*dto.UserListResponse, error) {
+	resp, err := s.rpc.GetUserClient().ListUsers(ctx, &userpb.ListUsersRequest{
+		Page:     int32(rep.Page),
+		PageSize: int32(rep.PageSize),
+	})
+	if err != nil {
+		s.log.Error("UserService/List error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToUserListResponse(resp.GetUsers(), resp.GetTotal()), nil
+}
+
+func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blacklisted bool) error {
 	userStatus := entity.StatusApproved
 	if blacklisted {
 		userStatus = entity.StatusBlocked
 	}
 
-	resp, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{UserId: userID, Status: userStatus})
+	_, err := s.rpc.GetUserClient().UpdateUserStatus(ctx, &userpb.UpdateUserStatusRequest{UserId: userID, Status: userStatus})
 	if err != nil {
 		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
-		return nil, err
+		return err
 	}
 
 	if blacklisted {
@@ -99,7 +113,7 @@ func (s *UserService) UpdateBlacklist(ctx context.Context, userID uint64, blackl
 	}
 	if err != nil {
 		s.log.Error("UserService/UpdateBlacklist error", zap.Error(err))
-		return nil, err
+		return err
 	}
-	return dto.ToUserBoolResponse(resp.GetSuccess()), nil
+	return nil
 }
