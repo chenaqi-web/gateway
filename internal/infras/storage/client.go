@@ -42,13 +42,19 @@ func (c *Client) Provider() string {
 }
 
 func (c *Client) Upload(ctx context.Context, file *multipart.FileHeader, directory string) (string, error) {
+	if file == nil {
+		return "", fmt.Errorf("file is required")
+	}
 	return c.impl.Upload(ctx, file, directory)
+}
+
+func (c *Client) UploadAvatar(ctx context.Context, file *multipart.FileHeader, userID uint64) (string, error) {
+	if file == nil {
+		return "", fmt.Errorf("file is required")
+	}
+	return c.impl.UploadAvatar(ctx, file, userID)
 }
 
 func (c *Client) Delete(ctx context.Context, key string) error {
 	return c.impl.Delete(ctx, key)
-}
-
-func (c *Client) GetURL(key string) string {
-	return c.impl.GetURL(key)
 }

@@ -11,6 +11,7 @@ import (
 	"gateway/internal/model/dto"
 	"gateway/internal/model/entity"
 	"gateway/internal/utils"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -64,18 +65,25 @@ func (s *UserService) UpdateProfile(ctx context.Context, req dto.UpdateProfileRe
 }
 
 func (s *UserService) UpdateAvatar(ctx context.Context, req *dto.UserAvatarRequest) (*dto.UserAvatarResponse, error) {
-	// 1.上传到文件到存储服务
+	// 1. 获取旧url
+	old, err := s.rpc.GetUserClient().GetProfile(ctx, &userpb.GetProfileRequest{UserId: req.UserID})
+	if err != nil {
+		return nil, err
+	}
+
+	// 2.上传到文件到存储服务
 	if err := utils.ValidateImage(s.cfg, req.File); err != nil {
 		s.log.Error("StorageService/uploadImage error", zap.Error(err))
 		return nil, err
 	}
-	result, err := s.storage.Upload(ctx, req.File, "avatar")
+
+	result, err := s.storage.UploadAvatar(ctx, req.File, req.UserID)
 	if err != nil {
 		s.log.Error("StorageService/uploadImage error", zap.Error(err))
 		return nil, err
 	}
 
-	// 2. 更新url
+	// 3. 更新url
 	resp, err := s.rpc.GetUserClient().UpdateAvatar(ctx, &userpb.UpdateAvatarRequest{
 		UserId: req.UserID,
 		Avatar: result,
@@ -84,6 +92,17 @@ func (s *UserService) UpdateAvatar(ctx context.Context, req *dto.UserAvatarReque
 		_ = s.storage.Delete(ctx, result)
 		s.log.Error("UserService/UpdateAvatar error", zap.Error(err))
 		return nil, err
+	}
+
+	// 4.异步删除旧头像
+	if old.GetAvatar() != "" && old.GetAvatar() != result {
+		go func(key string) {
+			deleteCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := s.storage.Delete(deleteCtx, key); err != nil {
+				s.log.Warn("UserService/deleteOldAvatar error", zap.Error(err))
+			}
+		}(old.GetAvatar())
 	}
 	return dto.ToUserAvatarResponse(resp.Url), nil
 }

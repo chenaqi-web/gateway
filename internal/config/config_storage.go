@@ -2,7 +2,7 @@ package config
 
 type StorageConfig struct {
 	Provider  string `yaml:"provider"`   // local | cos | oss
-	BasePath  string `yaml:"base_path"`  // local 存储目录
+	RootDir   string `yaml:"root_dir"`   //  存储目录
 	BaseURL   string `yaml:"base_url"`   // 文件访问域名
 	AccessKey string `yaml:"access_key"` // cos / oss
 	SecretKey string `yaml:"secret_key"` // cos / oss

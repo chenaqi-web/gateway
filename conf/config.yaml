@@ -20,7 +20,7 @@ rpc:
 
 http:
   agent_server_addr: "http://localhost:8080"
-  request_timeout: 30
+  request_timeout: 5
 
 Mysql:
   Host: "127.0.0.1"
@@ -58,7 +58,7 @@ ai_chat:
 storage:
   # provider: local | cos | oss
   provider: local
-  base_path: "./static/upload"
+  root_dir: "./static/upload"
   base_url: "http://127.0.0.1:8079"
   access_key: ""
   secret_key: ""

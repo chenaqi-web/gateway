@@ -41,7 +41,10 @@ func NewAuthService(
 }
 
 func (s *AuthService) SendEmailCode(ctx context.Context, req dto.SendEmailCodeRequest) error {
-	err := s.email.SendCode(ctx, req.Email, req.Purpose)
+	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
+	err := s.email.SendCode(rpcCtx, req.Email, req.Purpose)
 	if err != nil {
 		s.log.Error("AuthService/SendEmailCode error",
 			zap.String("Purpose:", req.Purpose),
@@ -57,7 +60,10 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) err
 		return err
 	}
 
-	if _, err := s.rpc.GetAuthClient().Register(ctx, &authpb.RegisterRequest{
+	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
+	if _, err := s.rpc.GetAuthClient().Register(rpcCtx, &authpb.RegisterRequest{
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,

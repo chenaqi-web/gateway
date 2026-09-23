@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,78 +15,98 @@ import (
 )
 
 type localProvider struct {
-	basePath  string // 静态文件的存储位置
-	baseURL   string // 访问的url前缀（域名等）
-	urlPrefix string //
+	BaseUrl   string
+	urlPrefix string // 对外URL前缀
+	rootDir   string // 静态文件的存储位置
 }
 
-const localURLPrefix = "/static/upload"
+const localURLPrefix = "/static/upload/"
 
 func newLocalProvider(cfg *config.Config) Provider {
 	return &localProvider{
-		basePath:  cfg.Storage.BasePath,
-		baseURL:   cfg.Storage.BaseURL,
-		urlPrefix: localURLPrefix,
+		cfg.Storage.BaseURL,
+		localURLPrefix,
+		cfg.Storage.RootDir,
 	}
 }
 
-func (s *localProvider) Upload(_ context.Context, file *multipart.FileHeader, directory string) (string, error) {
-	// 1.构建存储的文件名 时间戳.ext
-	now := time.Now()
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	name := fmt.Sprintf("%d%s", now.UnixNano(), ext)
-	key := filepath.Join(directory, name)
-	path := filepath.Join(s.basePath, key)
+func (s *localProvider) Upload(ctx context.Context, file *multipart.FileHeader, directory string) (string, error) {
+
+	return "", nil
+}
+
+func (s *localProvider) UploadAvatar(ctx context.Context, file *multipart.FileHeader, userID uint64) (string, error) {
+	now := time.Now().UTC()
+	ext := strings.ToLower(filepath.Ext(filepath.Base(file.Filename)))
+
+	// {业务目录}/{yyyy}/{MM}/{毫秒时间戳}-{用户ID}.{扩展名}
+	key := filepath.ToSlash(filepath.Join(DirectoryAvatar, now.Format("2006/01"), fmt.Sprintf("%d-%d%s", now.UnixMilli(), userID, ext)))
+
+	key, err := s.write(ctx, file, key)
+	if err != nil {
+		return "", err
+	}
+
+	// 域名/static/upload/{key}
+	return s.BaseUrl + s.urlPrefix + key, nil
+}
+
+func (s *localProvider) write(ctx context.Context, file *multipart.FileHeader, key string) (string, error) {
+	path := filepath.Join(s.rootDir, filepath.FromSlash(key))
+
+	// 递归创建目录
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return "", err
 	}
+
+	// 打开上传文件流
 	source, err := file.Open()
 	if err != nil {
 		return "", err
 	}
 	defer source.Close()
-	target, err := os.Create(path)
+
+	// 创建临时文件，前缀是.upload-
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".upload-*")
 	if err != nil {
 		return "", err
 	}
-	defer target.Close()
-	if _, err := io.Copy(target, source); err != nil {
+	tmpPath := tmp.Name()
+	defer os.Remove(tmpPath)
+
+	// 将文件拷贝到临时文件
+	if _, err = io.Copy(tmp, source); err != nil {
+		_ = tmp.Close()
 		return "", err
 	}
-	urlKey := s.urlPrefix + "/" + filepath.ToSlash(key)
-	return s.baseURL + urlKey, nil
-}
-
-func (s *localProvider) GetURL(key string) string {
-	if strings.HasPrefix(key, "http://") || strings.HasPrefix(key, "https://") {
-		return key
+	// 关闭临时文件，缓冲要flush到磁盘，否则无法呗Rename
+	if err = tmp.Close(); err != nil {
+		return "", err
 	}
-	return s.baseURL + "/" + strings.TrimLeft(key, "/")
+	if err = os.Chmod(tmpPath, 0o644); err != nil {
+		return "", err
+	}
+
+	// 原子重命名：临时文件 → 目标文件
+	// 这样做是为了避免看到半个文件的情况
+	if err = os.Rename(tmpPath, path); err != nil {
+		return "", err
+	}
+	return filepath.ToSlash(key), nil
 }
 
 func (s *localProvider) Delete(_ context.Context, key string) error {
-	path, err := s.toLocalPath(key)
-	if err != nil {
-		return err
+	// 1.如果可以是一个绝对的URL，则提取它的Path部分
+	if parsed, err := url.Parse(key); err == nil && parsed.IsAbs() {
+		key = parsed.Path
 	}
-	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+
+	// 2.去掉前缀
+	key = strings.TrimPrefix(key, s.urlPrefix)
+
+	// 3.删除照片
+	if err := os.Remove(key); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	return nil
-}
-
-func (s *localProvider) toLocalPath(key string) (string, error) {
-	key = strings.TrimPrefix(key, s.baseURL)
-	key = strings.TrimPrefix(key, s.urlPrefix)
-	clean := filepath.Clean(strings.TrimLeft(key, "/\\"))
-	if clean == "." || strings.HasPrefix(clean, "..") {
-		return "", fmt.Errorf("invalid storage key")
-	}
-	path := filepath.Join(s.basePath, clean)
-	base, _ := filepath.Abs(s.basePath)
-	absolute, _ := filepath.Abs(path)
-	if absolute != base && !strings.HasPrefix(absolute, base+string(os.PathSeparator)) {
-		return "", fmt.Errorf("invalid storage key")
-	}
-	return path, nil
 }
