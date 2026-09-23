@@ -67,13 +67,16 @@ func (u *UserController) UpdateAvatar(c *gin.Context) {
 		return
 	}
 
-	var req dto.UserAvatarRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	file, err := c.FormFile("file")
+	if err != nil {
 		reponse.StatusBadRequest(c)
 		return
 	}
-	req.UserID = userID
-	result, err := u.svc.UpdateAvatar(c.Request.Context(), req)
+
+	result, err := u.svc.UpdateAvatar(c.Request.Context(), &dto.UserAvatarRequest{
+		UserID: userID,
+		File:   file,
+	})
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return

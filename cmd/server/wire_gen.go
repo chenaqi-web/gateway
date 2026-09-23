@@ -45,25 +45,23 @@ func InitializeServer(cfg *config.Config) (*server.Server, error) {
 	vectorService := application.NewVectorService(pyClient, log)
 	vectorController := controller.NewVectorController(vectorService)
 	blacklist := cache.NewJwtBlacklist(cacheClient)
-	userService := application.NewUserService(client, log, blacklist)
+	storageClient, err := storage.NewClient(cfg)
+	if err != nil {
+		return nil, err
+	}
+	userService := application.NewUserService(cfg, client, log, blacklist, storageClient)
 	userController := controller.NewUserController(userService, cfg)
 	categoryService := application.NewCategoryService(client, log)
 	categoryController := controller.NewCategoryController(categoryService)
 	articleService := application.NewArticleService(client, log)
 	articleController := controller.NewArticleController(articleService)
-	storageClient, err := storage.NewClient(cfg)
-	if err != nil {
-		return nil, err
-	}
-	storageService := application.NewStorageService(cfg, storageClient, log)
-	storageController := controller.NewStorageController(storageService, userService)
 	commentService := application.NewCommentService(client, log)
 	commentController := controller.NewCommentController(commentService)
 	likeService := application.NewLikeService(client, log)
 	likeController := controller.NewLikeController(likeService)
 	authService := application.NewAuthService(client, blacklist, cfg, log)
 	authController := controller.NewAuthController(authService, cfg)
-	engine := facade.New(cfg, healthController, aiChatController, vectorController, userController, categoryController, articleController, storageController, commentController, likeController, authController, blacklist)
+	engine := facade.New(cfg, healthController, aiChatController, vectorController, userController, categoryController, articleController, commentController, likeController, authController, blacklist)
 	serverServer, err := server.NewServer(cfg, client, dbClient, cacheClient, engine)
 	if err != nil {
 		return nil, err

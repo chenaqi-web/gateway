@@ -2,6 +2,7 @@ package dto
 
 import (
 	"gateway/internal/client/rpc/core-rpc/userpb"
+	"mime/multipart"
 )
 
 type GetProfileResponse struct {
@@ -37,8 +38,8 @@ type UserBlacklistRequest struct {
 }
 
 type UserAvatarRequest struct {
-	UserID uint64 `json:"-"`
-	Avatar string `json:"avatar"`
+	UserID uint64                `json:"-"`
+	File   *multipart.FileHeader `json:"-"`
 }
 type UserAvatarResponse struct {
 	Avatar string `json:"avatar"`

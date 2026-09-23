@@ -17,7 +17,6 @@ func New(cfg *config.Config,
 	userCtrl *controller.UserController,
 	categoryCtrl *controller.CategoryController,
 	articleCtrl *controller.ArticleController,
-	storageCtrl *controller.StorageController,
 	commentCtrl *controller.CommentController,
 	likeCtrl *controller.LikeController,
 	authCtrl *controller.AuthController,
@@ -59,7 +58,6 @@ func New(cfg *config.Config,
 		router.NewUserRouter(v1, userCtrl, auth)
 		router.NewCategoryRouter(v1, categoryCtrl, auth)
 		router.NewArticleRouter(v1, articleCtrl, auth)
-		router.NewStorageRouter(v1, storageCtrl, auth)
 		router.NewCommentRouter(v1, commentCtrl, auth)
 		router.NewLikeRouter(v1, likeCtrl, auth)
 

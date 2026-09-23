@@ -4,28 +4,38 @@ import (
 	"context"
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/userpb"
+	"gateway/internal/config"
 	"gateway/internal/infras/cache"
 	"gateway/internal/infras/clog"
+	"gateway/internal/infras/storage"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/entity"
+	"gateway/internal/utils"
 
 	"go.uber.org/zap"
 )
 
 type UserService struct {
+	cfg           *config.Config
 	rpc           *rpc.Client
-	log           *clog.Log
+	storage       *storage.Client
 	userBlacklist *cache.Blacklist
+	log           *clog.Log
 }
 
 func NewUserService(
+	cfg *config.Config,
 	rpcClient *rpc.Client,
 	log *clog.Log,
-	userBlacklist *cache.Blacklist) *UserService {
+	userBlacklist *cache.Blacklist,
+	storage *storage.Client,
+) *UserService {
 	return &UserService{
+		cfg:           cfg,
 		rpc:           rpcClient,
 		log:           log,
 		userBlacklist: userBlacklist,
+		storage:       storage,
 	}
 }
 
@@ -53,14 +63,25 @@ func (s *UserService) UpdateProfile(ctx context.Context, req dto.UpdateProfileRe
 	return nil
 }
 
-// todo 图床的内容后续修改
+func (s *UserService) UpdateAvatar(ctx context.Context, req *dto.UserAvatarRequest) (*dto.UserAvatarResponse, error) {
+	// 1.上传到文件到存储服务
+	if err := utils.ValidateImage(s.cfg, req.File); err != nil {
+		s.log.Error("StorageService/uploadImage error", zap.Error(err))
+		return nil, err
+	}
+	result, err := s.storage.Upload(ctx, req.File, "avatar")
+	if err != nil {
+		s.log.Error("StorageService/uploadImage error", zap.Error(err))
+		return nil, err
+	}
 
-func (s *UserService) UpdateAvatar(ctx context.Context, req dto.UserAvatarRequest) (*dto.UserAvatarResponse, error) {
+	// 2. 更新url
 	resp, err := s.rpc.GetUserClient().UpdateAvatar(ctx, &userpb.UpdateAvatarRequest{
 		UserId: req.UserID,
-		Avatar: req.Avatar,
+		Avatar: result,
 	})
 	if err != nil {
+		_ = s.storage.Delete(ctx, result)
 		s.log.Error("UserService/UpdateAvatar error", zap.Error(err))
 		return nil, err
 	}
