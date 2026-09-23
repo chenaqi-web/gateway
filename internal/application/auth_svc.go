@@ -41,10 +41,10 @@ func NewAuthService(
 }
 
 func (s *AuthService) SendEmailCode(ctx context.Context, req dto.SendEmailCodeRequest) error {
-	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	TimeOutCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
 	defer cancel()
 
-	err := s.email.SendCode(rpcCtx, req.Email, req.Purpose)
+	err := s.email.SendCode(TimeOutCtx, req.Email, req.Purpose)
 	if err != nil {
 		s.log.Error("AuthService/SendEmailCode error",
 			zap.String("Purpose:", req.Purpose),
@@ -55,13 +55,13 @@ func (s *AuthService) SendEmailCode(ctx context.Context, req dto.SendEmailCodeRe
 }
 
 func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) error {
-	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "register"); err != nil {
+	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
+	if err := s.email.VerifyCode(rpcCtx, req.Email, req.Code, "register"); err != nil {
 		s.log.Error("AuthService/Register error", zap.Error(err))
 		return err
 	}
-
-	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
-	defer cancel()
 
 	if _, err := s.rpc.GetAuthClient().Register(rpcCtx, &authpb.RegisterRequest{
 		Username: req.Username,
@@ -76,7 +76,10 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) err
 }
 
 func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.LoginResponse, error) {
-	resp, err := s.rpc.GetAuthClient().Login(ctx, &authpb.LoginRequest{
+	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
+	resp, err := s.rpc.GetAuthClient().Login(rpcCtx, &authpb.LoginRequest{
 		Username: req.Username,
 		Password: req.Password,
 	})
@@ -88,14 +91,17 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (*dto.Log
 }
 
 func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest) (*dto.LoginResponse, error) {
+	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
 	// 1. 校验验证码是否正确
-	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "login"); err != nil {
+	if err := s.email.VerifyCode(rpcCtx, req.Email, req.Code, "login"); err != nil {
 		s.log.Error("AuthService/EmailLogin error", zap.Error(err))
 		return nil, err
 	}
 
 	// 2.调用rpc服务
-	resp, err := s.rpc.GetAuthClient().EmailLogin(ctx, &authpb.EmailLoginRequest{Email: req.Email})
+	resp, err := s.rpc.GetAuthClient().EmailLogin(rpcCtx, &authpb.EmailLoginRequest{Email: req.Email})
 	if err != nil {
 		s.log.Error("AuthService/EmailLogin error", zap.Error(err))
 		return nil, err
@@ -106,15 +112,18 @@ func (s *AuthService) EmailLogin(ctx context.Context, req dto.EmailLoginRequest)
 }
 
 func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken string) error {
+	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
 	// 直接从 authorization 提取 token
 	const prefix = "Bearer"
 
-	if err := s.blackList.AddToken(ctx, strings.TrimPrefix(accessToken, prefix), s.cfg.Auth.AccessExpire); err != nil {
+	if err := s.blackList.AddToken(rpcCtx, strings.TrimPrefix(accessToken, prefix), s.cfg.Auth.AccessExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}
 
-	if err := s.blackList.AddToken(ctx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
+	if err := s.blackList.AddToken(rpcCtx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
 		s.log.Error("AuthService/Logout error", zap.Error(err))
 		return err
 	}
@@ -122,7 +131,10 @@ func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken stri
 }
 
 func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPasswordRequest) error {
-	if err := s.email.VerifyCode(ctx, req.Email, req.Code, "forgot_password"); err != nil {
+	rpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
+	if err := s.email.VerifyCode(rpcCtx, req.Email, req.Code, "forgot_password"); err != nil {
 		s.log.Error("AuthService/ForgotPassword error", zap.Error(err))
 		return err
 	}
@@ -131,7 +143,7 @@ func (s *AuthService) ForgotPassword(ctx context.Context, req dto.ForgotPassword
 		return errors.New("passwords do not match")
 	}
 
-	if _, err := s.rpc.GetAuthClient().ForgotPassword(ctx, &authpb.ForgotPasswordRequest{
+	if _, err := s.rpc.GetAuthClient().ForgotPassword(rpcCtx, &authpb.ForgotPasswordRequest{
 		Email:           req.Email,
 		NewPassword:     req.NewPassword,
 		ConfirmPassword: req.ConfirmPassword,
