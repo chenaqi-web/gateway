@@ -4,7 +4,6 @@ package auth;
 
 option go_package = "gateway/internal/client/rpc/core-rpc/authpb;authpb";
 
-
 message RegisterRequest {
   string username = 1;
   string email = 2;
@@ -44,4 +43,3 @@ service AuthService {
   rpc EmailLogin(EmailLoginRequest) returns (LoginResponse);
   rpc ForgotPassword (ForgotPasswordRequest) returns (ForgotPasswordResponse);
 }
-

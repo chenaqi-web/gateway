@@ -72,7 +72,7 @@ func ToCommentInfo(item *commentpb.CommentInfo) *CommentInfo {
 	if item == nil {
 		return nil
 	}
-	return &CommentInfo{ID: item.GetId(), ArticleID: item.GetArticleId(), UserID: item.GetUserId(), ParentID: item.GetParentId(), RootID: item.GetRootId(), ReplyToID: item.GetReplyToId(), ReplyToUserName: item.GetReplyToUserName(), Content: item.GetContent(), LikeCount: item.GetLikeCount(), ChildCount: item.GetChildCount(), CreatedAt: item.GetCreatedAt(), UserName: item.GetUserName(), UserAvatar: item.GetUserAvatar(), IsLiked: item.GetIsLiked()}
+	return &CommentInfo{ID: item.GetId(), ArticleID: item.GetArticleId(), UserID: item.GetUserId(), ParentID: item.GetRootId(), RootID: item.GetRootId(), ReplyToID: item.GetReplyToId(), ReplyToUserName: item.GetReplyToUserName(), Content: item.GetContent(), LikeCount: item.GetLikeCount(), ChildCount: item.GetChildCount(), CreatedAt: item.GetCreatedAt(), UserName: item.GetUserName(), UserAvatar: item.GetUserAvatar(), IsLiked: item.GetIsLiked()}
 }
 
 func ToCommentList(items []*commentpb.CommentInfo) []*CommentInfo {

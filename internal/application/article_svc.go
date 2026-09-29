@@ -42,7 +42,7 @@ func (s *ArticleService) Search(ctx context.Context, req dto.SearchArticlesReque
 }
 
 func (s *ArticleService) Delete(ctx context.Context, req dto.DeleteArticleRequest) (*dto.ArticleBoolResponse, error) {
-	resp, err := s.rpc.ArticleClient.DeleteArticle(ctx, &articlepb.DeleteArticleRequest{Id: req.ID, AuthorID: req.AuthorID})
+	resp, err := s.rpc.ArticleClient.DeleteArticle(ctx, &articlepb.DeleteArticleRequest{Id: req.ID, UserID: req.AuthorID, Role: req.Role})
 	if err != nil {
 		s.log.Error("ArticleService/Delete error", zap.Error(err))
 		return nil, err

@@ -5,7 +5,6 @@ import (
 
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/commentpb"
-	"gateway/internal/client/rpc/core-rpc/likepb"
 	"gateway/internal/infras/clog"
 	"gateway/internal/model/dto"
 
@@ -70,10 +69,6 @@ func (s *CommentService) List(ctx context.Context, req dto.GetArticleCommentsReq
 		s.log.Error("CommentService/List error", zap.Error(err))
 		return nil, err
 	}
-	if err := s.attachLikeStatuses(ctx, req.UserID, resp.GetComments()); err != nil {
-		s.log.Error("CommentService/List error", zap.Error(err))
-		return nil, err
-	}
 	return &dto.CommentListResponse{
 		Comments: dto.ToCommentList(resp.GetComments()),
 		Page:     resp.GetPage(),
@@ -83,15 +78,11 @@ func (s *CommentService) List(ctx context.Context, req dto.GetArticleCommentsReq
 
 func (s *CommentService) Replies(ctx context.Context, req dto.GetCommentRepliesRequest) (*dto.CommentRepliesResponse, error) {
 	resp, err := s.rpc.CommentClient.GetCommentReplies(ctx, &commentpb.GetCommentRepliesReq{
-		ParentId: req.ParentID,
-		Page:     req.Page,
-		Size:     req.Size,
+		RootId: req.ParentID,
+		Page:   req.Page,
+		Size:   req.Size,
 	})
 	if err != nil {
-		s.log.Error("CommentService/Replies error", zap.Error(err))
-		return nil, err
-	}
-	if err := s.attachLikeStatuses(ctx, req.UserID, resp.GetReplies()); err != nil {
 		s.log.Error("CommentService/Replies error", zap.Error(err))
 		return nil, err
 	}
@@ -100,35 +91,4 @@ func (s *CommentService) Replies(ctx context.Context, req dto.GetCommentRepliesR
 		Page:    resp.GetPage(),
 		Size:    resp.GetSize(),
 	}, nil
-}
-
-//======================================================================================================================
-
-func (s *CommentService) attachLikeStatuses(ctx context.Context, userID uint64, comments []*commentpb.CommentInfo) error {
-	objectIDs := make([]uint64, 0, len(comments))
-	for _, comment := range comments {
-		if comment != nil {
-			objectIDs = append(objectIDs, comment.GetId())
-		}
-	}
-	if len(objectIDs) == 0 {
-		return nil
-	}
-	statusResp, err := s.rpc.LikeClient.BatchLikeStatus(ctx, &likepb.BatchCommentLikeStatusRequest{UserID: userID, ObjectType: "comment", ObjectIDs: objectIDs})
-	if err != nil {
-		s.log.Error("CommentService/attachLikeStatuses error", zap.Error(err))
-		return err
-	}
-	statuses := make(map[uint64]bool, len(statusResp.GetItems()))
-	for _, item := range statusResp.GetItems() {
-		if item != nil {
-			statuses[item.GetObjectID()] = item.GetIsLiked()
-		}
-	}
-	for _, comment := range comments {
-		if comment != nil {
-			comment.IsLiked = statuses[comment.GetId()]
-		}
-	}
-	return nil
 }

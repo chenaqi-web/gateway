@@ -68,11 +68,8 @@ func (ct *ArticleController) Delete(c *gin.Context) {
 		return
 	}
 
-	if middleware.GetRole(c) == "admin" {
-		req.AuthorID = 0
-	} else {
-		req.AuthorID = userID
-	}
+	req.AuthorID = userID
+	req.Role = middleware.GetRole(c)
 
 	result, err := ct.svc.Delete(c.Request.Context(), req)
 	if err != nil {

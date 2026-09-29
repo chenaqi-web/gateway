@@ -64,6 +64,7 @@ type SearchArticlesRequest struct {
 type DeleteArticleRequest struct {
 	ID       uint64 `json:"id" binding:"required"`
 	AuthorID uint64 `json:"-"`
+	Role     string `json:"-"`
 }
 
 // ---------- 响应 ----------
@@ -121,7 +122,23 @@ func ToGetArticleResponse(resp *articlepb.GetArticleResponse) *GetArticleRespons
 	if resp == nil {
 		return &GetArticleResponse{}
 	}
-	return &GetArticleResponse{Article: ToArticle(resp.GetArticle())}
+	return &GetArticleResponse{Article: &Article{
+		ID:           resp.GetId(),
+		Title:        resp.GetTitle(),
+		Summary:      resp.GetSummary(),
+		Content:      resp.GetContent(),
+		CoverImage:   resp.GetCoverImage(),
+		AuthorID:     resp.GetAuthorID(),
+		CategoryID:   resp.GetCategoryID(),
+		IsTop:        resp.GetIsTop(),
+		ViewCount:    resp.GetViewCount(),
+		LikeCount:    resp.GetLikeCount(),
+		CommentCount: resp.GetCommentCount(),
+		CreatedAt:    resp.GetCreatedAt(),
+		UpdatedAt:    resp.GetUpdatedAt(),
+		AuthorName:   resp.GetAuthorName(),
+		AuthorAvatar: resp.GetAuthorAvatar(),
+	}}
 }
 
 func ToListArticlesResponse(articles []*articlepb.Article) *ListArticlesResponse {
