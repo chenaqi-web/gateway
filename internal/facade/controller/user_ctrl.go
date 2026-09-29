@@ -38,6 +38,20 @@ func (u *UserController) GetProfile(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
+func (u *UserController) GetVisitorProfile(c *gin.Context) {
+	userID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil || userID == 0 {
+		reponse.StatusBadRequest(c)
+		return
+	}
+	result, err := u.svc.GetVisitorProfile(c.Request.Context(), userID)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
+}
+
 func (u *UserController) UpdateProfile(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {

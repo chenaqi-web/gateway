@@ -40,6 +40,18 @@ func NewUserService(
 	}
 }
 
+func (s *UserService) GetVisitorProfile(ctx context.Context, userID uint64) (*dto.GetVisitorProfileResponse, error) {
+	RpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
+	res, err := s.rpc.GetUserClient().GetProfile(RpcCtx, &userpb.GetProfileRequest{UserId: userID})
+	if err != nil {
+		s.log.Error("UserService/GetProfile error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToGetVisitorProResponse(res), nil
+}
+
 func (s *UserService) GetProfile(ctx context.Context, userID uint64) (*dto.GetProfileResponse, error) {
 	RpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
 	defer cancel()

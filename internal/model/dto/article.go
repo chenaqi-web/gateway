@@ -44,7 +44,7 @@ type ListArticlesRequest struct {
 }
 
 type ListMyArticlesRequest struct {
-	AuthorID uint64 `json:"-"`
+	AuthorID uint64 `json:"authorID"`
 	Page     uint32 `json:"page"`
 	PageSize uint32 `json:"pageSize"`
 }

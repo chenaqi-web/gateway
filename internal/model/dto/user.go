@@ -5,8 +5,24 @@ import (
 	"mime/multipart"
 )
 
+type GetVisitorProfileResponse struct {
+	ID                uint64 `json:"id"`
+	Username          string `json:"username"`
+	Avatar            string `json:"avatar"`
+	Sex               string `json:"sex"`
+	Signature         string `json:"signature"`
+	Birthday          string `json:"birthday"`
+	ArticleCount      uint64 `json:"article_count"`
+	FollowersCount    uint64 `json:"followers_count"`
+	FollowingCount    uint64 `json:"following_count"`
+	LikeCount         uint64 `json:"like_count"`
+	ReceiveLikeCount  uint64 `json:"receive_like_count"`
+	FavorCount        uint64 `json:"favor_count"`
+	ReceiveFavorCount uint64 `json:"receive_favor_count"`
+}
+
 type GetProfileResponse struct {
-	ID                uint64 `json:"-"`
+	ID                uint64 `json:"id"`
 	Username          string `json:"username"`
 	Email             string `json:"email"`
 	Phone             string `json:"phone"`
@@ -143,6 +159,24 @@ func ToGetProfileResponse(user *userpb.GetProfileResponse) *GetProfileResponse {
 		Birthday:          user.Birthday,
 		Role:              user.Role,
 		Status:            user.Status,
+		ArticleCount:      user.ArticleCount,
+		FollowersCount:    user.FollowersCount,
+		FollowingCount:    user.FollowingCount,
+		LikeCount:         user.LikeCount,
+		ReceiveLikeCount:  user.ReceiveLikeCount,
+		FavorCount:        user.FavorCount,
+		ReceiveFavorCount: user.ReceiveFavorCount,
+	}
+}
+
+func ToGetVisitorProResponse(user *userpb.GetProfileResponse) *GetVisitorProfileResponse {
+	return &GetVisitorProfileResponse{
+		ID:                user.Id,
+		Username:          user.Username,
+		Avatar:            user.Avatar,
+		Sex:               user.Sex,
+		Signature:         user.Signature,
+		Birthday:          user.Birthday,
 		ArticleCount:      user.ArticleCount,
 		FollowersCount:    user.FollowersCount,
 		FollowingCount:    user.FollowingCount,

@@ -118,12 +118,18 @@ func (ct *ArticleController) ListByUserID(c *gin.Context) {
 		return
 	}
 
-	userID, ok := middleware.GetUserID(c)
-	if !ok {
-		reponse.Unauthorized(c)
+	if req.AuthorID == 0 {
+		userID, ok := middleware.GetUserID(c)
+		if !ok {
+			reponse.StatusBadRequest(c)
+			return
+		}
+		req.AuthorID = userID
+	}
+	if req.AuthorID == 0 {
+		reponse.StatusBadRequest(c)
 		return
 	}
-	req.AuthorID = userID
 
 	result, err := ct.svc.ListByUserID(c.Request.Context(), req)
 	if err != nil {

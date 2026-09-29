@@ -8,6 +8,9 @@ import (
 )
 
 func NewUserRouter(v *gin.RouterGroup, userCtrl *controller.UserController, authMiddleware gin.HandlerFunc) {
+	// 用户主页
+	v.GET("/user/profile/:id", userCtrl.GetVisitorProfile)
+
 	// 用户信息修改
 	user := v.Group("/user")
 	user.Use(authMiddleware)

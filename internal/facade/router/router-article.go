@@ -13,13 +13,13 @@ func NewArticleRouter(v *gin.RouterGroup, ct *controller.ArticleController, auth
 		article.POST("/search", ct.Search)
 		article.POST("/list", ct.List)
 		article.POST("/list/by_cate", ct.ByCategory)
+		article.POST("/list/by_user_id", ct.ListByUserID)
 
 		authorized := article.Group("")
 		authorized.Use(authMiddleware)
 		{
 			authorized.POST("/create", ct.Create)
 			authorized.DELETE("/del", ct.Delete)
-			authorized.POST("/list/by_user_id", ct.ListByUserID)
 		}
 	}
 }
