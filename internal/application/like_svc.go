@@ -17,7 +17,10 @@ type LikeService struct {
 }
 
 func NewLikeService(rpcClient *rpc.Client, log *clog.Log) *LikeService {
-	return &LikeService{rpc: rpcClient, log: log}
+	return &LikeService{
+		rpc: rpcClient,
+		log: log,
+	}
 }
 
 func (s *LikeService) ThumbUp(ctx context.Context, req dto.LikeRequest) (*dto.LikeBoolResponse, error) {
