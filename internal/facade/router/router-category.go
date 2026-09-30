@@ -2,6 +2,7 @@ package router
 
 import (
 	"gateway/internal/facade/controller"
+	"gateway/internal/facade/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +15,7 @@ func NewCategoryRouter(v *gin.RouterGroup, ct *controller.CategoryController, au
 
 		authorized := category.Group("")
 		authorized.Use(authMiddleware)
+		authorized.Use(middleware.Role())
 		{
 			authorized.POST("/create", ct.CreateType)
 			authorized.DELETE("/del", ct.DeleteType)

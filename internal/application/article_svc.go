@@ -22,8 +22,14 @@ func NewArticleService(rpcClient *rpc.Client, log *clog.Log) *ArticleService {
 
 func (s *ArticleService) Create(ctx context.Context, req dto.CreateArticleRequest) (*dto.ArticleBoolResponse, error) {
 	resp, err := s.rpc.ArticleClient.CreateArticle(ctx, &articlepb.CreateArticleRequest{
-		AuthorID: req.AuthorID, Title: req.Title, Summary: req.Summary, Content: req.Content,
-		CoverImage: req.CoverImage, CategoryID: req.CategoryID, IsTop: req.IsTop,
+		AuthorID:    req.AuthorID,
+		Title:       req.Title,
+		Summary:     req.Summary,
+		Content:     req.Content,
+		CoverImage:  req.CoverImage,
+		CategoryID:  req.CategoryID,
+		IsTop:       req.IsTop,
+		IsPublished: req.IsPublish,
 	})
 	if err != nil {
 		s.log.Error("ArticleService/Create error", zap.Error(err))

@@ -32,6 +32,7 @@ type CreateArticleRequest struct {
 	Summary    string `json:"summary"`
 	CoverImage string `json:"coverImage"`
 	IsTop      bool   `json:"isTop"`
+	IsPublish  bool   `json:"isPublish"`
 }
 
 type GetArticleRequest struct {

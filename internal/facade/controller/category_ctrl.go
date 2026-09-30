@@ -2,7 +2,6 @@ package controller
 
 import (
 	"gateway/internal/application"
-	"gateway/internal/facade/middleware"
 	"gateway/internal/model/dto"
 	"gateway/internal/model/reponse"
 
@@ -16,12 +15,6 @@ func NewCategoryController(svc *application.CategoryService) *CategoryController
 }
 
 func (ct *CategoryController) CreateType(c *gin.Context) {
-	role := middleware.GetRole(c)
-	if role != "admin" {
-		reponse.Forbidden(c)
-		return
-	}
-
 	var req dto.CreateTypeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
@@ -37,12 +30,6 @@ func (ct *CategoryController) CreateType(c *gin.Context) {
 }
 
 func (ct *CategoryController) DeleteType(c *gin.Context) {
-	role := middleware.GetRole(c)
-	if role != "admin" {
-		reponse.Forbidden(c)
-		return
-	}
-
 	var req dto.DeleteTypeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
@@ -58,12 +45,6 @@ func (ct *CategoryController) DeleteType(c *gin.Context) {
 }
 
 func (ct *CategoryController) CreateCategory(c *gin.Context) {
-	role := middleware.GetRole(c)
-	if role != "admin" {
-		reponse.Forbidden(c)
-		return
-	}
-
 	var req dto.CreateCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
@@ -79,12 +60,6 @@ func (ct *CategoryController) CreateCategory(c *gin.Context) {
 }
 
 func (ct *CategoryController) DeleteCategory(c *gin.Context) {
-	role := middleware.GetRole(c)
-	if role != "admin" {
-		reponse.Forbidden(c)
-		return
-	}
-
 	var req dto.DeleteCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)

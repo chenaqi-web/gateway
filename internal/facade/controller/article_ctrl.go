@@ -39,6 +39,10 @@ func (ct *ArticleController) Create(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
+func (ct *ArticleController) Edit(c *gin.Context) {
+
+}
+
 func (ct *ArticleController) Search(c *gin.Context) {
 	var req dto.SearchArticlesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
