@@ -69,11 +69,12 @@ func (s *UserService) UpdateProfile(ctx context.Context, req dto.UpdateProfileRe
 	defer cancel()
 
 	_, err := s.rpc.GetUserClient().UpdateProfile(RpcCtx, &userpb.UpdateProfileRequest{
-		UserId:   req.UserID,
-		Username: req.Username,
-		Phone:    req.Phone,
-		Sex:      req.Sex,
-		Birthday: req.Birthday,
+		UserId:    req.UserID,
+		Username:  req.Username,
+		Phone:     req.Phone,
+		Sex:       req.Sex,
+		Birthday:  req.Birthday,
+		Signature: req.Signature,
 	})
 	if err != nil {
 		s.log.Error("UserService/UpdateProfile error", zap.Error(err))
