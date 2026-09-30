@@ -87,6 +87,16 @@ type DeleteArticleRequest struct {
 	Role     string `json:"-"`
 }
 
+type PublishDraftRequest struct {
+	ID       uint64 `json:"id" binding:"required"`
+	AuthorID uint64 `json:"-"`
+}
+
+type DeleteDraftRequest struct {
+	ID       uint64 `json:"id" binding:"required"`
+	AuthorID uint64 `json:"-"`
+}
+
 type ArticleImageUploadRequest struct {
 	UserID uint64                `json:"-"`
 	File   *multipart.FileHeader `json:"-"`
@@ -113,6 +123,7 @@ type GetArticleResponse struct {
 
 type ListArticlesResponse struct {
 	Articles []*Article `json:"articles"`
+	Total    uint64     `json:"total"`
 }
 
 // ---------- 转换 ----------
@@ -190,5 +201,12 @@ func ToGetArticleResponse(resp *articlepb.GetArticleResponse) *GetArticleRespons
 }
 
 func ToListArticlesResponse(articles []*articlepb.Article) *ListArticlesResponse {
-	return &ListArticlesResponse{Articles: ToArticles(articles)}
+	return &ListArticlesResponse{Articles: ToArticles(articles), Total: uint64(len(articles))}
+}
+
+func ToListMyArticlesResponse(resp *articlepb.ListMyArticlesResponse) *ListArticlesResponse {
+	if resp == nil {
+		return &ListArticlesResponse{}
+	}
+	return &ListArticlesResponse{Articles: ToArticles(resp.GetArticles()), Total: resp.GetTotal()}
 }

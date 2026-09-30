@@ -52,6 +52,21 @@ func (u *UserController) GetVisitorProfile(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
+func (u *UserController) PublicUserList(c *gin.Context) {
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+
+	res, err := u.svc.PublicUserList(c.Request.Context(), &dto.UserListRequest{
+		Page:     vaildate.Page(page),
+		PageSize: vaildate.PageSize(pageSize),
+	})
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, res)
+}
+
 func (u *UserController) UpdateProfile(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {

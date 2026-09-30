@@ -19,13 +19,18 @@ func NewArticleRouter(v *gin.RouterGroup, ct *controller.ArticleController, auth
 		authorized := article.Group("")
 		authorized.Use(authMiddleware)
 		{
+			// 文章操作
 			authorized.POST("/create", ct.Create)
 			authorized.POST("/edit", ct.Edit)
 			authorized.DELETE("/del", ct.Delete)
 
+			// 草稿箱操作
 			authorized.POST("/draft", ct.SaveDraft)
 			authorized.POST("/draft/list", ct.ListDrafts)
+			authorized.POST("/draft/publish", ct.PublishDraft)
+			authorized.DELETE("/draft/del", ct.DeleteDraft)
 
+			// 图片操作
 			authorized.POST("/upload/cover", ct.UploadCover)
 			authorized.POST("/upload/content", ct.UploadContentImage)
 

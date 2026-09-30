@@ -84,6 +84,28 @@ func (ct *ArticleController) Edit(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
+func (ct *ArticleController) PublishDraft(c *gin.Context) {
+	var req dto.PublishDraftRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Unauthorized(c)
+		return
+	}
+	req.AuthorID = userID
+
+	result, err := ct.svc.PublishDraft(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
+}
+
 func (ct *ArticleController) UploadCover(c *gin.Context) {
 	userID, ok := middleware.GetUserID(c)
 	if !ok {
@@ -169,6 +191,28 @@ func (ct *ArticleController) Delete(c *gin.Context) {
 	req.Role = middleware.GetRole(c)
 
 	result, err := ct.svc.Delete(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
+}
+
+func (ct *ArticleController) DeleteDraft(c *gin.Context) {
+	var req dto.DeleteDraftRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Unauthorized(c)
+		return
+	}
+	req.AuthorID = userID
+
+	result, err := ct.svc.DeleteDraft(c.Request.Context(), req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())
 		return

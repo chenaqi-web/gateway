@@ -156,6 +156,21 @@ func (s *UserService) UserList(ctx context.Context, rep *dto.UserListRequest) (*
 	return dto.ToUserListResponse(resp.GetUsers(), resp.GetTotal()), nil
 }
 
+func (s *UserService) PublicUserList(ctx context.Context, rep *dto.UserListRequest) (*dto.PublicUserListResponse, error) {
+	RpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
+	defer cancel()
+
+	resp, err := s.rpc.GetUserClient().ListUsers(RpcCtx, &userpb.ListUsersRequest{
+		Page:     int32(rep.Page),
+		PageSize: int32(rep.PageSize),
+	})
+	if err != nil {
+		s.log.Error("UserService/PublicUserList error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToPublicUserListResponse(resp.GetUsers()), nil
+}
+
 func (s *UserService) AddBlacklist(ctx context.Context, req *dto.UserBlacklistRequest) error {
 	RpcCtx, cancel := context.WithTimeout(ctx, s.rpc.GetRequestTimeout())
 	defer cancel()

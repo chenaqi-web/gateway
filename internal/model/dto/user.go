@@ -62,15 +62,26 @@ type UserAvatarResponse struct {
 }
 
 type UserInfo struct {
-	ID       uint64 `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Avatar   string `json:"avatar"`
-	Sex      string `json:"sex"`
-	Birthday string `json:"birthday"`
-	Role     string `json:"role"`
-	Status   string `json:"status"`
+	ID        uint64 `json:"id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone"`
+	Avatar    string `json:"avatar"`
+	Sex       string `json:"sex"`
+	Birthday  string `json:"birthday"`
+	Signature string `json:"signature"`
+	Role      string `json:"role"`
+	Status    string `json:"status"`
+}
+
+type PublicUserInfo struct {
+	ID        uint64 `json:"id"`
+	Username  string `json:"username"`
+	Avatar    string `json:"avatar"`
+	Sex       string `json:"sex"`
+	Birthday  string `json:"birthday"`
+	Signature string `json:"signature"`
+	Status    string `json:"status"`
 }
 
 type UserListRequest struct {
@@ -81,6 +92,11 @@ type UserListRequest struct {
 type UserListResponse struct {
 	Users []*UserInfo `json:"users"`
 	Total uint64      `json:"total"`
+}
+
+type PublicUserListResponse struct {
+	Users []*PublicUserInfo `json:"users"`
+	Total uint64            `json:"total"`
 }
 
 type UserSearchRequest struct {
@@ -101,15 +117,31 @@ func ToUserInfo(user *userpb.UserInfo) *UserInfo {
 		return nil
 	}
 	return &UserInfo{
-		ID:       user.GetId(),
-		Username: user.GetUsername(),
-		Email:    user.GetEmail(),
-		Phone:    user.GetPhone(),
-		Avatar:   user.GetAvatar(),
-		Sex:      user.GetSex(),
-		Role:     user.GetRole(),
-		Status:   user.GetStatus(),
-		Birthday: user.GetBirthday(),
+		ID:        user.GetId(),
+		Username:  user.GetUsername(),
+		Email:     user.GetEmail(),
+		Phone:     user.GetPhone(),
+		Avatar:    user.GetAvatar(),
+		Sex:       user.GetSex(),
+		Signature: user.GetSignature(),
+		Role:      user.GetRole(),
+		Status:    user.GetStatus(),
+		Birthday:  user.GetBirthday(),
+	}
+}
+
+func ToPublicUserInfo(user *userpb.UserInfo) *PublicUserInfo {
+	if user == nil {
+		return nil
+	}
+	return &PublicUserInfo{
+		ID:        user.GetId(),
+		Username:  user.GetUsername(),
+		Avatar:    user.GetAvatar(),
+		Sex:       user.GetSex(),
+		Birthday:  user.GetBirthday(),
+		Signature: user.GetSignature(),
+		Status:    user.GetStatus(),
 	}
 }
 
@@ -125,6 +157,19 @@ func ToUserListResponse(users []*userpb.UserInfo, total uint64) *UserListRespons
 		Users: res,
 		Total: total,
 	}
+}
+
+func ToPublicUserListResponse(users []*userpb.UserInfo) *PublicUserListResponse {
+	res := make([]*PublicUserInfo, 0, len(users))
+	for _, user := range users {
+		if user.GetStatus() != "approved" {
+			continue
+		}
+		if userInfo := ToPublicUserInfo(user); userInfo != nil {
+			res = append(res, userInfo)
+		}
+	}
+	return &PublicUserListResponse{Users: res, Total: uint64(len(res))}
 }
 
 func ToUserSearchResponse(users []*userpb.UserInfo, total uint64) *UserSearchResponse {

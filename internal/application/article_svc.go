@@ -67,6 +67,18 @@ func (s *ArticleService) Edit(ctx context.Context, req dto.EditArticleRequest) (
 	return dto.ToEditArticleResponse(resp.GetSuccess(), resp.GetArticleID()), nil
 }
 
+func (s *ArticleService) PublishDraft(ctx context.Context, req dto.PublishDraftRequest) (*dto.ArticleBoolResponse, error) {
+	resp, err := s.rpc.ArticleClient.PublishDraft(ctx, &articlepb.PublishDraftRequest{
+		Id:       req.ID,
+		AuthorID: req.AuthorID,
+	})
+	if err != nil {
+		s.log.Error("ArticleService/PublishDraft error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToArticleBoolResponse(resp.GetSuccess()), nil
+}
+
 func (s *ArticleService) Search(ctx context.Context, req dto.SearchArticlesRequest) (*dto.ListArticlesResponse, error) {
 	resp, err := s.rpc.ArticleClient.SearchArticles(ctx, &articlepb.SearchArticlesRequest{Q: req.Q, Page: req.Page, PageSize: req.PageSize})
 	if err != nil {
@@ -80,6 +92,15 @@ func (s *ArticleService) Delete(ctx context.Context, req dto.DeleteArticleReques
 	resp, err := s.rpc.ArticleClient.DeleteArticle(ctx, &articlepb.DeleteArticleRequest{Id: req.ID, UserID: req.AuthorID, Role: req.Role})
 	if err != nil {
 		s.log.Error("ArticleService/Delete error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToArticleBoolResponse(resp.GetSuccess()), nil
+}
+
+func (s *ArticleService) DeleteDraft(ctx context.Context, req dto.DeleteDraftRequest) (*dto.ArticleBoolResponse, error) {
+	resp, err := s.rpc.ArticleClient.DeleteDraft(ctx, &articlepb.DeleteDraftRequest{Id: req.ID, AuthorID: req.AuthorID})
+	if err != nil {
+		s.log.Error("ArticleService/DeleteDraft error", zap.Error(err))
 		return nil, err
 	}
 	return dto.ToArticleBoolResponse(resp.GetSuccess()), nil
@@ -146,7 +167,7 @@ func (s *ArticleService) ListByUserID(ctx context.Context, req dto.ListMyArticle
 		s.log.Error("ArticleService/ListByUserID error", zap.Error(err))
 		return nil, err
 	}
-	return dto.ToListArticlesResponse(resp.GetArticles()), nil
+	return dto.ToListMyArticlesResponse(resp), nil
 }
 
 func (s *ArticleService) ListByCategory(ctx context.Context, req dto.ListByCategoryRequest) (*dto.ListArticlesResponse, error) {
