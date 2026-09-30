@@ -30,28 +30,28 @@ func newLocalProvider(cfg *config.Config) Provider {
 	}
 }
 
-func (s *localProvider) Upload(ctx context.Context, file *multipart.FileHeader, directory string) (string, error) {
+func (s *localProvider) Upload(_ context.Context, file *multipart.FileHeader, directory string, id uint64) (string, error) {
+	if filepath.IsAbs(directory) {
+		return "", ErrInvalidStorageKey
+	}
+	directory = filepath.ToSlash(filepath.Clean(directory))
+	if directory == "." || strings.HasPrefix(directory, "../") || directory == ".." {
+		return "", ErrInvalidStorageKey
+	}
 
-	return "", nil
-}
-
-func (s *localProvider) UploadAvatar(ctx context.Context, file *multipart.FileHeader, userID uint64) (string, error) {
 	now := time.Now().UTC()
 	ext := strings.ToLower(filepath.Ext(filepath.Base(file.Filename)))
+	key := filepath.ToSlash(filepath.Join(directory, now.Format("2006/01"), fmt.Sprintf("%d-%d%s", now.UnixMilli(), id, ext)))
 
-	// {业务目录}/{yyyy}/{MM}/{毫秒时间戳}-{用户ID}.{扩展名}
-	key := filepath.ToSlash(filepath.Join(DirectoryAvatar, now.Format("2006/01"), fmt.Sprintf("%d-%d%s", now.UnixMilli(), userID, ext)))
-
-	key, err := s.write(ctx, file, key)
+	key, err := s.write(file, key)
 	if err != nil {
 		return "", err
 	}
 
-	// 域名/static/upload/{key}
 	return s.BaseUrl + s.urlPrefix + key, nil
 }
 
-func (s *localProvider) write(ctx context.Context, file *multipart.FileHeader, key string) (string, error) {
+func (s *localProvider) write(file *multipart.FileHeader, key string) (string, error) {
 	path := filepath.Join(s.rootDir, filepath.FromSlash(key))
 
 	// 递归创建目录
@@ -103,9 +103,14 @@ func (s *localProvider) Delete(_ context.Context, key string) error {
 
 	// 2.去掉前缀
 	key = strings.TrimPrefix(key, s.urlPrefix)
+	key = strings.TrimPrefix(key, "/")
+	key = filepath.ToSlash(filepath.Clean(key))
+	if key == "." || strings.HasPrefix(key, "../") || key == ".." {
+		return ErrInvalidStorageKey
+	}
 
 	// 3.删除照片
-	if err := os.Remove(key); err != nil && !os.IsNotExist(err) {
+	if err := os.Remove(filepath.Join(s.rootDir, filepath.FromSlash(key))); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	return nil

@@ -5,19 +5,29 @@ import (
 
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/articlepb"
+	"gateway/internal/config"
 	"gateway/internal/infras/clog"
+	"gateway/internal/infras/storage"
 	"gateway/internal/model/dto"
+	"gateway/internal/utils"
 
 	"go.uber.org/zap"
 )
 
 type ArticleService struct {
-	rpc *rpc.Client
-	log *clog.Log
+	cfg     *config.Config
+	rpc     *rpc.Client
+	storage *storage.Client
+	log     *clog.Log
 }
 
-func NewArticleService(rpcClient *rpc.Client, log *clog.Log) *ArticleService {
-	return &ArticleService{rpc: rpcClient, log: log}
+func NewArticleService(cfg *config.Config, rpcClient *rpc.Client, log *clog.Log, storageClient *storage.Client) *ArticleService {
+	return &ArticleService{
+		cfg:     cfg,
+		rpc:     rpcClient,
+		storage: storageClient,
+		log:     log,
+	}
 }
 
 func (s *ArticleService) Create(ctx context.Context, req dto.CreateArticleRequest) (*dto.ArticleBoolResponse, error) {
@@ -38,6 +48,25 @@ func (s *ArticleService) Create(ctx context.Context, req dto.CreateArticleReques
 	return dto.ToArticleBoolResponse(resp.GetSuccess()), nil
 }
 
+func (s *ArticleService) Edit(ctx context.Context, req dto.EditArticleRequest) (*dto.EditArticleResponse, error) {
+	resp, err := s.rpc.ArticleClient.EditorArticle(ctx, &articlepb.EditorArticleRequest{
+		Id:          req.ID,
+		AuthorID:    req.AuthorID,
+		Title:       req.Title,
+		Summary:     req.Summary,
+		Content:     req.Content,
+		CoverImage:  req.CoverImage,
+		CategoryID:  req.CategoryID,
+		IsTop:       req.IsTop,
+		IsPublished: req.IsPublish,
+	})
+	if err != nil {
+		s.log.Error("ArticleService/Edit error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToEditArticleResponse(resp.GetSuccess(), resp.GetArticleID()), nil
+}
+
 func (s *ArticleService) Search(ctx context.Context, req dto.SearchArticlesRequest) (*dto.ListArticlesResponse, error) {
 	resp, err := s.rpc.ArticleClient.SearchArticles(ctx, &articlepb.SearchArticlesRequest{Q: req.Q, Page: req.Page, PageSize: req.PageSize})
 	if err != nil {
@@ -55,6 +84,38 @@ func (s *ArticleService) Delete(ctx context.Context, req dto.DeleteArticleReques
 	}
 	return dto.ToArticleBoolResponse(resp.GetSuccess()), nil
 }
+
+// =====================================================================================================================
+
+func (s *ArticleService) UploadCover(ctx context.Context, req dto.ArticleImageUploadRequest) (*dto.ArticleImageUploadResponse, error) {
+	if err := utils.ValidateImage(s.cfg, req.File); err != nil {
+		s.log.Error("ArticleService/UploadCover validate error", zap.Error(err))
+		return nil, err
+	}
+
+	url, err := s.storage.Upload(ctx, req.File, storage.DirectoryArticleCover, req.UserID)
+	if err != nil {
+		s.log.Error("ArticleService/UploadCover upload error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToArticleImageUploadResponse(url), nil
+}
+
+func (s *ArticleService) UploadContentImage(ctx context.Context, req dto.ArticleImageUploadRequest) (*dto.ArticleImageUploadResponse, error) {
+	if err := utils.ValidateImage(s.cfg, req.File); err != nil {
+		s.log.Error("ArticleService/UploadContentImage validate error", zap.Error(err))
+		return nil, err
+	}
+
+	url, err := s.storage.Upload(ctx, req.File, storage.DirectoryArticleContent, req.UserID)
+	if err != nil {
+		s.log.Error("ArticleService/UploadContentImage upload error", zap.Error(err))
+		return nil, err
+	}
+	return dto.ToArticleImageUploadResponse(url), nil
+}
+
+// =====================================================================================================================
 
 func (s *ArticleService) GetDetail(ctx context.Context, req dto.GetArticleRequest) (*dto.GetArticleResponse, error) {
 	resp, err := s.rpc.ArticleClient.GetArticle(ctx, &articlepb.GetArticleRequest{Id: req.ID})
@@ -75,7 +136,12 @@ func (s *ArticleService) List(ctx context.Context, req dto.ListArticlesRequest) 
 }
 
 func (s *ArticleService) ListByUserID(ctx context.Context, req dto.ListMyArticlesRequest) (*dto.ListArticlesResponse, error) {
-	resp, err := s.rpc.ArticleClient.ListMyArticles(ctx, &articlepb.ListMyArticlesRequest{AuthorID: req.AuthorID, Page: req.Page, PageSize: req.PageSize})
+	resp, err := s.rpc.ArticleClient.ListMyArticles(ctx, &articlepb.ListMyArticlesRequest{
+		AuthorID:    req.AuthorID,
+		Page:        req.Page,
+		PageSize:    req.PageSize,
+		IsPublished: req.IsPublished,
+	})
 	if err != nil {
 		s.log.Error("ArticleService/ListByUserID error", zap.Error(err))
 		return nil, err

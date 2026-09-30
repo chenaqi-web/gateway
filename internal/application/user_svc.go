@@ -93,7 +93,7 @@ func (s *UserService) UpdateAvatar(ctx context.Context, req *dto.UserAvatarReque
 		return nil, err
 	}
 
-	result, err := s.storage.UploadAvatar(RpcCtx, req.File, req.UserID)
+	result, err := s.storage.Upload(RpcCtx, req.File, storage.DirectoryAvatar, req.UserID)
 	if err != nil {
 		s.log.Error("StorageService/uploadImage error", zap.Error(err))
 		return nil, err

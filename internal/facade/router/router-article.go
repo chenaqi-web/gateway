@@ -11,9 +11,10 @@ func NewArticleRouter(v *gin.RouterGroup, ct *controller.ArticleController, auth
 	{
 		article.POST("/message", ct.GetDetail)
 		article.POST("/search", ct.Search)
+
 		article.POST("/list", ct.List)
-		article.POST("/list/by_cate", ct.ByCategory)
-		article.POST("/list/by_user", ct.ListByUserID)
+		article.POST("/list/by_cate", ct.ListByCate)
+		article.POST("/list/by_user", ct.ListByUser)
 
 		authorized := article.Group("")
 		authorized.Use(authMiddleware)
@@ -21,6 +22,13 @@ func NewArticleRouter(v *gin.RouterGroup, ct *controller.ArticleController, auth
 			authorized.POST("/create", ct.Create)
 			authorized.POST("/edit", ct.Edit)
 			authorized.DELETE("/del", ct.Delete)
+
+			authorized.POST("/draft", ct.SaveDraft)
+			authorized.POST("/draft/list", ct.ListDrafts)
+
+			authorized.POST("/upload/cover", ct.UploadCover)
+			authorized.POST("/upload/content", ct.UploadContentImage)
+
 		}
 	}
 }

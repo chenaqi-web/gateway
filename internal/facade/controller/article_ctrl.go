@@ -39,8 +39,101 @@ func (ct *ArticleController) Create(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
-func (ct *ArticleController) Edit(c *gin.Context) {
+func (ct *ArticleController) SaveDraft(c *gin.Context) {
+	var req dto.CreateArticleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
 
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Unauthorized(c)
+		return
+	}
+	req.AuthorID = userID
+	req.IsPublish = false
+
+	result, err := ct.svc.Create(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
+}
+
+func (ct *ArticleController) Edit(c *gin.Context) {
+	var req dto.EditArticleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Unauthorized(c)
+		return
+	}
+	req.AuthorID = userID
+
+	result, err := ct.svc.Edit(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
+}
+
+func (ct *ArticleController) UploadCover(c *gin.Context) {
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Unauthorized(c)
+		return
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	req := dto.ArticleImageUploadRequest{
+		UserID: userID,
+		File:   file,
+	}
+
+	result, err := ct.svc.UploadCover(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
+}
+
+func (ct *ArticleController) UploadContentImage(c *gin.Context) {
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Unauthorized(c)
+		return
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	req := dto.ArticleImageUploadRequest{
+		UserID: userID,
+		File:   file,
+	}
+
+	result, err := ct.svc.UploadContentImage(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+	reponse.Success(c, result)
 }
 
 func (ct *ArticleController) Search(c *gin.Context) {
@@ -115,7 +208,7 @@ func (ct *ArticleController) List(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
-func (ct *ArticleController) ListByUserID(c *gin.Context) {
+func (ct *ArticleController) ListByUser(c *gin.Context) {
 	var req dto.ListMyArticlesRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
@@ -134,6 +227,8 @@ func (ct *ArticleController) ListByUserID(c *gin.Context) {
 		reponse.StatusBadRequest(c)
 		return
 	}
+	isPublished := true
+	req.IsPublished = &isPublished
 
 	result, err := ct.svc.ListByUserID(c.Request.Context(), req)
 	if err != nil {
@@ -144,7 +239,32 @@ func (ct *ArticleController) ListByUserID(c *gin.Context) {
 	reponse.Success(c, result)
 }
 
-func (ct *ArticleController) ByCategory(c *gin.Context) {
+func (ct *ArticleController) ListDrafts(c *gin.Context) {
+	var req dto.ListMyArticlesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		reponse.StatusBadRequest(c)
+		return
+	}
+
+	userID, ok := middleware.GetUserID(c)
+	if !ok {
+		reponse.Unauthorized(c)
+		return
+	}
+	isPublished := false
+	req.AuthorID = userID
+	req.IsPublished = &isPublished
+
+	result, err := ct.svc.ListByUserID(c.Request.Context(), req)
+	if err != nil {
+		reponse.InternalServerError(c, err.Error())
+		return
+	}
+
+	reponse.Success(c, result)
+}
+
+func (ct *ArticleController) ListByCate(c *gin.Context) {
 	var req dto.ListByCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reponse.StatusBadRequest(c)
