@@ -119,6 +119,7 @@ type ArticleImageUploadResponse struct {
 
 type GetArticleResponse struct {
 	Article *Article `json:"article"`
+	IsLiked bool     `json:"isLiked"`
 }
 
 type ListArticlesResponse struct {
@@ -174,30 +175,33 @@ func ToArticleImageUploadResponse(url string) *ArticleImageUploadResponse {
 	return &ArticleImageUploadResponse{URL: url}
 }
 
-func ToGetArticleResponse(resp *articlepb.GetArticleResponse) *GetArticleResponse {
+func ToGetArticleResponse(resp *articlepb.GetArticleResponse, isLiked bool) *GetArticleResponse {
 	if resp == nil {
 		return &GetArticleResponse{}
 	}
-	return &GetArticleResponse{Article: &Article{
-		ID:           resp.GetId(),
-		Title:        resp.GetTitle(),
-		Summary:      resp.GetSummary(),
-		Content:      resp.GetContent(),
-		CoverImage:   resp.GetCoverImage(),
-		AuthorID:     resp.GetAuthorID(),
-		CategoryID:   resp.GetCategoryID(),
-		IsTop:        resp.GetIsTop(),
-		IsPublished:  resp.GetIsPublished(),
-		ViewCount:    resp.GetViewCount(),
-		LikeCount:    resp.GetLikeCount(),
-		FavorCount:   resp.GetFavorCount(),
-		CommentCount: resp.GetCommentCount(),
-		CreatedAt:    resp.GetCreatedAt(),
-		UpdatedAt:    resp.GetUpdatedAt(),
-		PublishedAt:  resp.GetPublishedAt(),
-		AuthorName:   resp.GetAuthorName(),
-		AuthorAvatar: resp.GetAuthorAvatar(),
-	}}
+	return &GetArticleResponse{
+		Article: &Article{
+			ID:           resp.GetId(),
+			Title:        resp.GetTitle(),
+			Summary:      resp.GetSummary(),
+			Content:      resp.GetContent(),
+			CoverImage:   resp.GetCoverImage(),
+			AuthorID:     resp.GetAuthorID(),
+			CategoryID:   resp.GetCategoryID(),
+			IsTop:        resp.GetIsTop(),
+			IsPublished:  resp.GetIsPublished(),
+			ViewCount:    resp.GetViewCount(),
+			LikeCount:    resp.GetLikeCount(),
+			FavorCount:   resp.GetFavorCount(),
+			CommentCount: resp.GetCommentCount(),
+			CreatedAt:    resp.GetCreatedAt(),
+			UpdatedAt:    resp.GetUpdatedAt(),
+			PublishedAt:  resp.GetPublishedAt(),
+			AuthorName:   resp.GetAuthorName(),
+			AuthorAvatar: resp.GetAuthorAvatar(),
+		},
+		IsLiked: isLiked,
+	}
 }
 
 func ToListArticlesResponse(articles []*articlepb.Article) *ListArticlesResponse {

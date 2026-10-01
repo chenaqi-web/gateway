@@ -9,7 +9,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type LikeController struct{ svc *application.LikeService }
+type LikeController struct {
+	svc *application.LikeService
+}
 
 func NewLikeController(svc *application.LikeService) *LikeController {
 	return &LikeController{svc: svc}

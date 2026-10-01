@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"gateway/internal/client/rpc/core-rpc/likepb"
 
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/articlepb"
@@ -144,7 +145,14 @@ func (s *ArticleService) GetDetail(ctx context.Context, req dto.GetArticleReques
 		s.log.Error("ArticleService/GetDetail error", zap.Error(err))
 		return nil, err
 	}
-	return dto.ToGetArticleResponse(resp), nil
+
+	res, err := s.rpc.LikeClient.HasLike(ctx, &likepb.HasLikeRequest{})
+	if err != nil {
+		s.log.Error("ArticleService/GetDetail HasLike error", zap.Error(err))
+		return nil, err
+	}
+
+	return dto.ToGetArticleResponse(resp, res.IsLiked), nil
 }
 
 func (s *ArticleService) List(ctx context.Context, req dto.ListArticlesRequest) (*dto.ListArticlesResponse, error) {
