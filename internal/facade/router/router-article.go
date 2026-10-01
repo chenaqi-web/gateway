@@ -6,10 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewArticleRouter(v *gin.RouterGroup, ct *controller.ArticleController, authMiddleware gin.HandlerFunc) {
+func NewArticleRouter(v *gin.RouterGroup, ct *controller.ArticleController, authMiddleware gin.HandlerFunc, optionalAuth gin.HandlerFunc) {
 	article := v.Group("/article")
 	{
-		article.POST("/message", ct.GetDetail)
+		article.POST("/message", optionalAuth, ct.GetDetail)
 		article.POST("/search", ct.Search)
 
 		article.POST("/list", ct.List)

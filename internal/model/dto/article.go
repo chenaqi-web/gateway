@@ -54,7 +54,8 @@ type EditArticleRequest struct {
 }
 
 type GetArticleRequest struct {
-	ID uint64 `json:"id" binding:"required"`
+	ID     uint64 `json:"id" binding:"required"`
+	UserID uint64 `json:"-"`
 }
 
 type ListArticlesRequest struct {

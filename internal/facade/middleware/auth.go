@@ -30,6 +30,7 @@ func NewAuthMiddleware(cfg config.AuthConfig, Blacklist *cache.Blacklist) *AuthM
 	}
 }
 
+// RequireAuth 必须鉴权
 func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 1.首先获取accessToken
@@ -114,6 +115,64 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		}
 		c.Set(AuthUserIDContextKey, UserID)
 		c.Set(AuthRoleContextKey, Role)
+		c.Next()
+	}
+}
+
+// OptionalAuth 可选鉴权
+func (m *AuthMiddleware) OptionalAuth() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		accessToken, ok := bearerToken(c.GetHeader("Authorization"))
+		if !ok {
+			c.Next()
+			return
+		}
+
+		blacklisted, err := m.Blacklist.IsTokenBlacklisted(c.Request.Context(), accessToken)
+		if err != nil || blacklisted {
+			c.Next()
+			return
+		}
+
+		claims, err := utils.GetClaims(accessToken, []byte(m.cfg.JWTSecret))
+		if err != nil {
+			refreshToken, err := utils.RefreshTokenFromCookie(c.Request)
+			if err != nil {
+				c.Next()
+				return
+			}
+
+			blacklisted, err = m.Blacklist.IsTokenBlacklisted(c.Request.Context(), refreshToken)
+			if err != nil || blacklisted {
+				c.Next()
+				return
+			}
+
+			refreshClaims, err := utils.GetClaims(refreshToken, []byte(m.cfg.JWTSecret))
+			if err != nil {
+				c.Next()
+				return
+			}
+
+			newAccessToken, err := utils.CreateAccessToken([]byte(m.cfg.JWTSecret), *refreshClaims, m.cfg.AccessExpire)
+			if err != nil {
+				c.Next()
+				return
+			}
+
+			c.Header(refreshedAccessTokenHeader, "Bearer "+newAccessToken)
+			c.Header("Access-Control-Expose-Headers", refreshedAccessTokenHeader)
+			claims = refreshClaims
+		}
+
+		isUserInBlacklist, err := m.Blacklist.IsUserBlacklisted(c.Request.Context(), claims.UserID)
+		if err != nil || isUserInBlacklist {
+			c.Next()
+			return
+		}
+
+		c.Set(AuthUserIDContextKey, claims.UserID)
+		c.Set(AuthRoleContextKey, claims.Role)
 		c.Next()
 	}
 }

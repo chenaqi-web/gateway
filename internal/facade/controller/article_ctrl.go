@@ -227,6 +227,10 @@ func (ct *ArticleController) GetDetail(c *gin.Context) {
 		return
 	}
 
+	if userID, ok := middleware.GetUserID(c); ok {
+		req.UserID = userID
+	}
+
 	result, err := ct.svc.GetDetail(c.Request.Context(), req)
 	if err != nil {
 		reponse.InternalServerError(c, err.Error())

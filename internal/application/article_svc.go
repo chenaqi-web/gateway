@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"gateway/internal/client/rpc/core-rpc/likepb"
+	"gateway/internal/model/enum"
 
 	"gateway/internal/client/rpc"
 	"gateway/internal/client/rpc/core-rpc/articlepb"
@@ -146,13 +147,21 @@ func (s *ArticleService) GetDetail(ctx context.Context, req dto.GetArticleReques
 		return nil, err
 	}
 
-	res, err := s.rpc.LikeClient.HasLike(ctx, &likepb.HasLikeRequest{})
-	if err != nil {
-		s.log.Error("ArticleService/GetDetail HasLike error", zap.Error(err))
-		return nil, err
+	isLiked := false
+	if req.UserID > 0 {
+		res, err := s.rpc.LikeClient.HasLike(ctx, &likepb.HasLikeRequest{
+			UserID:     req.UserID,
+			ObjectType: enum.ObjectTypeArticle.String(),
+			ObjectID:   req.ID,
+		})
+		if err != nil {
+			s.log.Error("ArticleService/GetDetail HasLike error", zap.Error(err))
+			return nil, err
+		}
+		isLiked = res.GetIsLiked()
 	}
 
-	return dto.ToGetArticleResponse(resp, res.IsLiked), nil
+	return dto.ToGetArticleResponse(resp, isLiked), nil
 }
 
 func (s *ArticleService) List(ctx context.Context, req dto.ListArticlesRequest) (*dto.ListArticlesResponse, error) {

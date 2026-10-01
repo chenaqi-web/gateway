@@ -32,6 +32,7 @@ func New(cfg *config.Config,
 	// 认证中间件
 	authMiddleware := middleware.NewAuthMiddleware(cfg.Auth, BlackList)
 	auth := authMiddleware.RequireAuth()
+	optionalAuth := authMiddleware.OptionalAuth()
 
 	// Prometheus metrics middleware
 	//r.Use(infraProm.GinMiddleware())
@@ -57,7 +58,7 @@ func New(cfg *config.Config,
 		router.NewAuthRouter(v1, authCtrl, auth)
 		router.NewUserRouter(v1, userCtrl, auth)
 		router.NewCategoryRouter(v1, categoryCtrl, auth)
-		router.NewArticleRouter(v1, articleCtrl, auth)
+		router.NewArticleRouter(v1, articleCtrl, auth, optionalAuth)
 		router.NewCommentRouter(v1, commentCtrl, auth)
 		router.NewLikeRouter(v1, likeCtrl, auth)
 
