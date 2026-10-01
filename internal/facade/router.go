@@ -59,7 +59,7 @@ func New(cfg *config.Config,
 		router.NewUserRouter(v1, userCtrl, auth)
 		router.NewCategoryRouter(v1, categoryCtrl, auth)
 		router.NewArticleRouter(v1, articleCtrl, auth, optionalAuth)
-		router.NewCommentRouter(v1, commentCtrl, auth)
+		router.NewCommentRouter(v1, commentCtrl, auth, optionalAuth)
 		router.NewLikeRouter(v1, likeCtrl, auth)
 
 	}
