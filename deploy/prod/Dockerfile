@@ -1,4 +1,4 @@
-ARG GO_IMAGE=docker.m.daocloud.io/library/golang:1.26-alpine
+ARG GO_IMAGE=docker.m.daocloud.io/library/golang:1.27-alpine
 ARG ALPINE_IMAGE=docker.m.daocloud.io/library/alpine:3.21
 FROM ${GO_IMAGE} AS builder
 
