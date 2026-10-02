@@ -1,0 +1,68 @@
+server:
+  addr: "0.0.0.0:8079"
+  mode: release
+
+Auth:
+  jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
+  access_expire: 3000
+  refresh_expire: 720000
+  cookie_secure: false
+
+Log:
+  Level: "debug"
+  Mode: "console"
+  Filename: "logs/gateway.log"
+
+rpc:
+  core_server_addr: "core-server:8081"
+  request_timeout: 5
+
+http:
+  agent_server_addr: "http://agent-server:8080"
+  request_timeout: 30
+
+Mysql:
+  Host: "mysql"
+  Port: "3306"
+  username: "root"
+  password: "123456"
+  dbname: "renai"
+  config: "charset=utf8mb4&parseTime=True&loc=Local"
+  Max_Idle_Conn: 10
+  Max_Open_Conn: 100
+
+Redis:
+  Host: "redis"
+  Port: "6379"
+  username: ""
+  password: ""
+  db: 0
+
+llm:
+  provider: zhipu
+  api_key: "CHANGE_ME_LLM_API_KEY"
+  api_url: "https://open.bigmodel.cn/api/paas/v4/"
+  model_id: "glm-4-flash"
+  model_name: "GLM-4-Flash"
+
+ai_chat:
+  vector_collection: "test_knowledge"
+  default_top_k: 5
+
+storage:
+  provider: local
+  root_dir: "./static/upload"
+  base_url: "http://127.0.0.1:8079"
+  access_key: ""
+  secret_key: ""
+  bucket: ""
+  region: ""
+  max_size: 10485760
+
+Email:
+  host: "smtp.qq.com"
+  port: 465
+  nickname: "Renai"
+  secret: ""
+  from: ""
+  is_ssl: true
