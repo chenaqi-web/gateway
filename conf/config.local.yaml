@@ -1,8 +1,8 @@
 server:
-  addr: "0.0.0.0:8079"
+  addr: "127.0.0.1:8079"
   mode: release
 
-Auth:
+auth:
   jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
   access_expire: 3000
   refresh_expire: 720000
@@ -10,19 +10,20 @@ Auth:
 
 Log:
   Level: "debug"
+  # console=仅终端彩色 | file=仅文件JSON
   Mode: "console"
   Filename: "logs/gateway.log"
 
 rpc:
-  core_server_addr: "core-server:8081"
+  core_server_addr: "127.0.0.1:8081"
   request_timeout: 5
 
 http:
-  agent_server_addr: "http://agent-server:8080"
-  request_timeout: 30
+  agent_server_addr: "http://localhost:8080"
+  request_timeout: 5
 
 Mysql:
-  Host: "mysql"
+  Host: "127.0.0.1"
   Port: "3306"
   username: "root"
   password: "123456"
@@ -32,15 +33,20 @@ Mysql:
   Max_Open_Conn: 100
 
 Redis:
-  Host: "redis"
+  Host: "127.0.0.1"
   Port: "6379"
-  username: ""
+  username: "root"
   password: ""
   db: 0
 
 llm:
+  # provider: ollama | zhipu
+  #  provider: ollama
+  #  api_url: "http://localhost:11434"
+  #  model_id: "llama3.2"
+  #  model_name: "Llama 3.2"
   provider: zhipu
-  api_key: "CHANGE_ME_LLM_API_KEY"
+  api_key: "1c096e9ffa4f4113ac003048de2906d3.b5yrOb2N9Ee63Ol7"
   api_url: "https://open.bigmodel.cn/api/paas/v4/"
   model_id: "glm-4-flash"
   model_name: "GLM-4-Flash"
@@ -50,6 +56,7 @@ ai_chat:
   default_top_k: 5
 
 storage:
+  # provider: local | cos | oss
   provider: local
   root_dir: "./static/upload"
   base_url: "http://127.0.0.1:8079"
@@ -57,12 +64,13 @@ storage:
   secret_key: ""
   bucket: ""
   region: ""
-  max_size: 10485760
+  max_size: 10485760 # 10MB
+
 
 Email:
   host: "smtp.qq.com"
   port: 465
-  nickname: "Renai"
-  secret: ""
-  from: ""
+  nickname: "chenaqi"
+  secret: "feanzgpiiyoccadc"
+  from: "492730753@qq.com"
   is_ssl: true
