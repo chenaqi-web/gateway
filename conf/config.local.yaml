@@ -1,5 +1,5 @@
 server:
-  addr: "127.0.0.1:8079"
+  addr: "0.0.0.0:8079"
   mode: release
 
 auth:
@@ -15,7 +15,7 @@ Log:
   Filename: "logs/gateway.log"
 
 rpc:
-  core_server_addr: "127.0.0.1:8081"
+  core_server_addr: "core-server:8081"
   request_timeout: 5
 
 http:
@@ -23,7 +23,7 @@ http:
   request_timeout: 5
 
 Mysql:
-  Host: "127.0.0.1"
+  Host: "mysql"
   Port: "3306"
   username: "root"
   password: "123456"
@@ -33,7 +33,7 @@ Mysql:
   Max_Open_Conn: 100
 
 Redis:
-  Host: "127.0.0.1"
+  Host: "redis"
   Port: "6379"
   username: "root"
   password: ""
