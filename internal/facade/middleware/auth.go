@@ -75,7 +75,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			}
 			if blacklisted {
 				c.Abort()
-				reponse.Fail(c, http.StatusUnauthorized, "invalid or expired token")
+				reponse.Fail(c, http.StatusUnauthorized, "token is in blacklist")
 				return
 			}
 

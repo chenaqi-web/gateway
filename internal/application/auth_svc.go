@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gateway/internal/infras/clog"
 	"strings"
 
@@ -123,9 +124,11 @@ func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken stri
 		return err
 	}
 
-	if err := s.blackList.AddToken(rpcCtx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
-		s.log.Error("AuthService/Logout error", zap.Error(err))
-		return err
+	if refreshToken != "" {
+		if err := s.blackList.AddToken(rpcCtx, refreshToken, s.cfg.Auth.RefreshExpire); err != nil {
+			s.log.Error("AuthService/Logout error", zap.Error(err))
+			return err
+		}
 	}
 	return nil
 }
@@ -169,6 +172,8 @@ func (s *AuthService) createLoginResult(user *authpb.LoginResponse) (*dto.LoginR
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(refreshToken)
 
 	return &dto.LoginResponse{
 		AccessToken:   accessToken,

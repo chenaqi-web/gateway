@@ -18,7 +18,7 @@ func NewAuthRouter(v *gin.RouterGroup, auth *controller.AuthController, authMidd
 		authorized := group.Group("")
 		authorized.Use(authMiddleware)
 		{
-			authorized.GET("/logout", authMiddleware, auth.Logout)
+			authorized.GET("/logout", auth.Logout)
 		}
 	}
 }
