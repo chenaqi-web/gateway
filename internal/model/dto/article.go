@@ -32,7 +32,7 @@ type Article struct {
 
 type CreateArticleRequest struct {
 	AuthorID   uint64 `json:"-"`
-	CategoryID uint64 `json:"categoryID" binding:"required"`
+	CategoryID uint64 `json:"categoryID"`
 	Content    string `json:"content" binding:"required"`
 	Title      string `json:"title" binding:"required"`
 	Summary    string `json:"summary"`
@@ -44,7 +44,7 @@ type CreateArticleRequest struct {
 type EditArticleRequest struct {
 	ID         uint64 `json:"id" binding:"required"`
 	AuthorID   uint64 `json:"-"`
-	CategoryID uint64 `json:"categoryID" binding:"required"`
+	CategoryID uint64 `json:"categoryID"`
 	Content    string `json:"content" binding:"required"`
 	Title      string `json:"title" binding:"required"`
 	Summary    string `json:"summary"`
