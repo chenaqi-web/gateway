@@ -2,7 +2,7 @@ server:
   addr: "0.0.0.0:8079"
   mode: release
 
-auth:
+Auth:
   jwt_secret: "gateway-dev-change-this-jwt-secret-2026"
   access_expire: 3000
   refresh_expire: 720000

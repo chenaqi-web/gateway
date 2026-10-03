@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 	"gateway/internal/infras/clog"
 	"strings"
 
@@ -172,8 +171,6 @@ func (s *AuthService) createLoginResult(user *authpb.LoginResponse) (*dto.LoginR
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(refreshToken)
 
 	return &dto.LoginResponse{
 		AccessToken:   accessToken,
