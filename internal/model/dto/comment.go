@@ -17,8 +17,9 @@ type CreateReplyRequest struct {
 }
 
 type DeleteCommentRequest struct {
-	ID     uint64 `json:"id" binding:"required"`
-	UserID uint64 `json:"-"`
+	ID        uint64 `json:"id" binding:"required"`
+	ArticleID uint64 `json:"articleId" binding:"required"`
+	UserID    uint64 `json:"-"`
 }
 
 type GetArticleCommentsRequest struct {

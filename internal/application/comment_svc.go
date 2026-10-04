@@ -54,8 +54,9 @@ func (s *CommentService) CreateReply(ctx context.Context, req dto.CreateReplyReq
 
 func (s *CommentService) Delete(ctx context.Context, req dto.DeleteCommentRequest) (*dto.CommentBoolResponse, error) {
 	resp, err := s.rpc.CommentClient.DeleteComment(ctx, &commentpb.DeleteCommentReq{
-		Id:     req.ID,
-		UserId: req.UserID,
+		Id:        req.ID,
+		UserId:    req.UserID,
+		ArticleId: req.ArticleID,
 	})
 	if err != nil {
 		s.log.Error("CommentService/Delete error", zap.Error(err))
