@@ -71,7 +71,7 @@ type ListMyArticlesRequest struct {
 }
 
 type ListByCategoryRequest struct {
-	CategoryID uint64 `json:"categoryID" binding:"required"`
+	CategoryID uint64 `json:"categoryID"`
 	Page       uint32 `json:"page"`
 	PageSize   uint32 `json:"pageSize"`
 }
